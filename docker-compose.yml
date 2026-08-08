@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: mango-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mango
+      TZ: UTC
+    ports: 
+      - "5432:5432"
+    volumes:
+      - mango_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  mango_postgres_data:

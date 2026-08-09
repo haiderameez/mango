@@ -3,3 +3,6 @@ class UserAlreadyExistsError(Exception):
 
 class InvalidCredentialsError(Exception):
     pass
+
+class InvalidAccessTokenError(Exception):
+    pass

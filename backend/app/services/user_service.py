@@ -1,8 +1,9 @@
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, create_access_token
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserLogin
 from app.core.exceptions import UserAlreadyExistsError, InvalidCredentialsError
+
 
 class UserService:
     def __init__(self, repository: UserRepository):
@@ -31,4 +32,4 @@ class UserService:
         if not verify_password(user_data.password, existing_user.password_hash):
             raise InvalidCredentialsError("Invalid email or password.")
 
-        return existing_user 
+        return create_access_token({"sub": str(existing_user.id)})

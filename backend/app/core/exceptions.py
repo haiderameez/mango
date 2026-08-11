@@ -6,3 +6,15 @@ class InvalidCredentialsError(Exception):
 
 class InvalidAccessTokenError(Exception):
     pass
+
+class IncidentNotFoundError(Exception):
+    pass
+
+class IncidentAssignmentError(Exception):
+    pass
+
+class UserNotFoundError(Exception):
+    pass
+
+class IncidentStatusUpdateError(Exception):
+    pass

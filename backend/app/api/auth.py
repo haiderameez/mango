@@ -7,7 +7,7 @@ from app.schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
 from app.services.user_service import UserService
 from app.core.exceptions import UserAlreadyExistsError, InvalidCredentialsError
 from app.core.dependencies import get_current_user
-from app.models.user import User
+from app.models.user import User    
 
 router = APIRouter(
     prefix="/auth",

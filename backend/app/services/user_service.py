@@ -4,7 +4,6 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserLogin
 from app.core.exceptions import UserAlreadyExistsError, InvalidCredentialsError
 
-
 class UserService:
     def __init__(self, repository: UserRepository):
         self.repository = repository

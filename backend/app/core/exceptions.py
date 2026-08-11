@@ -18,3 +18,9 @@ class UserNotFoundError(Exception):
 
 class IncidentStatusUpdateError(Exception):
     pass
+
+class CommentNotFoundError(Exception):
+    pass
+
+class CommentNotAllowedError(Exception):
+    pass

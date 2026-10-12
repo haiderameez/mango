@@ -1,7 +1,8 @@
-from sqlalchemy.orm import Session
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.models.comment import Comment
+
 
 class CommentRepository:
     def __init__(self, db: Session):

@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
-from pwdlib import PasswordHash
 from jwt.exceptions import InvalidTokenError as JWTInvalidTokenError
+from pwdlib import PasswordHash
 
 from app.core.config import settings
 from app.core.exceptions import InvalidAccessTokenError
@@ -18,7 +18,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
 
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expiration_minutes)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_expiration_minutes)
 
     to_encode.update({"exp": expire})
 
@@ -41,5 +41,5 @@ def decode_access_token(token: str) -> dict:
 
         return payload
 
-    except JWTInvalidTokenError as e:
-        raise InvalidAccessTokenError(f"Invalid access token.")
+    except JWTInvalidTokenError as error:
+        raise InvalidAccessTokenError("Invalid access token.") from error

@@ -24,3 +24,15 @@ class CommentNotFoundError(Exception):
 
 class CommentNotAllowedError(Exception):
     pass
+class InvestigationNotFoundError(Exception):
+    pass
+
+class InvestigationAlreadyRunningError(Exception):
+    pass
+
+class LlmQuotaExhaustedError(Exception):
+    pass
+
+
+class LlmRateLimitedError(Exception):
+    pass

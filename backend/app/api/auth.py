@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.database.session import get_db
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
-from app.services.user_service import UserService
-from app.core.exceptions import UserAlreadyExistsError, InvalidCredentialsError
 from app.core.dependencies import get_current_user
-from app.models.user import User    
+from app.core.exceptions import InvalidCredentialsError, UserAlreadyExistsError
+from app.database.session import get_db
+from app.models.user import User
+from app.repositories.user_repository import UserRepository
+from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
+from app.services.user_service import UserService
 
 router = APIRouter(
     prefix="/auth",
@@ -30,8 +30,8 @@ def register_user(user_data: UserCreate, service: UserService = Depends(get_user
     except UserAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=str(e)
-        )
+            detail=str(e),
+        ) from e
 
 @router.post("/login",
              response_model=TokenResponse,
@@ -45,8 +45,8 @@ def login_user(user_data: UserLogin, service: UserService = Depends(get_user_ser
     except InvalidCredentialsError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
+            detail=str(e),
+        ) from e
 
 @router.get("/me",
             response_model=UserResponse,

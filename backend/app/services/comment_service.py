@@ -1,20 +1,30 @@
-from app.repositories.comment_repository import CommentRepository
-from app.schemas.comment import CommentCreate, CommentUpdate, CommentResponse
-from app.models.comment import Comment
 from app.core.exceptions import (
-    IncidentNotFoundError,
-    CommentNotFoundError,
     CommentNotAllowedError,
+    CommentNotFoundError,
+    IncidentNotFoundError,
 )
+from app.models.activity import ActivityType
+from app.models.comment import Comment
+from app.repositories.activity_repository import ActivityRepository
+from app.repositories.comment_repository import CommentRepository
 from app.repositories.incident_repository import IncidentRepository
+from app.schemas.comment import CommentCreate, CommentResponse, CommentUpdate
 
 
 class CommentService:
-    def __init__(self,comment_repository: CommentRepository,incident_repository: IncidentRepository):
+    def __init__(
+        self,
+        comment_repository: CommentRepository,
+        incident_repository: IncidentRepository,
+        activity_repository: ActivityRepository,
+    ):
         self.comment_repository = comment_repository
         self.incident_repository = incident_repository
+        self.activity_repository = activity_repository
 
-    def create(self,comment: CommentCreate, incident_id: int, current_user_id: int) -> CommentResponse:
+    def create(
+        self, comment: CommentCreate, incident_id: int, current_user_id: int
+    ) -> CommentResponse:
         incident = self.incident_repository.get_by_id(incident_id)
 
         if incident is None:
@@ -23,6 +33,13 @@ class CommentService:
         new_comment = Comment(
             content=comment.content,
             incident_id=incident_id,
+            user_id=current_user_id,
+        )
+
+        # Staged before the insert so the comment and its history entry commit together.
+        self.activity_repository.record(
+            incident_id=incident_id,
+            activity_type=ActivityType.COMMENT_ADDED,
             user_id=current_user_id,
         )
 

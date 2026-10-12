@@ -19,3 +19,10 @@ __pycache__/
 Thumbs.db
 
 *.log
+dummycommerce/logs/
+backend/.llm_quota.json
+
+.impeccable/refs/
+
+# Working directory for scripts/capture_fixtures.py
+backend/scripts/.capture/

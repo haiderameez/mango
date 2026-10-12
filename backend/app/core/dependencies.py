@@ -19,11 +19,11 @@ def get_current_user(
     try:
         payload = decode_access_token(token)
 
-    except InvalidAccessTokenError:
+    except InvalidAccessTokenError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token.",
-        )
+        ) from error
 
     user_id = payload.get("sub")
 
@@ -36,11 +36,11 @@ def get_current_user(
     try:
         user_id = int(user_id)
         
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token.",
-        )
+        ) from error
 
     repository = UserRepository(db)
     user = repository.get_by_id(user_id)

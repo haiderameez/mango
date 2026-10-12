@@ -5,17 +5,17 @@ Revises: 8759523039a7
 Create Date: 2026-08-10 13:54:22.122363
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'c9475bd0d425'
-down_revision: Union[str, Sequence[str], None] = '8759523039a7'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '8759523039a7'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -25,8 +25,16 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=True),
-    sa.Column('severity', sa.Enum('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', name='severitylevel'), nullable=False),
-    sa.Column('status', sa.Enum('OPEN', 'INVESTIGATING', 'RESOLVED', name='statuslevel'), nullable=False),
+    sa.Column(
+        'severity',
+        sa.Enum('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', name='severitylevel'),
+        nullable=False,
+    ),
+    sa.Column(
+        'status',
+        sa.Enum('OPEN', 'INVESTIGATING', 'RESOLVED', name='statuslevel'),
+        nullable=False,
+    ),
     sa.Column('created_by', sa.Integer(), nullable=False),
     sa.Column('assigned_to', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),

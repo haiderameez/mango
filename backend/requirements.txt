@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg[binary]
+pydantic
+pydantic-settings
+python-dotenv
+pyjwt
+pwdlib[argon2]
+email-validator
+boto3
+httpx
+langgraph
+langchain-anthropic
+langchain-google-genai

@@ -289,3 +289,24 @@ def test_filters_do_not_leak_across_users(client, headers):
     foreign = auth_headers(client, email="third@example.com", name="Third")
 
     assert len(client.get("/incidents", headers=foreign).json()) == 1
+
+
+def test_an_incident_carries_the_names_of_its_people(client, headers, other_headers):
+    """The console shows people, not foreign keys, so the response has to carry names."""
+    other = client.get("/auth/me", headers=other_headers).json()
+
+    created = client.post(
+        "/incidents", json={"title": "Checkout down", "severity": "HIGH"}, headers=headers
+    ).json()
+
+    assert created["created_by_name"] == "Engineer"
+    assert created["assigned_to_name"] is None
+
+    assigned = client.patch(
+        f"/incidents/{created['id']}/assign",
+        json={"assigned_to": other["id"]},
+        headers=headers,
+    ).json()
+
+    assert assigned["assigned_to_name"] == "Other"
+    assert client.get("/incidents", headers=headers).json()[0]["created_by_name"] == "Engineer"

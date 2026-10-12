@@ -26,3 +26,6 @@ backend/.llm_quota.json
 
 # Working directory for scripts/capture_fixtures.py
 backend/scripts/.capture/
+
+# Playwright MCP scratch output
+.playwright-mcp/

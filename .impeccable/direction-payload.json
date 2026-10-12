@@ -1,0 +1,114 @@
+{
+  "title": "Choose the visual world for the Mango console",
+  "question": "The roll assigned The Evidence Docket. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Evidence Docket",
+      "kicker": "THE ROLL",
+      "lineage": "forensic case files, chain-of-custody forms, numbered exhibit tags",
+      "thesis": "Every incident is a numbered case; every log record is a numbered exhibit; every agent is a signed entry in the chain of custody. It refuses the dark-dashboard-with-neon-accent this category always ships, and refuses cards-as-structure: the page is a ruled docket, not a deck.",
+      "palette": ["#0e1116", "#d7dcd2", "#5b3fb5", "#8b93a1", "#c2410c"],
+      "materials": ["carbonless duplicate form", "rubber stamp ink", "hairline rule", "sealed exhibit tag"],
+      "viewport": "Left: the case register, a dense ruled list of incidents, each row a case number in tabular figures with a sealed severity tag. Right: the open case file on a pale carbon-copy plane, header stamped with status. Below: the investigation, a five-station route diagram of the agents, then FINDINGS, PROBABLE CAUSE with its confidence, and EVIDENCE as numbered exhibits. Clicking a citation in the cause lights its exhibit.",
+      "risk": "A docket reads as costume if the ruling is decorative. It has to be a working table with real tabular figures and real density, or it is just a theme.",
+      "raised": [
+        { "from": "challenger-saville", "raise": "Catalogue numbers become typographic identity, not metadata: case and exhibit numbers set as headlines, the way a FAC number is the only headline on the sleeve." },
+        { "from": "challenger-transit", "raise": "The five-agent pipeline is drawn as a route diagram with interchange nodes at disciplined angles, not five pills in a row." },
+        { "from": "challenger-boarding-pass", "raise": "A row whose status changed holds its marker until it has been seen, rather than silently restyling." },
+        { "from": "challenger-consumer-app", "raise": "Labels are plain language naming the action, not docket jargon for its own sake." }
+      ],
+      "board": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "The Air-Accident Docket",
+      "kicker": "IMPECCABLE'S PICK",
+      "lineage": "NTSB / AAIB accident investigation reports",
+      "thesis": "The report structure Mango already produces, made literal: FINDINGS, then PROBABLE CAUSE, then SAFETY RECOMMENDATIONS, each numbered, each citing its evidence.",
+      "palette": ["#111418", "#e8e6e1", "#1d4ed8", "#b45309"],
+      "materials": ["official report stock", "technical diagram", "numbered finding"],
+      "viewport": "The incident as a docket cover sheet; the investigation as a numbered findings list that cannot state a cause without citing the findings above it.",
+      "risk": "It is my top-ranked candidate, which makes it the predictable one: an accident report is the obvious reading of an incident tool, and the roll exists to stop me shipping the obvious. It also skews formal, which fights the dense live-triage half of the brief."
+    },
+    {
+      "id": "challenger-transit",
+      "label": "Midnight Transit Diagram",
+      "verdict": "competitive",
+      "lineage": "enamel metropolitan rail maps",
+      "thesis": "The investigation as a route: five stations, disciplined angles, the current station lit.",
+      "palette": ["#0b1437", "#e03131", "#1971c2", "#f08c00", "#2f9e44"],
+      "materials": ["vitreous enamel", "interchange circle"],
+      "viewport": "The agent pipeline as a transit line across the top of the case, the run travelling it.",
+      "case": "Beats the docket on product clarity for the pipeline specifically: a lit route is the clearest possible answer to 'where is this run'. Loses on audience identification, a transit map says city, not incident. Its discipline is donated, not its clothes.",
+      "risk": "Line colours collide with the severity colour system.",
+      "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram.webp"
+    },
+    {
+      "id": "challenger-splitflap",
+      "label": "Split-Flap Concourse Board",
+      "verdict": "competitive",
+      "lineage": "rail concourse departure boards",
+      "thesis": "The incident register as a live board: rows are entities, columns never move, changes cascade.",
+      "palette": ["#0a0a0a", "#ffffff", "#f2a900", "#8b1a1a"],
+      "materials": ["matte flap face", "brushed steel frame", "amber row lamp"],
+      "viewport": "A ruled board of incident rows under fixed columns, severity as row lamps.",
+      "case": "Holds audience identification, an ops status board is genuinely kin to an incident register, and row-identity-on-change is a real idea. Loses on product clarity: per-character flipping on log text is noise, and Mango's list is not a live time-ranked queue.",
+      "risk": "The cascade animation becomes the product.",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse.webp"
+    },
+    {
+      "id": "challenger-saville",
+      "label": "Saville Catalogue Sleeve",
+      "verdict": "declined",
+      "lineage": "Factory Records catalogue identity",
+      "palette": ["#000000", "#ffffff", "#c0c0c0"],
+      "thesis": "Every artifact is a catalogue number; colour encodes what words would say.",
+      "case": "Declined: colour-as-label and 'nothing labelled twice' actively hurt a surface scanned at 3am, and fail contrast requirements. Kept: total commitment to the catalogue number as identity, which the docket now carries.",
+      "board": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve.webp"
+    },
+    {
+      "id": "challenger-boarding-pass",
+      "label": "Boarding Pass and Gate Board",
+      "verdict": "declined",
+      "lineage": "travel document ephemera",
+      "palette": ["#f5f5f4", "#1c1917", "#dc2626"],
+      "thesis": "A changed row moves in place and stays lit until noticed.",
+      "case": "Declined: travel ephemera is not this audience's world. Kept: its state discipline, a status change must be noticed, not silently applied.",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board.webp"
+    },
+    {
+      "id": "challenger-consumer-app",
+      "label": "Warm Consumer App Surface",
+      "verdict": "declined",
+      "lineage": "the current app-design canon",
+      "palette": ["#fdf6ec", "#ffffff", "#f97316"],
+      "thesis": "Soft-cornered cards on a warm ground, one saturated action colour.",
+      "case": "Declined on both axes: it is the surface every AI build ships, cards-as-page-structure is the lazy container, and a warm orange accent collides head-on with HIGH and CRITICAL severity. Kept: plain-language labels.",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-warm-consumer-app-surface.webp"
+    },
+    {
+      "id": "challenger-doujin",
+      "label": "Doujin Event Catalog",
+      "verdict": "declined",
+      "lineage": "newsprint convention catalogues",
+      "palette": ["#1a1a1a", "#d9d6cc", "#d62828"],
+      "thesis": "Hundreds of stamp-sized cells packed edge to edge, marked by hand.",
+      "case": "Declined: incidents have no thumbnail, so the grid has nothing to pack. Kept: its density courage, do not fear many rows on one screen.",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-doujin-event-catalog.webp"
+    }
+  ],
+  "canonCard": {
+    "id": "canon",
+    "label": "The Observability Dashboard",
+    "kicker": "THE STANDARD",
+    "lineage": "Grafana, Datadog, PagerDuty, Sentry",
+    "thesis": "Near-black ground, one neon accent, sparklines, stat tiles, a left icon rail. Played straight, at full fidelity, no irony.",
+    "palette": ["#0b0d12", "#16a34a", "#f59e0b", "#ef4444"],
+    "materials": ["stat tile", "sparkline", "icon rail"],
+    "viewport": "Icon rail, filter bar, dense incident table, right drawer for detail.",
+    "risk": "Instantly familiar to every SRE, and instantly forgettable. Also exactly what this category's AI builds converge on."
+  },
+  "reroll": { "enabled": true, "steer": true, "registers": ["plain", "safer", "bolder"] },
+  "buildPath": { "value": "code-led", "toggle": false }
+}

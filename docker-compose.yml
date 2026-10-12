@@ -1,3 +1,9 @@
+# Everything Mango needs, locally or on any host with a Docker runtime:
+#
+#     cp backend/.env.example backend/.env   # then set JWT_SECRET_KEY and GOOGLE_API_KEY
+#     docker compose up --build
+#
+# Console: http://localhost:8000/console   DummyCommerce: http://localhost:8001/docs
 services:
   postgres:
     image: postgres:17
@@ -7,10 +13,52 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mango
       TZ: UTC
-    ports: 
+    ports:
       - "5432:5432"
     volumes:
       - mango_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mango"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: mango-api
+    env_file: ./backend/.env
+    environment:
+      # Override the host-machine values in .env: inside the network these are service names
+      # and container paths. The daily LLM budget lives on a volume so a restart does not
+      # hand the process a fresh allowance.
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      DUMMYCOMMERCE_LOG_PATH: /logs/app.jsonl
+      LLM_QUOTA_FILE: /state/llm_quota.json
+    ports:
+      - "8000:8000"
+    volumes:
+      - mango_logs:/logs
+      - mango_state:/state
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dummycommerce:
+    build: ./dummycommerce
+    container_name: mango-dummycommerce
+    # It reads MANGO_EMAIL / MANGO_PASSWORD from the same file; the rest it ignores.
+    env_file: ./backend/.env
+    environment:
+      LOG_PATH: /logs/app.jsonl
+      MANGO_API_URL: http://api:8000
+    ports:
+      - "8001:8001"
+    volumes:
+      - mango_logs:/logs
+    depends_on:
+      - api
 
 volumes:
   mango_postgres_data:
+  mango_logs:
+  mango_state:

@@ -1,0 +1,104 @@
+{
+  "title": "Choose the visual world for the Mango console",
+  "question": "Fresh hand. The roll assigned The Catalogue Drawer. Keep it, take an alternate, or re-roll again.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Catalogue Drawer",
+      "kicker": "THE ROLL",
+      "lineage": "the working library card catalogue: typed cards on a rod, steel drawer, tab guides, date stamps",
+      "thesis": "The register is a drawer, not a list: incidents packed edge to edge on a rod, divided by tab guides, flipped through from the keyboard. One card lifts out to be read. Its activity timeline is the stamp panel on the back of the card, which is what a date-due grid already is. Refuses the icon-rail-and-table layout the category always ships.",
+      "palette": ["#2b3330", "#dcd9cf", "#15120e", "#6d28d9", "#9a3412"],
+      "materials": ["steel drawer", "typed index card", "brass tab guide", "rubber date stamp"],
+      "viewport": "Full-bleed drawer seen from above: incident cards packed on edge, severity as tab guides standing proud of the pack, case numbers readable down the stack. The current card lifts clear of the drawer and opens: typed header, stamped status, and under it the investigation, five agents as entries in the record with their reasoning, then the findings, the probable cause and its confidence, and the evidence as numbered exhibits.",
+      "risk": "A card catalogue can read cozy and nostalgic, which fights 3am triage. It only works if the drawer is genuinely dense and genuinely keyboard-driven, and the material is the steel-and-typewriter working object, not oak-and-brass heritage.",
+      "raised": [
+        { "from": "challenger-exposure-record", "raise": "Confidence and contradiction render as texture, not just a word: hatch density carries confidence, and evidence that contradicts cross-hatches against evidence that supports." },
+        { "from": "challenger-ticket-wallet", "raise": "States stamp themselves and nothing disappears: a resolved incident is stamped, not removed; a failed run is stamped VOID and stays in the record." },
+        { "from": "challenger-terminal-yellow", "raise": "One message per line, and the single number that matters is set at monumental scale." },
+        { "from": "challenger-marketing-surface", "raise": "Every conclusion is paired with the exhibit that proves it, never asserted alone." }
+      ],
+      "board": "https://impeccable.style/worlds/cards/operate-b-exposure-record-zone-sheets.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "The Annunciator Panel",
+      "kicker": "IMPECCABLE'S PICK",
+      "lineage": "control-room alarm annunciators: latched tiles, first-out logic, acknowledge and reset",
+      "thesis": "Incidents are alarm windows in a tiled panel. A new alarm flashes until acknowledged, then goes steady; first-out marks which one fired first. Acknowledge, investigate, reset maps exactly onto OPEN, INVESTIGATING, RESOLVED.",
+      "palette": ["#14181c", "#e7e5e4", "#f59e0b", "#dc2626", "#16a34a"],
+      "materials": ["backlit tile", "engraved legend plate", "latching relay"],
+      "viewport": "A wall of legend tiles, lit by severity, the first-out tile marked; selecting one opens the investigation beneath the panel.",
+      "risk": "It is my top-ranked candidate and the most predictable: an alarm panel is the obvious reading of an incident tool, and a grid of lit tiles is one step from the stat-tile dashboard this category already converges on."
+    },
+    {
+      "id": "challenger-exposure-record",
+      "label": "Darkroom Exposure Record",
+      "verdict": "competitive",
+      "lineage": "printer's exposure cards and zone-ramp overlays",
+      "thesis": "Translucent sheets over an eleven-step tonal ramp; hatch density carries weight, crossed hatching marks conflict.",
+      "palette": ["#101010", "#f2f2f2", "#d946ef"],
+      "materials": ["tracing overlay", "zone wedge", "hatch"],
+      "viewport": "Overlapping sheets, one region hatched and annotated with a stop-delta.",
+      "case": "Beats the drawer on one axis, product clarity for the hardest thing Mango has to show: confidence, and evidence that contradicts other evidence, rendered as texture rather than a label. Loses on audience identification, a darkroom is not an SRE's world. Its device is donated, its clothes are not.",
+      "risk": "Hatching over dense log text would destroy legibility.",
+      "board": "https://impeccable.style/worlds/cards/operate-b-exposure-record-zone-sheets.webp"
+    },
+    {
+      "id": "challenger-ticket-wallet",
+      "label": "Jet-Age Ticket Wallet",
+      "verdict": "competitive",
+      "lineage": "carbon-copy airline coupon books",
+      "thesis": "A sequence of coupons; states stamp themselves onto the coupon and nothing is ever removed, only cancelled.",
+      "palette": ["#0f2559", "#ffffff", "#c81e1e", "#6b4ba3"],
+      "materials": ["carbon copy", "coupon stock", "VOID stamp"],
+      "viewport": "The investigation as a coupon book, one agent per leg, each stamped as it completes.",
+      "case": "Holds on product clarity: the five agents genuinely are a sequence of legs, and stamping rather than deleting is the right model for a run that failed. Loses on audience identification and on density, a coupon book cannot hold forty incidents.",
+      "risk": "Charming for one run, useless as a register.",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-jet-age-ticket-wallet.webp"
+    },
+    {
+      "id": "challenger-terminal-yellow",
+      "label": "Terminal Yellow Wayfinding",
+      "verdict": "declined",
+      "lineage": "airport sign systems",
+      "palette": ["#f5c800", "#000000", "#ffffff"],
+      "thesis": "Saturated yellow bands, one message per line, monumental numbers, arrows locked to edges.",
+      "case": "Declined: saturated yellow is amber, and amber already means HIGH severity, so the identity colour and the data colour would be the same colour. Kept: one message per line, and monumental scale for the one number that matters.",
+      "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding.webp"
+    },
+    {
+      "id": "challenger-character-goods",
+      "label": "Character Goods Catalog",
+      "verdict": "declined",
+      "lineage": "pastel mascot roster pages",
+      "palette": ["#ffe0ec", "#ffffff", "#ff7aa2"],
+      "thesis": "A ranked roster of rounded mascots, each with fixed personal furniture.",
+      "case": "Declined on both axes: pastel mascots cannot carry CRITICAL, and a finite ranked roster is the wrong shape for an unbounded incident stream. Kept: the discipline that every entity carries the same fixed furniture in the same place.",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-character-goods-catalog.webp"
+    },
+    {
+      "id": "challenger-marketing-surface",
+      "label": "Neutral Software Surface",
+      "verdict": "declined",
+      "lineage": "the current software-marketing canon",
+      "palette": ["#fafafa", "#0a0a0a", "#2563eb"],
+      "thesis": "One neutral scale, a single restrained accent, every claim paired with the interface detail that proves it.",
+      "case": "Declined: it is a marketing surface, and this is a tool, so its persuasion grammar has nothing to do here, and the neutral-plus-one-accent scale is the canon by another name. Kept: its best habit, never assert without showing the proof beside it.",
+      "board": "https://impeccable.style/worlds/cards/operate-b-exposure-record-zone-sheets.webp"
+    }
+  ],
+  "canonCard": {
+    "id": "canon",
+    "label": "The Observability Dashboard",
+    "kicker": "THE STANDARD",
+    "lineage": "Grafana, Datadog, PagerDuty, Sentry",
+    "thesis": "Near-black ground, one neon accent, sparklines, stat tiles, a left icon rail. Played straight, at full fidelity, no irony.",
+    "palette": ["#0b0d12", "#16a34a", "#f59e0b", "#ef4444"],
+    "materials": ["stat tile", "sparkline", "icon rail"],
+    "viewport": "Icon rail, filter bar, dense incident table, right drawer for detail.",
+    "risk": "Instantly familiar to every SRE, and instantly forgettable. Also exactly what this category's AI builds converge on."
+  },
+  "reroll": { "enabled": true, "steer": true, "registers": ["plain", "safer", "bolder"] },
+  "buildPath": { "value": "code-led", "toggle": false }
+}

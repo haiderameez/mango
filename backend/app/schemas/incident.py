@@ -20,7 +20,9 @@ class IncidentResponse(BaseModel):
     severity: SeverityLevel
     status: StatusLevel
     created_by: int
+    created_by_name: str
     assigned_to: int | None
+    assigned_to_name: str | None
     created_at: datetime
     updated_at: datetime
 

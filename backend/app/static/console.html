@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mango — Case Register</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" fill="%23232825"/><rect x="3" y="4" width="10" height="8" fill="%23dedbd0"/><rect x="3" y="4" width="10" height="2" fill="%235e3f9c"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
@@ -784,7 +785,7 @@ function renderDrawer(){
           <span class="meta"><span class="st ${i.status}">${i.status}</span>
             <span class="legend mono" style="letter-spacing:.04em">${clock(i.created_at)}</span></span>
         </span>
-        <span class="end">${i.assigned_to ? `<span class="legend mono">→ U${i.assigned_to}</span>` : ""}</span>
+        <span class="end">${i.assigned_to_name ? `<span class="legend mono">→ ${esc(i.assigned_to_name)}</span>` : ""}</span>
       </button>`).join("")}
   `).join("");
 
@@ -838,8 +839,8 @@ function renderSheet(){
     </div>
 
     <dl class="rows">
-      <dt>Reported by</dt><dd>user ${i.created_by}</dd>
-      <dt>Assigned to</dt><dd>${i.assigned_to ? "user "+i.assigned_to : "unassigned"}</dd>
+      <dt>Reported by</dt><dd>${esc(i.created_by_name)}</dd>
+      <dt>Assigned to</dt><dd>${i.assigned_to_name ? esc(i.assigned_to_name) : "unassigned"}</dd>
       <dt>Description</dt><dd>${esc(i.description || "—")}</dd>
     </dl>
 

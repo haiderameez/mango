@@ -41,29 +41,27 @@ adapter maps HTTP 401 to this exception. A read-only client check confirmed that
 configured key reaches the client; no key was printed or committed. The local budget
 counter records one request consumed by this failed attempt. It was not reset.
 
-## Resumed run with the supplied test credential
+## Resumed run with one fixed key from a separate project
 
-The credential was applied only to the ignored local `.env`. Authentication succeeded.
-The first diagnosis encountered `GoogleAPIError`; resuming completed that investigation
-and all three grades. The second investigation also completed, but label extraction
-encountered another `GoogleAPIError`. A subsequent resume received a provider rate limit:
+One supplied key was applied only to the ignored local `.env`; it remained the fixed key
+through this run. The configured daily counter was not reset. Resuming the saved second
+investigation completed its labels and judgment. A third case's pipeline was checkpointed,
+but a later provider API error stopped its grading. The generated report shows:
 
 ```text
-Provider asked us to back off. Pausing LLM traffic for 37199s.
-Coverage: 1/50 graded, 0 failed, 49 pending.
-Stop reason: LlmRateLimitedError.
-category: 1/1 (100.0%)
-service: 1/1 (100.0%)
-agreement: 1/1 (100.0%)
+Coverage: 2/50 graded, 1 failed, 47 pending.
+Stop reason: GoogleAPIError.
+category: 2/2 (100.0%)
+service: 1/2 (50.0%)
+agreement: 2/2 (100.0%)
 ```
 
-`RESULTS.md` and `results.json` now contain this latest real run, including the first
-case's report and grading reasons. All three scores describe **one case only**, not the
-50-case benchmark. Calibration is unassessable and human judge review is still pending.
-The second case's completed graph nodes remain in the local cache for resumption.
-No quota counters were reset and no model was changed. The provider's backoff ends at
-approximately 12:30 PM on 22 October 2026, Asia/Calcutta; do not retry before that time.
-The current cooldown is process-local, so restarting the CLI does not enforce it for you.
+`RESULTS.md` and `results.json` now contain the latest actual output and grading reasons.
+Scores are based on **two cases only**, not the 50-case benchmark. Calibration is
+unassessable, and human judge review is still pending. All three investigation pipelines
+are checkpointed locally; case 3 still needs label extraction and a judgment. Mango's daily
+counter is at 19/20. No quota counters were reset and no model was changed. A second key
+was not used.
 
 Phase 5 is **implemented but not accepted as a completed baseline**. After the provider
 backoff expires, resume the same command while the API LLM worker is stopped. Keep the

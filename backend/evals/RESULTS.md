@@ -2,19 +2,19 @@
 
 Status: PARTIAL — not a full benchmark.
 Model: `gemini/gemini-3.5-flash`; retrieval: off.
-Report date (UTC): 2026-10-21T20:29:22.655701+00:00; commit: `9e30fbb1366db71b51ed93a6280fd01e7c9ccb1c`; working tree dirty: True.
+Report date (UTC): 2026-10-21T20:39:59.645543+00:00; commit: `bc62c4eacfabf2cb92f177adefe72a83709102f8`; working tree dirty: True.
 Pipeline source hash: `24e5672a2ce7f442c9a1c7bda9cde258f27473b4580f9a2f42c353e96c11e740`.
 
 Command (from backend): `python -m evals.run --report`.
 
-Coverage: **0/50 graded**, 1 failed, 49 pending.
-Stop reason: GoogleAuthenticationError.
+Coverage: **1/50 graded**, 0 failed, 49 pending.
+Stop reason: LlmRateLimitedError.
 
 | Measure | Completed scenarios only |
 |---|---|
-| category | N/A (0 graded) |
-| service | N/A (0 graded) |
-| agreement | N/A (0 graded) |
+| category | 1/1 (100.0%) |
+| service | 1/1 (100.0%) |
+| agreement | 1/1 (100.0%) |
 
 Category and service use exact matches after answer-blind LLM label extraction;
 they are not independent of extraction quality. Agreement uses a separate LLM judge.
@@ -28,7 +28,7 @@ Correctness here means root-cause agreement, not category or service accuracy.
 |---|---|
 | low | N/A (0 graded) |
 | medium | N/A (0 graded) |
-| high | N/A (0 graded) |
+| high | 1/1 (100.0%) |
 
 Not assessable: at least one confidence bin is empty.
 Small, correlated fault families limit calibration conclusions.
@@ -37,7 +37,7 @@ Small, correlated fault families limit calibration conclusions.
 
 | Scenario | Status | Confidence | Category | Service | Agreement |
 |---|---|---|---|---|---|
-| case-01 | failed | — | — | — | — |
+| case-01 | completed | high | True | True | True |
 | case-02 | pending | — | — | — | — |
 | case-03 | pending | — | — | — | — |
 | case-04 | pending | — | — | — | — |
@@ -91,7 +91,7 @@ Small, correlated fault families limit calibration conclusions.
 ## Manual judge review
 
 Pending human review. No manual validation is claimed.
-Deterministic review sample (hash order, independent of score): none available.
+Deterministic review sample (hash order, independent of score): case-01.
 Review the saved reports, keys and judge reasons in results.json; record independent
 agree/disagree decisions and explanations in REVIEW.md before claiming validation.
 

@@ -10,17 +10,376 @@
     "window_minutes": 15
   },
   "provenance": {
-    "commit": "9e30fbb1366db71b51ed93a6280fd01e7c9ccb1c",
-    "date": "2026-10-21T20:29:22.655701+00:00",
+    "commit": "bc62c4eacfabf2cb92f177adefe72a83709102f8",
+    "date": "2026-10-21T20:39:59.645543+00:00",
     "dirty": true
   },
   "results": [
     {
-      "error": "GoogleAuthenticationError",
+      "answer": {
+        "category": "dependency",
+        "fix": "Restore database connectivity and verify the listener and health check.",
+        "root_cause": "orders-db refuses connections",
+        "service": "orders-db"
+      },
+      "confidence": "high",
+      "family": "db_connection",
       "id": "case-01",
-      "status": "failed"
+      "judge_key": "7d94522a7160394dce92785ecea51512d553773805f4cc7c2e8c4740796161c9",
+      "judge_provenance": {
+        "commit": "bc62c4eacfabf2cb92f177adefe72a83709102f8",
+        "date": "2026-10-21T20:36:57.178237+00:00",
+        "dirty": true
+      },
+      "judgment": {
+        "agree": true,
+        "reason": "Both the report and the answer key identify the root cause as a database connectivity failure with orders-db refusing TCP connections."
+      },
+      "labels": {
+        "category": "dependency",
+        "service": "orders-db"
+      },
+      "pipeline": {
+        "completed": [
+          "planner",
+          "evidence_collector",
+          "root_cause",
+          "fix_recommendation",
+          "report"
+        ],
+        "executions": [
+          {
+            "finished_at": "2026-10-21T20:34:55.368863+00:00",
+            "node": "planner",
+            "output": {
+              "plan": {
+                "log_keyword": "request-01",
+                "rationale": "Investigating the specific request ID isolates the immediate cause of the failure, while reviewing endpoint metrics and dependencies helps determine if it is an isolated issue or a broader service outage.",
+                "steps": [
+                  "Search application logs for request-01 to pinpoint the specific stack trace or error.",
+                  "Check latency, error rate, and throughput metrics for the POST /orders endpoint.",
+                  "Inspect downstream dependency health, such as database or payment gateway connections.",
+                  "Review recent deployment history and configuration changes for the order service."
+                ]
+              }
+            },
+            "thinking": "**My Investigation Plan: JSON Response Generation**\n\nOkay, here's the plan. I need to construct a JSON response based on the provided schema and incident details. My primary goal is a valid, parseable JSON object. No extra text, no control tokens like newlines, and it needs to adhere *strictly* to the constraints and schema. I have to avoid any invalid JSON.\n\nThe schema requires an array of strings for `steps`, a string or null for `log_keyword`, and a string for `rationale`. `steps` has a maximum of five entries and must be a string array. `rationale` needs to be one or two sentences. I've been given an incident context: an order request failure, critical severity, and an open status with incident ID 1. I need to investigate the POST /orders endpoint with request ID request-01.\n\nBased on this, I've outlined investigation steps. Let me make sure they adhere to the context and requirements. I need to check the application logs for `request-01` to trace the specific error, and then analyze any metric spikes for the `/orders` endpoint around the incident timestamp. I'll also have to review downstream dependencies, such as the database or payment services, and check recent deployments or any feature flag changes related to the orders service.\n\nThe `log_keyword` should be a single keyword string. I could choose `\"request-01\"` or `\"/orders\"`. Since `\"request-01\"` is more specific, that would make for a more efficient search term. Finally, the `rationale`: I need to explain the reasoning. Tracing the request ID should help pinpoint the root cause, and examining metrics determines if the failure is systemic or isolated.\n\nOkay, let me put this into a single, valid JSON object, escaped as necessary, and make sure there are no newlines or other hidden control tokens:\n\n```json\n{\"steps\":[\"Check application logs for request-01 to identify the specific failure trace.\",\"Analyze metric spikes for POST /orders endpoint around the incident timestamp.\",\"Review downstream dependencies such as database or payment services for errors.\",\"Check recent deployment logs or feature flag changes for the orders service.\"],\"log_keyword\":\"request-01\",\"rationale\":\"Tracing the specific request ID helps identify the root cause of the POST /orders failures, while metric analysis checks if the issue is systemic.\"}\n```\n\nI'll check this string again to make sure everything's correct. The JSON is valid. The values are double-quoted. There are no comments, newlines, or tabs. It only contains 4 steps (less than the max of 5). The rationale is a two sentence string. It has all the required fields. Great. I think I'm good to go."
+          },
+          {
+            "finished_at": "2026-10-21T20:34:55.371341+00:00",
+            "node": "evidence_collector",
+            "output": {
+              "evidence": [
+                {
+                  "context": {
+                    "retry": 3
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "ERROR",
+                  "message": "could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:35+00:00"
+                },
+                {
+                  "context": {
+                    "check": "db:orders-db"
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "HealthCheckFailed",
+                  "level": "ERROR",
+                  "message": "health check db:orders-db failed: no route to 10.0.3.17:5432",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:34+00:00"
+                },
+                {
+                  "context": {
+                    "retry": 2
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "WARNING",
+                  "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:33+00:00"
+                },
+                {
+                  "context": {
+                    "retry": 1
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "WARNING",
+                  "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:32+00:00"
+                },
+                {
+                  "context": {
+                    "duration_ms": 2000
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "checkout of a pooled connection timed out after 2000ms, opening a new one",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:31+00:00"
+                },
+                {
+                  "context": {
+                    "pool_in_use": 10,
+                    "pool_size": 10,
+                    "pool_waiters": 4
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:30+00:00"
+                }
+              ]
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-21T20:35:20.417186+00:00",
+            "node": "root_cause",
+            "output": {
+              "root_cause": {
+                "confidence": "high",
+                "likely_cause": "Database connectivity issue with orders-db (10.0.3.17:5432), resulting in pool exhaustion, network routing failure, and refused TCP connections.",
+                "missing_or_contradicting": [
+                  "Database server logs from orders-db to confirm whether PostgreSQL crashed or was restarted.",
+                  "Network infrastructure/firewall logs to confirm why 'no route' was reported prior to 'connection refused'.",
+                  "Endpoint metrics for POST /orders to determine if this impacts all concurrent traffic or only specific requests."
+                ],
+                "observed_facts": [
+                  "The connection pool for orders-db became exhausted with 10/10 connections in use and 4 waiters.",
+                  "Pooled connection checkout timed out after 2000ms when attempting to open a new connection.",
+                  "Subsequent connection retries to orders-db at 10.0.3.17:5432 failed.",
+                  "Health check for orders-db failed with 'no route to 10.0.3.17:5432'.",
+                  "Final attempt to connect to orders-db failed with 'Connection refused' on port 5432."
+                ],
+                "supporting_evidence": [
+                  "[2026-10-02T11:59:30+00:00] connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+                  "[2026-10-02T11:59:31+00:00] checkout of a pooled connection timed out after 2000ms, opening a new one",
+                  "[2026-10-02T11:59:32+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+                  "[2026-10-02T11:59:33+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+                  "[2026-10-02T11:59:34+00:00] health check db:orders-db failed: no route to 10.0.3.17:5432",
+                  "[2026-10-02T11:59:35+00:00] could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?"
+                ]
+              }
+            },
+            "thinking": "**SRE Incident Diagnosis and JSON Output Generation**\n\nOkay, let's break this down systematically. My objective is to generate a concise, strictly formatted JSON response that pinpoints the root cause of this SRE incident. The primary input is the provided log evidence, which I need to analyze and translate into a JSON structure adhering to the specified schema.\n\nFirst, I need to extract the relevant observed facts from the evidence logs. It\u2019s clear that request `request-01` to `/orders` is exhibiting database connection issues. I can see connection pool exhaustion, timeout errors, and repeated connection failures, followed by a definitive health check failure with \"no route to host\" and a \"Connection refused\" error. These facts paint a pretty clear picture.\n\nNext, I'll identify the likely cause. Based on the evidence, the primary suspect is a database connection failure or, more precisely, an unreachable database named `orders-db` at the IP address `10.0.3.17:5432`. This connection problem seems to be directly causing the connection pool to become exhausted, and consequently, requests are failing.\n\nThen, I have to ensure the supporting evidence is included, making sure to preserve the context and timestamp. It\u2019s essential to extract the relevant log entries verbatim, but formatted in a readable way, i.e., quoted as text.\n\nI'll also identify any missing or potentially contradictory information. While the logs strongly suggest a database issue, I need to acknowledge what\u2019s not there. We lack confirming logs from the `orders-db` service itself, which would verify if the database crashed, restarted, or if there were network issues. I\u2019m also missing broader service metrics to understand the full scope of the impact.\n\nFinally, I need to assess my confidence in this diagnosis. The evidence points to a single point failure, making the call high confidence, as a clear chain of events lead to the database connection failure.\n\nI have to carefully ensure the output is valid JSON, strictly adhering to the schema. That means double-quoted strings everywhere, no extra whitespace outside the JSON structure, and absolutely no control tokens such as `\\n` or `\\t`, nor literal newlines. The entire output must be a single line. String escaping will be my focus for output, ensuring quoted values are correctly escaped.\n\nHere's the JSON output I came up with:\n\n```json\n{\n  \"observed_facts\": [\n    \"Request request-01 to POST /orders experienced database connection timeouts and retries.\",\n    \"Connection pool for orders-db was exhausted (10/10 in use).\",\n    \"Health check for orders-db at 10.0.3.17:5432 failed with no route to host.\",\n    \"Direct connection to orders-db failed with Connection refused (10.0.3.17:5432).\"\n  ],\n  \"likely_cause\": \"Database connection failure / unreachable database \\\\\\\"orders-db\\\\\\\" (10.0.3.17:5432), leading to connection pool exhaustion and failed POST /orders request.\",\n  \"supporting_evidence\": [\n    \"2026-10-02T11:59:30+00:00: connection pool for orders-db exhausted: 10/10 in use, 4 waiters\",\n    \"2026-10-02T11:59:31+00:00: checkout of a pooled connection timed out after 2000ms, opening a new one\",\n    \"2026-10-02T11:59:32+00:00: connection to \\\\\\\"orders-db\\\\\\\" (10.0.3.17:5432) failed, retry 1/3 in 200ms\",\n    \"2026-10-02T11:59:33+00:00: connection to \\\\\\\"orders-db\\\\\\\" (10.0.3.17:5432) failed, retry 2/3 in 400ms\",\n    \"2026-10-02T11:59:34+00:00: health check db:orders-db failed: no route to 10.0.3.17:5432\",\n    \"2026-10-02T11:59:35+00:00: could not connect to server: Connection refused. Is the server running on host \\\\\\\"orders-db\\\\\\\" (10.0.3.17"
+          },
+          {
+            "finished_at": "2026-10-21T20:36:25.633016+00:00",
+            "node": "fix_recommendation",
+            "output": {
+              "recommendations": {
+                "actions": [
+                  "Check the status of the orders-db PostgreSQL database service on 10.0.3.17:5432 and restart or start the service if it has stopped or crashed.",
+                  "Investigate network infrastructure and routing configurations between the dummycommerce service and orders-db (10.0.3.17) to resolve 'no route to 10.0.3.17:5432' errors.",
+                  "Review orders-db system/database logs around 2026-10-02T11:59:30+00:00 to determine the cause of pool exhaustion and connection refused errors.",
+                  "Adjust connection pool limits or timeout configurations for orders-db if traffic demands exceed the current pool size of 10."
+                ],
+                "notes": "Database server logs and network/firewall logs were missing from the evidence, so it is unconfirmed whether PostgreSQL crashed or a network route drop preceded the connection failure.",
+                "validation_steps": [
+                  "Verify network reachability and open port status for orders-db at 10.0.3.17:5432 using network tools (e.g., ping, nc, or telnet) from the dummycommerce host.",
+                  "Run the db:orders-db health check to ensure it returns successful responses without routing or connection errors.",
+                  "Submit test requests to POST /orders and monitor dummycommerce logs to confirm connection pool checkout succeeds without OperationalError exceptions."
+                ]
+              }
+            },
+            "thinking": "**My Analysis and Response**\n\nOkay, here's how I'm going to approach this. I've been given a critical incident regarding POST /orders failures, and I need to formulate a response based on the evidence: a database connectivity issue. I need to output this as a valid JSON object. My focus will be on providing actionable steps and validation checks based on the provided logs and diagnosis. I must ensure strict adherence to the output format: valid JSON, no comments, no control characters, and no extra text.\n\nFirst, I'll identify the key actions required to resolve the incident. Based on the diagnosis, these center on restoring database connectivity, which involves checking and restarting the database service, investigating the network route and firewall between the application and the database, reviewing relevant logs to pinpoint the root cause of the connection issues, and finally, monitoring the system after database connectivity has been restored.\n\nNext, I need to define validation steps to confirm that the actions are successful. This will include verifying network reachability, confirming database health, and checking the connection pool status to ensure normal operation and monitoring application logs to verify that errors are no longer present.\n\nFinally, I need to formulate a clear JSON output that follows the defined schema. I'll make sure to note that the provided evidence lacks complete logging information to identify the primary cause. I'll need to remember to ensure that the final JSON is a single string without any control characters.\n\nHere's the JSON output I've formulated, ensuring it strictly adheres to all requirements:\n\n```json\n{\n  \"actions\": [\n    \"Check the status of the orders-db PostgreSQL database service at 10.0.3.17:5432 and restart the service if it is down.\",\n    \"Investigate network routing and firewall rules between dummycommerce and orders-db (10.0.3.17) to address the 'no route to 10.0.3.17:5432' error.\",\n    \"Review orders-db server logs and network infrastructure logs around 2026-10-02T11:59:30+00:00 to determine why the service stopped accepting connections.\",\n    \"Monitor dummycommerce application logs and connection pool metrics once orders-db is restored.\"\n  ],\n  \"validation_steps\": [\n    \"Test network reachability and TCP connectivity to 10.0.3.17 on port 5432 from the app host.\",\n    \"Run the db:orders-db health check to confirm PostgreSQL is accepting TCP/IP connections on port 5432.\",\n    \"Verify that connection pool checkout timeouts and OperationalError logs for POST /orders cease.\"\n  ],\n  \"notes\": \"Database server logs and network/firewall logs were not provided, so it is unconfirmed whether PostgreSQL crashed or network routing failed first.\"\n}\n```"
+          },
+          {
+            "finished_at": "2026-10-21T20:36:25.635011+00:00",
+            "node": "report",
+            "output": {
+              "report": "# Investigation report - incident #1\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-02T12:00:00Z\n\nInvestigate POST /orders, request_id=request-01.\n\n## Investigation plan\n\n- Search application logs for request-01 to pinpoint the specific stack trace or error.\n- Check latency, error rate, and throughput metrics for the POST /orders endpoint.\n- Inspect downstream dependency health, such as database or payment gateway connections.\n- Review recent deployment history and configuration changes for the order service.\n\nInvestigating the specific request ID isolates the immediate cause of the failure, while reviewing endpoint metrics and dependencies helps determine if it is an isolated issue or a broader service outage.\n\n## Evidence collected (facts)\n\n6 log record(s) from the incident window.\n\n- `2026-10-02T11:59:35+00:00` **ERROR** could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432? - POST /orders (request request-01)  `retry=3`\n- `2026-10-02T11:59:34+00:00` **ERROR** health check db:orders-db failed: no route to 10.0.3.17:5432 - POST /orders (request request-01)  `check=db:orders-db`\n- `2026-10-02T11:59:33+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms - POST /orders (request request-01)  `retry=2`\n- `2026-10-02T11:59:32+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms - POST /orders (request request-01)  `retry=1`\n- `2026-10-02T11:59:31+00:00` **WARNING** checkout of a pooled connection timed out after 2000ms, opening a new one - POST /orders (request request-01)  `duration_ms=2000`\n- `2026-10-02T11:59:30+00:00` **WARNING** connection pool for orders-db exhausted: 10/10 in use, 4 waiters - POST /orders (request request-01)  `pool_in_use=10` `pool_size=10` `pool_waiters=4`\n\n## Observed facts\n\n- The connection pool for orders-db became exhausted with 10/10 connections in use and 4 waiters.\n- Pooled connection checkout timed out after 2000ms when attempting to open a new connection.\n- Subsequent connection retries to orders-db at 10.0.3.17:5432 failed.\n- Health check for orders-db failed with 'no route to 10.0.3.17:5432'.\n- Final attempt to connect to orders-db failed with 'Connection refused' on port 5432.\n\n## Likely root cause (model conclusion, needs validation)\n\nDatabase connectivity issue with orders-db (10.0.3.17:5432), resulting in pool exhaustion, network routing failure, and refused TCP connections.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- [2026-10-02T11:59:30+00:00] connection pool for orders-db exhausted: 10/10 in use, 4 waiters\n- [2026-10-02T11:59:31+00:00] checkout of a pooled connection timed out after 2000ms, opening a new one\n- [2026-10-02T11:59:32+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms\n- [2026-10-02T11:59:33+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms\n- [2026-10-02T11:59:34+00:00] health check db:orders-db failed: no route to 10.0.3.17:5432\n- [2026-10-02T11:59:35+00:00] could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?\n\n### Missing or contradicting evidence\n\n- Database server logs from orders-db to confirm whether PostgreSQL crashed or was restarted.\n- Network infrastructure/firewall logs to confirm why 'no route' was reported prior to 'connection refused'.\n- Endpoint metrics for POST /orders to determine if this impacts all concurrent traffic or only specific requests.\n\n## Recommended actions (for an engineer to review)\n\n- Check the status of the orders-db PostgreSQL database service on 10.0.3.17:5432 and restart or start the service if it has stopped or crashed.\n- Investigate network infrastructure and routing configurations between the dummycommerce service and orders-db (10.0.3.17) to resolve 'no route to 10.0.3.17:5432' errors.\n- Review orders-db system/database logs around 2026-10-02T11:59:30+00:00 to determine the cause of pool exhaustion and connection refused errors.\n- Adjust connection pool limits or timeout configurations for orders-db if traffic demands exceed the current pool size of 10.\n\n### How to validate\n\n- Verify network reachability and open port status for orders-db at 10.0.3.17:5432 using network tools (e.g., ping, nc, or telnet) from the dummycommerce host.\n- Run the db:orders-db health check to ensure it returns successful responses without routing or connection errors.\n- Submit test requests to POST /orders and monitor dummycommerce logs to confirm connection pool checkout succeeds without OperationalError exceptions.\n\nDatabase server logs and network/firewall logs were missing from the evidence, so it is unconfirmed whether PostgreSQL crashed or a network route drop preceded the connection failure.\n"
+            },
+            "thinking": null
+          }
+        ],
+        "identity": {
+          "max_records": 50,
+          "model": "gemini-3.5-flash",
+          "pipeline_hash": "24e5672a2ce7f442c9a1c7bda9cde258f27473b4580f9a2f42c353e96c11e740",
+          "provider": "gemini",
+          "retrieval": "off",
+          "runner_hash": "77e5d407f25976f409a257fe18daf9aaf7b9cdc1225d8ab5a2876552116f6b60",
+          "show_thinking": true,
+          "window_minutes": 15
+        },
+        "key": "12c772f944bf292096a593da5278ca504ef4ee4844a19450d85155cff0a4d1da",
+        "provenance": {
+          "commit": "bc62c4eacfabf2cb92f177adefe72a83709102f8",
+          "date": "2026-10-21T20:34:36.516185+00:00",
+          "dirty": true
+        },
+        "state": {
+          "evidence": [
+            {
+              "context": {
+                "retry": 3
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "ERROR",
+              "message": "could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:35+00:00"
+            },
+            {
+              "context": {
+                "check": "db:orders-db"
+              },
+              "endpoint": "POST /orders",
+              "error_type": "HealthCheckFailed",
+              "level": "ERROR",
+              "message": "health check db:orders-db failed: no route to 10.0.3.17:5432",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:34+00:00"
+            },
+            {
+              "context": {
+                "retry": 2
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "WARNING",
+              "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:33+00:00"
+            },
+            {
+              "context": {
+                "retry": 1
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "WARNING",
+              "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:32+00:00"
+            },
+            {
+              "context": {
+                "duration_ms": 2000
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "checkout of a pooled connection timed out after 2000ms, opening a new one",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:31+00:00"
+            },
+            {
+              "context": {
+                "pool_in_use": 10,
+                "pool_size": 10,
+                "pool_waiters": 4
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:30+00:00"
+            }
+          ],
+          "incident": {
+            "created_at": "2026-10-02T12:00:00Z",
+            "description": "Investigate POST /orders, request_id=request-01.",
+            "id": 1,
+            "severity": "CRITICAL",
+            "status": "OPEN",
+            "title": "Order requests failing or degraded"
+          },
+          "plan": {
+            "log_keyword": "request-01",
+            "rationale": "Investigating the specific request ID isolates the immediate cause of the failure, while reviewing endpoint metrics and dependencies helps determine if it is an isolated issue or a broader service outage.",
+            "steps": [
+              "Search application logs for request-01 to pinpoint the specific stack trace or error.",
+              "Check latency, error rate, and throughput metrics for the POST /orders endpoint.",
+              "Inspect downstream dependency health, such as database or payment gateway connections.",
+              "Review recent deployment history and configuration changes for the order service."
+            ]
+          },
+          "recommendations": {
+            "actions": [
+              "Check the status of the orders-db PostgreSQL database service on 10.0.3.17:5432 and restart or start the service if it has stopped or crashed.",
+              "Investigate network infrastructure and routing configurations between the dummycommerce service and orders-db (10.0.3.17) to resolve 'no route to 10.0.3.17:5432' errors.",
+              "Review orders-db system/database logs around 2026-10-02T11:59:30+00:00 to determine the cause of pool exhaustion and connection refused errors.",
+              "Adjust connection pool limits or timeout configurations for orders-db if traffic demands exceed the current pool size of 10."
+            ],
+            "notes": "Database server logs and network/firewall logs were missing from the evidence, so it is unconfirmed whether PostgreSQL crashed or a network route drop preceded the connection failure.",
+            "validation_steps": [
+              "Verify network reachability and open port status for orders-db at 10.0.3.17:5432 using network tools (e.g., ping, nc, or telnet) from the dummycommerce host.",
+              "Run the db:orders-db health check to ensure it returns successful responses without routing or connection errors.",
+              "Submit test requests to POST /orders and monitor dummycommerce logs to confirm connection pool checkout succeeds without OperationalError exceptions."
+            ]
+          },
+          "report": "# Investigation report - incident #1\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-02T12:00:00Z\n\nInvestigate POST /orders, request_id=request-01.\n\n## Investigation plan\n\n- Search application logs for request-01 to pinpoint the specific stack trace or error.\n- Check latency, error rate, and throughput metrics for the POST /orders endpoint.\n- Inspect downstream dependency health, such as database or payment gateway connections.\n- Review recent deployment history and configuration changes for the order service.\n\nInvestigating the specific request ID isolates the immediate cause of the failure, while reviewing endpoint metrics and dependencies helps determine if it is an isolated issue or a broader service outage.\n\n## Evidence collected (facts)\n\n6 log record(s) from the incident window.\n\n- `2026-10-02T11:59:35+00:00` **ERROR** could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432? - POST /orders (request request-01)  `retry=3`\n- `2026-10-02T11:59:34+00:00` **ERROR** health check db:orders-db failed: no route to 10.0.3.17:5432 - POST /orders (request request-01)  `check=db:orders-db`\n- `2026-10-02T11:59:33+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms - POST /orders (request request-01)  `retry=2`\n- `2026-10-02T11:59:32+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms - POST /orders (request request-01)  `retry=1`\n- `2026-10-02T11:59:31+00:00` **WARNING** checkout of a pooled connection timed out after 2000ms, opening a new one - POST /orders (request request-01)  `duration_ms=2000`\n- `2026-10-02T11:59:30+00:00` **WARNING** connection pool for orders-db exhausted: 10/10 in use, 4 waiters - POST /orders (request request-01)  `pool_in_use=10` `pool_size=10` `pool_waiters=4`\n\n## Observed facts\n\n- The connection pool for orders-db became exhausted with 10/10 connections in use and 4 waiters.\n- Pooled connection checkout timed out after 2000ms when attempting to open a new connection.\n- Subsequent connection retries to orders-db at 10.0.3.17:5432 failed.\n- Health check for orders-db failed with 'no route to 10.0.3.17:5432'.\n- Final attempt to connect to orders-db failed with 'Connection refused' on port 5432.\n\n## Likely root cause (model conclusion, needs validation)\n\nDatabase connectivity issue with orders-db (10.0.3.17:5432), resulting in pool exhaustion, network routing failure, and refused TCP connections.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- [2026-10-02T11:59:30+00:00] connection pool for orders-db exhausted: 10/10 in use, 4 waiters\n- [2026-10-02T11:59:31+00:00] checkout of a pooled connection timed out after 2000ms, opening a new one\n- [2026-10-02T11:59:32+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms\n- [2026-10-02T11:59:33+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms\n- [2026-10-02T11:59:34+00:00] health check db:orders-db failed: no route to 10.0.3.17:5432\n- [2026-10-02T11:59:35+00:00] could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?\n\n### Missing or contradicting evidence\n\n- Database server logs from orders-db to confirm whether PostgreSQL crashed or was restarted.\n- Network infrastructure/firewall logs to confirm why 'no route' was reported prior to 'connection refused'.\n- Endpoint metrics for POST /orders to determine if this impacts all concurrent traffic or only specific requests.\n\n## Recommended actions (for an engineer to review)\n\n- Check the status of the orders-db PostgreSQL database service on 10.0.3.17:5432 and restart or start the service if it has stopped or crashed.\n- Investigate network infrastructure and routing configurations between the dummycommerce service and orders-db (10.0.3.17) to resolve 'no route to 10.0.3.17:5432' errors.\n- Review orders-db system/database logs around 2026-10-02T11:59:30+00:00 to determine the cause of pool exhaustion and connection refused errors.\n- Adjust connection pool limits or timeout configurations for orders-db if traffic demands exceed the current pool size of 10.\n\n### How to validate\n\n- Verify network reachability and open port status for orders-db at 10.0.3.17:5432 using network tools (e.g., ping, nc, or telnet) from the dummycommerce host.\n- Run the db:orders-db health check to ensure it returns successful responses without routing or connection errors.\n- Submit test requests to POST /orders and monitor dummycommerce logs to confirm connection pool checkout succeeds without OperationalError exceptions.\n\nDatabase server logs and network/firewall logs were missing from the evidence, so it is unconfirmed whether PostgreSQL crashed or a network route drop preceded the connection failure.\n",
+          "root_cause": {
+            "confidence": "high",
+            "likely_cause": "Database connectivity issue with orders-db (10.0.3.17:5432), resulting in pool exhaustion, network routing failure, and refused TCP connections.",
+            "missing_or_contradicting": [
+              "Database server logs from orders-db to confirm whether PostgreSQL crashed or was restarted.",
+              "Network infrastructure/firewall logs to confirm why 'no route' was reported prior to 'connection refused'.",
+              "Endpoint metrics for POST /orders to determine if this impacts all concurrent traffic or only specific requests."
+            ],
+            "observed_facts": [
+              "The connection pool for orders-db became exhausted with 10/10 connections in use and 4 waiters.",
+              "Pooled connection checkout timed out after 2000ms when attempting to open a new connection.",
+              "Subsequent connection retries to orders-db at 10.0.3.17:5432 failed.",
+              "Health check for orders-db failed with 'no route to 10.0.3.17:5432'.",
+              "Final attempt to connect to orders-db failed with 'Connection refused' on port 5432."
+            ],
+            "supporting_evidence": [
+              "[2026-10-02T11:59:30+00:00] connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+              "[2026-10-02T11:59:31+00:00] checkout of a pooled connection timed out after 2000ms, opening a new one",
+              "[2026-10-02T11:59:32+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+              "[2026-10-02T11:59:33+00:00] connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+              "[2026-10-02T11:59:34+00:00] health check db:orders-db failed: no route to 10.0.3.17:5432",
+              "[2026-10-02T11:59:35+00:00] could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?"
+            ]
+          }
+        }
+      },
+      "pipeline_key": "12c772f944bf292096a593da5278ca504ef4ee4844a19450d85155cff0a4d1da",
+      "scores": {
+        "agreement": true,
+        "category": true,
+        "service": true
+      },
+      "status": "completed",
+      "variant": "clean"
     },
     {
+      "error": "LlmRateLimitedError",
       "id": "case-02",
       "status": "pending"
     },
@@ -217,6 +576,6 @@
       "status": "pending"
     }
   ],
-  "stopped": "GoogleAuthenticationError",
+  "stopped": "LlmRateLimitedError",
   "total": 50
 }

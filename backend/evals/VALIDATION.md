@@ -36,15 +36,38 @@ Coverage: 0/50 graded, 1 failed, 49 pending.
 Stop reason: GoogleAuthenticationError.
 ```
 
-See `RESULTS.md` and `results.json` for the generated output. The installed LangChain
+The initial result is preserved in commit `bc62c4e`. The installed LangChain
 adapter maps HTTP 401 to this exception. A read-only client check confirmed that the
 configured key reaches the client; no key was printed or committed. The local budget
 counter records one request consumed by this failed attempt. It was not reset.
 
-No accuracy or calibration percentage is available, and no manual judge review has
-occurred. Phase 5 is **implemented but not accepted as a completed baseline**. Update
-`GOOGLE_API_KEY` locally in `backend/.env` with a working credential, then resume the same
-command while the API LLM worker is stopped. Keep the pinned model and configured budget.
+## Resumed run with the supplied test credential
+
+The credential was applied only to the ignored local `.env`. Authentication succeeded.
+The first diagnosis encountered `GoogleAPIError`; resuming completed that investigation
+and all three grades. The second investigation also completed, but label extraction
+encountered another `GoogleAPIError`. A subsequent resume received a provider rate limit:
+
+```text
+Provider asked us to back off. Pausing LLM traffic for 37199s.
+Coverage: 1/50 graded, 0 failed, 49 pending.
+Stop reason: LlmRateLimitedError.
+category: 1/1 (100.0%)
+service: 1/1 (100.0%)
+agreement: 1/1 (100.0%)
+```
+
+`RESULTS.md` and `results.json` now contain this latest real run, including the first
+case's report and grading reasons. All three scores describe **one case only**, not the
+50-case benchmark. Calibration is unassessable and human judge review is still pending.
+The second case's completed graph nodes remain in the local cache for resumption.
+No quota counters were reset and no model was changed. The provider's backoff ends at
+approximately 12:30 PM on 22 October 2026, Asia/Calcutta; do not retry before that time.
+The current cooldown is process-local, so restarting the CLI does not enforce it for you.
+
+Phase 5 is **implemented but not accepted as a completed baseline**. After the provider
+backoff expires, resume the same command while the API LLM worker is stopped. Keep the
+pinned model and configured budget.
 
 The reported dirty-tree flag is retained honestly: `CONTINUE.md` was already untracked.
 Source hashes identify the evaluated implementation independently of unrelated files.

@@ -99,10 +99,11 @@ answer-blind category/service extraction with exact-match scoring, a separate ro
 judge, and confidence calibration. Every model call uses the existing quota guard. Atomic
 checkpoints resume completed nodes and grades without paying for them again. Run
 `python -m evals.run --report` from `backend/`; measured coverage and results are recorded
-in `backend/evals/RESULTS.md`. The first live attempt on 22 October 2026 (India time)
-stopped with provider HTTP 401 (`GoogleAuthenticationError`): 0/50 graded, 1 failed,
-49 pending. The configured key reaches the client; a working provider credential is
-required to resume. Full live baseline and ten-case human review are still pending;
+in `backend/evals/RESULTS.md`. On 22 October 2026 (India time), a working test credential
+resolved the initial HTTP 401. The resumed run graded 1/50 cases (category, service and
+root-cause agreement each 1/1), then stopped on provider rate limiting with a 37,199-second
+backoff. The second investigation is checkpointed; 49 cases remain ungraded. This one-case
+subset is not a full-benchmark accuracy measurement. Full baseline and human review remain pending;
 the harness existing is not an accuracy claim.
 
 **Tests:** 214 (199 backend + 15 DummyCommerce), pytest against in-memory SQLite with `StaticPool`, plus ruff

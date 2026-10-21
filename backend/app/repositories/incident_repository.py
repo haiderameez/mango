@@ -67,6 +67,13 @@ class IncidentRepository:
         )
         return list(self.db.execute(statement).scalars())
 
+    def get_service_incidents_by_request_tag(self, service: str, tag: str) -> list[Incident]:
+        statement = select(Incident).where(
+            Incident.service == service,
+            Incident.request_id.like(f"%:{tag}"),
+        )
+        return list(self.db.execute(statement).scalars())
+
     def add_group(self, group: IncidentGroup) -> IncidentGroup:
         self.db.add(group)
         self.db.flush()

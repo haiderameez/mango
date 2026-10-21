@@ -1,15 +1,62 @@
 import json
 import secrets
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import select
 
-from app.models.incident import Incident
-from app.models.ingest import DetectionRule, ServiceIngestKey
+from app.models.incident import Incident, SeverityLevel, StatusLevel
+from app.models.ingest import DetectionRule, LogRecord, ServiceIngestKey
 from app.models.user import User
+from app.repositories.incident_repository import IncidentRepository
+from app.repositories.ingest_repository import IngestRepository
 from app.services.ingest_service import IngestService
 
 FIXTURE = Path(__file__).resolve().parents[2] / "load" / "outage.jsonl"
+
+
+def test_replay_marker_counts_only_its_service_and_run(db):
+    now = datetime.now(UTC)
+    db.add_all([
+        LogRecord(
+            service="outage-test", level="INFO", message="first", context={},
+            request_id="req-1:run-a", ts=now,
+        ),
+        LogRecord(
+            service="outage-test", level="INFO", message="second", context={},
+            request_id="req-2:run-b", ts=now,
+        ),
+        LogRecord(
+            service="other", level="INFO", message="third", context={},
+            request_id="req-3:run-a", ts=now,
+        ),
+    ])
+    db.commit()
+
+    assert IngestRepository(db).count_by_service_and_request_tag("outage-test", "run-a") == 1
+
+
+def test_replay_result_selects_only_incidents_with_its_run_tag(db):
+    actor = User(name="Replay", email="tagged-replay@example.com", password_hash="test")
+    db.add(actor)
+    db.commit()
+    db.add_all([
+        Incident(
+            title="Current run", severity=SeverityLevel.HIGH, status=StatusLevel.OPEN,
+            created_by=actor.id,
+            service="outage-test", request_id="req-1:run-a", occurrence_count=10,
+        ),
+        Incident(
+            title="Previous run", severity=SeverityLevel.HIGH, status=StatusLevel.OPEN,
+            created_by=actor.id,
+            service="outage-test", request_id="req-2:run-b", occurrence_count=20,
+        ),
+    ])
+    db.commit()
+
+    rows = IncidentRepository(db).get_service_incidents_by_request_tag("outage-test", "run-a")
+
+    assert [row.occurrence_count for row in rows] == [10]
 
 
 def test_ten_thousand_record_fixture_collapses_400_failures_into_six_incidents(

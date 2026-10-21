@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, cast, or_, select
+from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.ingest import DetectionRule, LogRecord, ServiceIngestKey
@@ -62,3 +62,10 @@ class IngestRepository:
             )
         statement = statement.order_by(LogRecord.ts.desc(), LogRecord.id.desc()).limit(limit)
         return list(self.db.execute(statement).scalars())
+
+    def count_by_service_and_request_tag(self, service: str, tag: str) -> int:
+        statement = select(func.count()).select_from(LogRecord).where(
+            LogRecord.service == service,
+            LogRecord.request_id.like(f"%:{tag}"),
+        )
+        return self.db.execute(statement).scalar_one()

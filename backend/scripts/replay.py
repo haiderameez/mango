@@ -3,13 +3,14 @@ import argparse
 import json
 import os
 import secrets
+import time
 import urllib.error
 import urllib.request
-from datetime import UTC, datetime
 from pathlib import Path
 
 from app.database.session import SessionLocal
 from app.repositories.incident_repository import IncidentRepository
+from app.repositories.ingest_repository import IngestRepository
 
 MAX_BATCH = 500
 
@@ -32,10 +33,10 @@ def main() -> None:
 
     run_tag = secrets.token_hex(8)
     for row in records:
+        row["request_id"] = f"{row.get('request_id') or 'record'}:{run_tag}"
         if row.get("level") == "ERROR":
             row["error_type"] = f"{row.get('error_type', 'Error')}:{run_tag}"
 
-    started = datetime.now(UTC)
     for offset in range(0, len(records), MAX_BATCH):
         body = "\n".join(json.dumps(row, separators=(",", ":"))
                          for row in records[offset:offset + MAX_BATCH]).encode()
@@ -55,8 +56,41 @@ def main() -> None:
                 f"Ingestion failed: HTTP {error.code} {detail}"
             ) from error
 
+    deadline = time.monotonic() + 30
+    while True:
+        with SessionLocal() as db:
+            ingested = IngestRepository(db).count_by_service_and_request_tag(
+                "outage-test", run_tag
+            )
+        if ingested == len(records):
+            break
+        if time.monotonic() >= deadline:
+            raise SystemExit(
+                f"Only {ingested}/{len(records)} replay records finished ingestion."
+            )
+        time.sleep(0.1)
+
+    expected_failures = sum(row.get("level") == "ERROR" for row in records)
+    deadline = time.monotonic() + 30
+    while True:
+        with SessionLocal() as db:
+            incidents = IncidentRepository(db).get_service_incidents_by_request_tag(
+                "outage-test", run_tag
+            )
+        failures = sum(incident.occurrence_count for incident in incidents)
+        if len(incidents) == 6 and failures == expected_failures:
+            break
+        if time.monotonic() >= deadline:
+            raise SystemExit(
+                f"Detection finished at {failures}/{expected_failures} failures across "
+                f"{len(incidents)}/6 incidents."
+            )
+        time.sleep(0.1)
+
     with SessionLocal() as db:
-        incidents = IncidentRepository(db).get_service_incidents_since("outage-test", started)
+        incidents = IncidentRepository(db).get_service_incidents_by_request_tag(
+            "outage-test", run_tag
+        )
     failures = sum(incident.occurrence_count for incident in incidents)
     if args.report:
         ratio = failures / len(incidents) if incidents else 0

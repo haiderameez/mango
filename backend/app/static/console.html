@@ -619,7 +619,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 </footer>
 
 <script>
-const S = { token:null, incidents:[], sel:null, detail:null, poll:null,
+const S = { token:null, incidents:[], sel:null, detail:null, poll:null, stream:null, streamRun:null,
             known:{}, changed:new Set(), err:null };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -663,6 +663,7 @@ function showGate(message){
 function signOut(message){
   S.token = null; S.detail = null; S.sel = null; S.incidents = [];
   clearTimeout(S.poll);
+  S.stream?.abort(); S.stream = null; S.streamRun = null;
   try{ localStorage.removeItem("mango.token"); }catch{}
   $("#gate-password").value = "";
   showGate(message);
@@ -794,6 +795,7 @@ function renderDrawer(){
 
 /* ── the open case ───────────────────────────────────────────────────── */
 async function openCase(id){
+  if(S.sel !== id){ S.stream?.abort(); S.stream = null; S.streamRun = null; }
   S.sel = id;
   S.changed.delete(id);
   renderDrawer();
@@ -817,8 +819,57 @@ async function openCase(id){
 
 function schedulePoll(){
   clearTimeout(S.poll);
-  const st = S.detail?.investigation?.status;
-  if(st === "PENDING" || st === "RUNNING") S.poll = setTimeout(() => openCase(S.sel), 2500);
+  const inv = S.detail?.investigation;
+  if(inv && (inv.status === "PENDING" || inv.status === "RUNNING")){
+    streamInvestigation(S.sel, inv.id);
+  }else{
+    S.stream?.abort(); S.stream = null; S.streamRun = null;
+  }
+}
+
+async function streamInvestigation(incidentId, runId){
+  if(S.streamRun === runId) return;
+  S.stream?.abort();
+  const controller = new AbortController();
+  S.stream = controller; S.streamRun = runId;
+  try{
+    const response = await fetch(`/incidents/${incidentId}/investigation/stream`, {
+      headers:{authorization:"Bearer "+S.token}, signal:controller.signal
+    });
+    if(!response.ok) throw new Error(`Stream returned ${response.status}`);
+    const reader = response.body.getReader(), decoder = new TextDecoder();
+    let pending = "";
+    while(true){
+      const {value, done} = await reader.read();
+      if(done) break;
+      pending += decoder.decode(value, {stream:true});
+      const messages = pending.split("\n\n"); pending = messages.pop() || "";
+      for(const message of messages){
+        const kind = message.match(/^event: (.+)$/m)?.[1];
+        const data = message.match(/^data: (.+)$/m)?.[1];
+        if(!kind || !data || S.sel !== incidentId || S.detail?.investigation?.id !== runId) continue;
+        const update = JSON.parse(data), inv = S.detail.investigation;
+        if(kind === "agent"){
+          const index = inv.executions.findIndex(e => e.id === update.id);
+          if(index < 0) inv.executions.push(update); else inv.executions[index] = update;
+          inv.executions.sort((a,b) => PIPELINE.indexOf(a.agent_name)-PIPELINE.indexOf(b.agent_name));
+        }else if(kind === "done"){
+          inv.status = update.status; inv.error = update.error; inv.finished_at = update.finished_at;
+        }
+        renderSheet();
+        if(kind === "done"){
+          await Promise.all([loadRegister(), loadQuota()]);
+          S.stream = null; S.streamRun = null;
+          return;
+        }
+      }
+    }
+  }catch(error){
+    if(error.name !== "AbortError" && S.sel === incidentId && S.detail?.investigation?.id === runId){
+      S.stream = null; S.streamRun = null;
+      S.poll = setTimeout(() => openCase(incidentId), 2500);
+    }
+  }
 }
 
 const NEXT = {OPEN:"INVESTIGATING", INVESTIGATING:"RESOLVED", RESOLVED:null};

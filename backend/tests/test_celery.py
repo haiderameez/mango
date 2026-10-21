@@ -1,0 +1,23 @@
+from app.ai.graph import _retry_agent_error
+from app.celery_app import celery_app
+from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
+from app.services.celery_queue import INVESTIGATION_QUEUE_NAME
+from app.tasks import run_investigation
+
+
+def test_celery_worker_requeues_a_task_after_worker_loss():
+    assert run_investigation.acks_late is True
+    assert run_investigation.reject_on_worker_lost is True
+
+
+def test_graph_retries_transient_errors_but_not_quota_failures():
+    assert _retry_agent_error(ConnectionError("temporary provider failure"))
+    assert not _retry_agent_error(LlmQuotaExhaustedError("quota exhausted"))
+    assert not _retry_agent_error(LlmRateLimitedError("provider cooldown"))
+
+
+def test_celery_routes_investigations_to_the_shared_queue():
+    assert (
+        celery_app.conf.task_routes["app.tasks.run_investigation"]["queue"]
+        == INVESTIGATION_QUEUE_NAME
+    )

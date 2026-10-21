@@ -143,7 +143,9 @@ Copy `backend/.env.example` to `backend/.env` and set:
 | `LLM_SHOW_THINKING` | no | Default `true`; log each agent's reasoning and store a summary |
 | `LLM_THINKING_MAX_CHARS` | no | Default `4000`; cap on the stored reasoning |
 | `LOG_LEVEL` | no | Default `INFO` |
-| `LLM_QUOTA_FILE`, `LLM_QUOTA_TIMEZONE` | no | Where the day's spend is persisted, and when it resets |
+| `LLM_QUOTA_TIMEZONE` | no | Which timezone defines the provider's daily budget reset |
+| `REDIS_URL` | yes for workers | Celery broker and result backend; default `redis://localhost:6379/0` |
+| `INVESTIGATION_WORKER_CONCURRENCY` | no | Celery worker concurrency; default `4` |
 | `STALE_RUN_MINUTES` | no | Default `60`; after this an unfinished run stops blocking retries |
 | `AWS_SNS_TOPIC_ARN` | no | Unset means notifications are logged, not published |
 | `AWS_REGION` | no | Default `us-east-1` |
@@ -192,6 +194,7 @@ All data endpoints need authentication. User endpoints use `Authorization: Beare
 | `POST` | `/incidents/{id}/investigate` | Queue an investigation, `202` |
 | `GET` | `/investigations/quota` | Budget left today, and queue depth |
 | `GET` | `/incidents/{id}/investigation` | The latest investigation and its report |
+| `GET` | `/incidents/{id}/investigation/stream` | Stream completed agent steps over SSE |
 | `GET` | `/incidents/{id}/investigations` | Every run for the incident |
 | `GET` | `/investigations/{run_id}` | One run by id |
 | `POST` | `/ingest/logs` | Submit up to 500 JSONL log records with `X-Ingest-Key`; gzip is supported |
@@ -289,7 +292,7 @@ previous replay cannot inflate the new run's counts.
 ## Deployment
 
 The repository ships a `Dockerfile` for each service and a `docker-compose.yml` that runs the
-three of them together. The API image applies migrations at start, then serves on `$PORT`
+API, PostgreSQL, Redis, a Celery worker, and DummyCommerce together. The API image applies migrations at start, then serves on `$PORT`
 (default `8000`), so a platform that injects a port works unchanged.
 
 ```bash
@@ -308,19 +311,16 @@ than an empty drawer:
 python -m scripts.seed_demo
 ```
 
-**Run exactly one API instance.** Two things in Mango are deliberately in-process: the
-investigation queue (one run at a time) and the daily LLM budget counter. Scaling to two
-replicas gives you two queues and two counters sharing one API key, which is the one way to
-get rate-limited on purpose. Scale up, not out, until there is a shared broker.
+**The queue and daily budget are shared.** Celery sends runs through Redis, and PostgreSQL
+atomically charges each provider request across workers. Set worker concurrency with
+`INVESTIGATION_WORKER_CONCURRENCY`; keep it within the selected model's rate and token limits.
 
-**Serverless platforms (Vercel, Lambda) will not run this as-is** — the queue is a thread,
-the budget is a file, and both die with the invocation. See
+**Serverless platforms (Vercel, Lambda) will not run this as-is** — investigations need a
+separate Celery worker and Redis broker. See
 [Limitations and next steps](#limitations-and-next-steps).
 
-**Persist two paths** if you are not using compose (which mounts volumes for both):
+**Persist the log path** if you are not using compose:
 
-- `LLM_QUOTA_FILE` — the day's spend. On an ephemeral filesystem the budget guard silently
-  resets on every restart, which defeats the point of having it.
 - `DUMMYCOMMERCE_LOG_PATH` — the evidence source, which must be the same file the watched
   application writes.
 
@@ -355,16 +355,14 @@ open case.
 Mango is built to run on a free Gemini key without earning a 429. Four things do that, and
 none of them is a retry loop:
 
-1. **Per-minute pacing.** One `InMemoryRateLimiter` is shared by every agent and every
-   investigation, set from `LLM_REQUESTS_PER_MINUTE`, with bursting disabled. A call waits
-   its turn instead of being sent and rejected.
-2. **A persisted daily budget.** `LLM_REQUESTS_PER_DAY` is counted in `LLM_QUOTA_FILE`, so a
-   restart cannot spend the same day twice. When it is gone Mango refuses to send rather than
-   burning the key, and the count rolls over at midnight in `LLM_QUOTA_TIMEZONE` (Google's
-   free tier resets on Pacific time).
-3. **A queue, not parallelism.** Every investigation goes through one FIFO worker, so ten
-   incidents arriving at once is still one request at a time. If the day's remaining budget
-   cannot cover a whole run, the run stays queued and the worker re-checks until it can.
+1. **Shared per-minute pacing.** A Redis Lua slot serializes provider calls across every
+   worker, using `LLM_REQUESTS_PER_MINUTE` and the pinned model's key. A call waits its turn
+   instead of being sent and rejected.
+2. **An atomic daily budget.** `LLM_REQUESTS_PER_DAY` is counted in PostgreSQL, so every
+   worker shares one counter. When it is gone Mango refuses to send rather than burning the
+   key, and the count rolls over at midnight in `LLM_QUOTA_TIMEZONE`.
+3. **A durable queue.** Celery stores pending investigations in Redis. Workers can run several
+   incidents at once, and unfinished tasks are redelivered after a worker loss.
 4. **A cooldown when the provider disagrees.** The configured budget is only our guess at
    the real limit. If a 429 comes back anyway, that is the authoritative signal: Mango reads
    the provider's own `retryDelay`, stops sending entirely for that long, and holds the queue
@@ -509,15 +507,10 @@ that was collected) and the final markdown report.
 
 ## Limitations and next steps
 
-Three deliberate trade-offs, each with its upgrade path:
+Two deliberate trade-offs remain:
 
-- **The queue and the daily budget counter are in-process**, which is what keeps Mango a
-  single `uvicorn` command with no broker to run. The cost is that it scales up rather than
-  out: one API instance, or two instances would keep two counters against one API key.
-  Celery or Arq behind the same `InvestigationQueue` interface is the swap.
 - **Detection rules are basic thresholds and patterns.** They catch bursts and explicit
-  critical messages; Phase 2 adds fingerprinting and correlation so repeated matches do not
-  create repeated incidents.
+  critical messages; richer anomaly detection remains a future improvement.
 - **Permissions are per-incident rules** — creator, assignee, comment author — not roles.
   That is the right model for a small team and the wrong one the moment you need an
   on-call rotation or a read-only stakeholder.

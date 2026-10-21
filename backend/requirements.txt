@@ -14,3 +14,4 @@ httpx
 langgraph
 langchain-anthropic
 langchain-google-genai
+celery[redis]

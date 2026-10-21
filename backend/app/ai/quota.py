@@ -4,20 +4,32 @@ Free tiers are capped per day, not just per minute, and the per-minute limiter c
 that. This keeps a persisted count so a restart cannot spend the day's budget twice, and so
 Mango refuses to send a request rather than earning a 429.
 """
-import json
 import logging
 import threading
 import time
 from datetime import datetime, timedelta
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import redis
+
 from app.core.config import settings
+from app.database.session import SessionLocal
+from app.repositories.quota_repository import QuotaRepository
 
 logger = logging.getLogger(__name__)
+_redis = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+_RATE_SLOT_SCRIPT = (
+    "local clock = redis.call('TIME'); "
+    "local now = tonumber(clock[1]) + tonumber(clock[2]) / 1000000; "
+    "local interval = tonumber(ARGV[1]); "
+    "local next_at = tonumber(redis.call('GET', KEYS[1]) or '0'); "
+    "if next_at <= now then "
+    "redis.call('SET', KEYS[1], now + interval, 'PX', math.ceil(interval * 2000)); "
+    "return 0; end; return next_at - now"
+)
 
-# ponytail: one process, one lock. Two Mango processes sharing a key would each keep their
-# own count, so give each its own quota file and split the limit, or move this to the DB.
+# This lock avoids needless SQLite contention in tests. PostgreSQL's conditional upsert is
+# the cross-process authority in production.
 _lock = threading.Lock()
 
 
@@ -29,33 +41,10 @@ def _today() -> str:
     return datetime.now(_zone()).date().isoformat()
 
 
-def _read() -> dict:
-    path = Path(settings.llm_quota_file)
-
-    try:
-        state = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {"date": _today(), "used": 0}
-
-    if not isinstance(state, dict) or state.get("date") != _today():
-        return {"date": _today(), "used": 0}
-
-    return {"date": state["date"], "used": int(state.get("used", 0))}
-
-
-def _write(state: dict) -> None:
-    path = Path(settings.llm_quota_file)
-
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(state), encoding="utf-8")
-    except OSError:
-        logger.exception("Could not persist the LLM daily quota to %s", path)
-
-
 def used_today() -> int:
     with _lock:
-        return _read()["used"]
+        with SessionLocal() as db:
+            return QuotaRepository(db).used(_today())
 
 
 def remaining() -> int:
@@ -69,15 +58,22 @@ def has_capacity(requests: int = 1) -> bool:
 def consume(requests: int = 1) -> bool:
     """Spend part of today's budget. False means the budget is gone and nothing was spent."""
     with _lock:
-        state = _read()
+        with SessionLocal() as db:
+            return QuotaRepository(db).consume(
+                _today(), requests, settings.llm_requests_per_day
+            )
 
-        if state["used"] + requests > settings.llm_requests_per_day:
-            return False
 
-        state["used"] += requests
-        _write(state)
-
-        return True
+def wait_for_rate_slot() -> None:
+    """Pace provider calls across every worker sharing the Redis broker."""
+    interval = 60 / max(settings.llm_requests_per_minute, 1)
+    model = settings.gemini_model if settings.llm_provider == "gemini" else settings.anthropic_model
+    key = f"mango:llm:next:{settings.llm_provider}:{model}"
+    while True:
+        wait = float(_redis.eval(_RATE_SLOT_SCRIPT, 1, key, interval))
+        if wait <= 0:
+            return
+        time.sleep(wait)
 
 
 def seconds_until_reset() -> float:

@@ -37,22 +37,23 @@ contradicting. Confidence tracks evidence quality, demonstrably: the same agents
 repositories do SQL. The graph nodes call services, never the database.
 
 **No build step on the frontend.** The console is one static HTML file with vanilla JS,
-served by FastAPI at `/console`. The whole product runs with one `uvicorn` command.
+served by FastAPI at `/console`.
 
 **A four-layer budget guard around the LLM**, because the project runs on a free tier:
-RPM pacing → a persisted daily request budget → a single-worker FIFO queue → a
-provider-driven 429 cooldown. The free tier is roughly 20 requests per day per model, and
+shared Redis RPM pacing → an atomic PostgreSQL daily request budget → a durable Celery queue →
+a provider-driven 429 cooldown. The free tier is roughly 20 requests per day per model, and
 aliases silently move between models, so the model is pinned, not aliased.
 
 ## 3. What exists today
 
-**Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Alembic, Pydantic v2, PyJWT, pwdlib/argon2,
-LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
+**Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Redis, Celery, Alembic, Pydantic v2, PyJWT,
+pwdlib/argon2, LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
 
-**Tables (10):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
-`agent_executions`, `service_keys`, `log_records`, `detection_rules`, `incident_groups`.
+**Tables (11):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
+`agent_executions`, `service_keys`, `log_records`, `detection_rules`, `incident_groups`,
+`daily_llm_budgets`.
 
-**API (22 endpoints):**
+**API (23 endpoints):**
 
 - `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
 - `POST /incidents`, `GET /incidents`, `GET /incidents/{id}`,
@@ -61,6 +62,7 @@ LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
 - `POST /incidents/{id}/comments`, `GET /incidents/{id}/comments`,
   `PATCH /comments/{id}`, `DELETE /comments/{id}`
 - `POST /incidents/{id}/investigate`, `GET /incidents/{id}/investigation`,
+  `GET /incidents/{id}/investigation/stream` (SSE),
   `GET /incidents/{id}/investigations`, `GET /investigations/{run_id}`,
   `GET /investigations/quota`
 - `POST /ingest/logs` (scoped service key; JSONL or gzip; batches up to 500 records),
@@ -83,14 +85,18 @@ pending because the local Docker daemon and k6 are unavailable.
 `planner` → `evidence_collector` → `root_cause` → `fix_recommendation` → `report`.
 Two of them (`evidence_collector`, `report`) are plain Python with no model call.
 Structured output uses LangChain's `with_structured_output(schema, include_raw=True)`.
+Each node retries transient failures up to twice. Completed node outputs are persisted and a
+redelivered task resumes at the first unfinished node. Celery workers consume Redis tasks;
+the daily provider budget is an atomic PostgreSQL upsert, and a shared Redis slot paces model
+calls across workers. The console receives completed node outputs and reasoning over SSE.
 
 **Rules implemented:** severity `LOW|MEDIUM|HIGH|CRITICAL`; status `OPEN` →
 `INVESTIGATING` → `RESOLVED`, one way, no skipping. Permissions are per incident, not
 role based: only the creator assigns, only creator or assignee changes status, only the
 author edits or deletes a comment.
 
-**Incident intake, three paths:** the REST API with a service account (what DummyCommerce
-uses), the console by hand, and the seeded demo dataset.
+**Incident intake:** the REST API with a service account (what DummyCommerce uses), the
+console by hand, seeded demo data, or service-scoped log ingestion with automatic detection.
 
 **Console:** incident register with severity and status, incident detail with activity
 timeline and comments, and the investigation view showing the five agent route with real
@@ -102,10 +108,10 @@ investigations from `scripts/demo_fixtures.json`. The fixtures were produced by
 `scripts/capture_fixtures.py` running live against real DummyCommerce logs, so a deployed
 demo shows genuine agent output with no log file and no API call.
 
-**Deployment:** Dockerfiles for both services, a three-service compose (postgres, api,
-dummycommerce) with named volumes for the two pieces of state that must survive a restart
-(the log file and the quota counter), migrations at container start, `$PORT` injection for
-managed platforms, and a boot-time validator that refuses a placeholder JWT signing key.
+**Deployment:** Dockerfiles for the API and DummyCommerce, a compose stack with PostgreSQL,
+Redis, API, worker, and DummyCommerce, a persistent log volume, migrations at container
+start, `$PORT` injection for managed platforms, and a boot-time validator that refuses a
+placeholder JWT signing key.
 
 **Evaluation tooling:** `backend/evals/` contains 50 reproducible synthetic scenarios
 (10 DummyCommerce fault families × 5 evidence/noise variants), an existing-pipeline runner,
@@ -120,7 +126,7 @@ stopped the run; 48 cases remain ungraded. This two-case subset is not a full-be
 accuracy measurement. Full baseline and human review remain pending;
 the harness existing is not an accuracy claim.
 
-**Tests:** 222 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+**Tests:** 223 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
 DummyCommerce suite was not runnable here because its environment has no pytest installed.
 The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
 the new ingestion behavior. CI runs both suites.
@@ -128,8 +134,8 @@ the new ingestion behavior. CI runs both suites.
 
 ### Known limits of the current build
 
-- One API process only. The daily budget counter is a file, so a second worker would
-  double-spend it. Phase 4 moves it into Postgres.
+- Phase 4 is implemented, but live multi-worker verification still needs PostgreSQL and
+  Redis. Docker Desktop is unavailable in this environment.
 - Log ingestion and rule-based detection are implemented in Phase 1. The live 10k replay
   and p95 acceptance measurements remain pending.
 - Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.
@@ -146,7 +152,7 @@ Summarised:
 | 1 | **Implemented; acceptance measurement pending.** `POST /ingest/logs`, indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The live p95 measurement still needs to run. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented; live replay measurement pending.** Normalized fingerprints, a partial unique index for open incidents, occurrence counts, cross-service incident groups, the 10k-record fixture, and the replay command are built and tested. An in-memory SQLite test measured 400 failures → 6 incidents (66.7:1); the live API/PostgreSQL replay still needs to run. | Measure how many repeated failures collapse into incidents. |
 | 3 | **pgvector RAG over history.** Embeddings of resolved incidents, HNSW index, a new `history` graph node feeding prior diagnoses into the root cause prompt above a similarity floor. | The agents reason from everything already learned, not one incident's logs. |
-| 4 | **Celery + Redis, retries, SSE.** Distributed workers, per-node retry with checkpointing, the budget moved to an atomic Postgres `UPDATE`, and live reasoning streamed to the console. | Deletes the one-process limit and the two caveats in the README. |
+| 4 | **Implemented; multi-worker acceptance measurement pending.** Celery/Redis workers, two retries per graph node, resume from persisted node outputs, SSE in the console, PostgreSQL atomic daily budget, and shared Redis request pacing are built and tested. The eight-run/four-worker measurement still needs PostgreSQL and Redis running. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Observability and load.** OpenTelemetry traces across request → queue → each node, Prometheus metrics, k6 load scripts. | p95 and throughput measured rather than asserted. |
 | 7 | **Integrations.** Slack notifications, escalation policies, RBAC. | Reads as an on-call tool, not a ticket tracker. |

@@ -1,14 +1,14 @@
-"""The guards that keep a free-tier key under its limits: per-minute pacing, a persisted
-daily budget, and a single-worker queue."""
-import json
+"""The guards that keep a free-tier key under its limits across distributed workers."""
 import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 
 from app.ai import graph, quota
 from app.core.config import settings
 from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
+from app.models.quota import DailyLLMBudget
 from app.services.investigation_queue import InvestigationQueue
 from tests.conftest import start_investigation
 from tests.fake_llm import FakeLLM
@@ -18,39 +18,33 @@ AN_INCIDENT = {"id": 1, "title": "x", "created_at": "2026-10-12T00:00:00+00:00"}
 # --- per-minute rate limiter ----------------------------------------------------------
 
 
-def test_the_limiter_matches_the_configured_requests_per_minute():
-    limiter = graph._rate_limiter(10)
+def test_distributed_rate_slot_waits_for_the_shared_redis_slot(monkeypatch):
+    waits = iter([0.25, 0])
+    sleeps = []
+    calls = []
 
-    assert limiter.requests_per_second == pytest.approx(10 / 60)
+    def eval_script(script, key_count, key, interval):
+        calls.append((script, key_count, key, interval))
+        return next(waits)
 
+    monkeypatch.setattr(quota, "_redis", SimpleNamespace(eval=eval_script))
+    monkeypatch.setattr(quota.time, "sleep", sleeps.append)
+    monkeypatch.setattr(settings, "llm_requests_per_minute", 10)
+    monkeypatch.setattr(settings, "llm_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_model", "pinned-model")
 
-def test_the_limiter_does_not_allow_bursting():
-    assert graph._rate_limiter(30).max_bucket_size == 1
+    quota.wait_for_rate_slot()
 
-
-def test_every_agent_shares_one_limiter():
-    """A shared limiter is what makes the whole process stay under the provider's limit."""
-    assert graph._rate_limiter(10) is graph._rate_limiter(10)
-    assert graph._rate_limiter(10) is not graph._rate_limiter(15)
-
-
-def test_the_limiter_actually_paces_calls():
-    limiter = graph._rate_limiter(120)  # 2 per second
-
-    limiter.acquire(blocking=True)
-    started = time.monotonic()
-    limiter.acquire(blocking=True)
-
-    assert time.monotonic() - started >= 0.4
+    assert sleeps == [0.25]
+    assert calls[0][1:] == (1, "mango:llm:next:gemini:pinned-model", 6.0)
 
 
-def test_the_model_is_built_with_the_limiter_attached(monkeypatch):
+def test_the_model_is_built_with_the_configured_retries(monkeypatch):
     monkeypatch.setattr(settings, "llm_provider", "gemini")
     monkeypatch.setattr(settings, "google_api_key", "test-key")
 
     llm = graph.get_llm()
 
-    assert llm.rate_limiter is graph._rate_limiter(settings.llm_requests_per_minute)
     assert llm.max_retries == settings.llm_max_retries
 
 
@@ -81,31 +75,23 @@ def test_the_budget_cannot_be_overspent(monkeypatch):
 
 
 def test_spending_survives_a_restart(monkeypatch):
-    """The count lives in a file, so restarting Mango cannot spend the day twice."""
+    """The count lives in PostgreSQL, so restarting Mango cannot spend the day twice."""
     monkeypatch.setattr(settings, "llm_requests_per_day", 10)
     quota.consume(6)
 
-    state = json.loads((pytest.importorskip("pathlib").Path(settings.llm_quota_file)).read_text())
-
-    assert state["used"] == 6
     assert quota.remaining() == 4
 
 
-def test_yesterdays_count_is_ignored(monkeypatch, tmp_path):
-    path = tmp_path / "stale.json"
-    path.write_text(json.dumps({"date": "2020-01-01", "used": 999}), encoding="utf-8")
-    monkeypatch.setattr(settings, "llm_quota_file", str(path))
+def test_yesterdays_count_is_ignored(monkeypatch, db):
+    db.add(DailyLLMBudget(quota_date="2020-01-01", used=999))
+    db.commit()
     monkeypatch.setattr(settings, "llm_requests_per_day", 10)
 
     assert quota.used_today() == 0
     assert quota.has_capacity(10)
 
 
-def test_a_corrupt_quota_file_does_not_break_the_app(monkeypatch, tmp_path):
-    path = tmp_path / "broken.json"
-    path.write_text("{not json", encoding="utf-8")
-    monkeypatch.setattr(settings, "llm_quota_file", str(path))
-
+def test_a_missing_database_counter_starts_at_zero():
     assert quota.used_today() == 0
     assert quota.consume(1) is True
 

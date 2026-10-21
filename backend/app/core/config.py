@@ -44,8 +44,9 @@ class Settings(BaseSettings):
     # Log each agent's reasoning as it runs, and store a summary with its execution.
     llm_show_thinking: bool = True
     llm_thinking_max_chars: int = 4000
-    llm_quota_file: str = ".llm_quota.json"
     llm_quota_timezone: str = "America/Los_Angeles"
+    redis_url: str = "redis://localhost:6379/0"
+    investigation_worker_concurrency: int = 4
 
     # A PENDING or RUNNING investigation older than this is treated as abandoned (the
     # process died mid-run) and no longer blocks a retry.

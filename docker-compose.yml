@@ -23,6 +23,17 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: mango-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build: ./backend
     container_name: mango-api
@@ -32,15 +43,34 @@ services:
       # and container paths. The daily LLM budget lives on a volume so a restart does not
       # hand the process a fresh allowance.
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
       DUMMYCOMMERCE_LOG_PATH: /logs/app.jsonl
-      LLM_QUOTA_FILE: /state/llm_quota.json
     ports:
       - "8000:8000"
     volumes:
       - mango_logs:/logs
-      - mango_state:/state
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    container_name: mango-worker
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      INVESTIGATION_WORKER_CONCURRENCY: ${INVESTIGATION_WORKER_CONCURRENCY:-4}
+    command:
+      - sh
+      - -c
+      - celery -A app.celery_app:celery_app worker --loglevel=INFO --concurrency=$${INVESTIGATION_WORKER_CONCURRENCY:-4} -Q investigations
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   dummycommerce:
@@ -61,4 +91,3 @@ services:
 volumes:
   mango_postgres_data:
   mango_logs:
-  mango_state:

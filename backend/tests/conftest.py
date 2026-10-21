@@ -14,7 +14,8 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine, event  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 
-from app.ai import graph  # noqa: E402
+from app import tasks  # noqa: E402
+from app.ai import graph, quota  # noqa: E402
 from app.api import ingest, investigation  # noqa: E402
 from app.core.config import settings  # noqa: E402
 from app.database.base import Base  # noqa: E402
@@ -22,7 +23,13 @@ from app.database.session import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import *  # noqa: E402, F403  (registers every table on Base.metadata)
 from app.models.ingest import LogRecord  # noqa: E402
+from app.services.investigation_queue import InvestigationQueue  # noqa: E402
 from tests.fake_llm import FakeLLM  # noqa: E402
+
+
+class LocalRateSlotStub:
+    def eval(self, *_args):
+        return 0
 
 
 @pytest.fixture
@@ -58,9 +65,11 @@ def db(session_factory):
 
 
 @pytest.fixture(autouse=True)
-def isolated_llm_budget(tmp_path, monkeypatch):
+def isolated_llm_budget(monkeypatch, session_factory):
     """Never let a test spend the real daily budget, or see another test's spending."""
-    monkeypatch.setattr(settings, "llm_quota_file", str(tmp_path / "llm_quota.json"))
+    monkeypatch.setattr(quota, "SessionLocal", session_factory)
+    monkeypatch.setattr(quota, "_redis", LocalRateSlotStub())
+    monkeypatch.setattr(tasks, "SessionLocal", session_factory)
     monkeypatch.setattr(settings, "llm_requests_per_day", 1000)
 
 
@@ -74,7 +83,12 @@ def client(session_factory, monkeypatch):
             session.close()
 
     # The investigation worker opens its own session; point it at the test database too.
-    monkeypatch.setattr(investigation, "SessionLocal", session_factory)
+    monkeypatch.setattr(investigation, "SessionLocal", session_factory, raising=False)
+    monkeypatch.setattr(
+        investigation,
+        "investigation_queue",
+        InvestigationQueue(tasks.run_investigation_local),
+    )
     monkeypatch.setattr(ingest, "SessionLocal", session_factory)
 
     app.dependency_overrides[get_db] = override_get_db

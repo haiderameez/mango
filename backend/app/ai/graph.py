@@ -9,11 +9,11 @@ import json
 import logging
 import re
 from datetime import datetime
-from functools import lru_cache, partial
+from functools import partial
 from typing import TypedDict
 
-from langchain_core.rate_limiters import InMemoryRateLimiter
 from langgraph.graph import END, StateGraph
+from langgraph.types import RetryPolicy, default_retry_on
 
 from app.ai import quota
 from app.ai.schemas import Plan, Recommendations, RootCause
@@ -28,6 +28,12 @@ NODE_ORDER = ["planner", "evidence_collector", "root_cause", "fix_recommendation
 # How many provider requests one investigation needs. evidence_collector and report are
 # plain Python and cost nothing.
 LLM_CALLS_PER_RUN = 3
+
+
+def _retry_agent_error(error: Exception) -> bool:
+    if isinstance(error, (LlmQuotaExhaustedError, LlmRateLimitedError)):
+        return False
+    return default_retry_on(error)
 
 GROUNDING_RULES = (
     "Use only the evidence supplied in this message. Never invent log lines, timestamps or "
@@ -45,24 +51,8 @@ class InvestigationState(TypedDict, total=False):
     report: str
 
 
-@lru_cache(maxsize=4)
-def _rate_limiter(requests_per_minute: int) -> InMemoryRateLimiter:
-    """One limiter shared by every agent and every investigation, so the whole application
-    stays under the provider's per-minute limit. A call waits for its turn instead of being
-    sent and rejected.
-
-    max_bucket_size=1 means no bursting: a free tier counts a burst like any other traffic.
-    """
-    return InMemoryRateLimiter(
-        requests_per_second=requests_per_minute / 60,
-        check_every_n_seconds=0.5,
-        max_bucket_size=1,
-    )
-
-
 def get_llm():
     """The chat model used by every agent node. Patched out in tests."""
-    limiter = _rate_limiter(settings.llm_requests_per_minute)
 
     if settings.llm_provider == "gemini":
         if not settings.google_api_key:
@@ -78,7 +68,6 @@ def get_llm():
             temperature=0,
             timeout=120,
             max_retries=settings.llm_max_retries,
-            rate_limiter=limiter,
             include_thoughts=settings.llm_show_thinking,
         )
 
@@ -95,7 +84,6 @@ def get_llm():
         temperature=0,
         timeout=120,
         max_retries=settings.llm_max_retries,
-        rate_limiter=limiter,
     )
 
 
@@ -119,6 +107,17 @@ def _ask(schema, prompt: str):
             f"The provider asked us to back off; {quota.cooldown_remaining():.0f}s left."
         )
 
+    if not quota.has_capacity():
+        raise LlmQuotaExhaustedError(
+            f"The daily LLM request budget ({settings.llm_requests_per_day}) is spent. "
+            f"It resets in {quota.seconds_until_reset() / 3600:.1f} hours."
+        )
+
+    quota.wait_for_rate_slot()
+    if quota.is_cooling_down():
+        raise LlmRateLimitedError(
+            f"The provider asked us to back off; {quota.cooldown_remaining():.0f}s left."
+        )
     if not quota.consume():
         raise LlmQuotaExhaustedError(
             f"The daily LLM request budget ({settings.llm_requests_per_day}) is spent. "
@@ -314,7 +313,16 @@ def build_graph(*, start_at: str | None = None, evidence_repository=None):
         node = globals()[name]
         if name == "evidence_collector" and evidence_repository is not None:
             node = partial(node, repository=evidence_repository)
-        graph.add_node(name, node)
+        graph.add_node(
+            name,
+            node,
+            retry_policy=RetryPolicy(
+                max_attempts=3,
+                initial_interval=1,
+                backoff_factor=2,
+                retry_on=_retry_agent_error,
+            ),
+        )
 
     graph.set_entry_point(start_at or NODE_ORDER[0])
     for current, following in zip(NODE_ORDER, NODE_ORDER[1:], strict=False):

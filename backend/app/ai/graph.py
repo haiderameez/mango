@@ -19,6 +19,7 @@ from app.ai import quota
 from app.ai.schemas import Plan, Recommendations, RootCause
 from app.core.config import settings
 from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
+from app.observability import PROVIDER_CALLS, span
 from app.services import evidence
 
 logger = logging.getLogger("mango.investigation")
@@ -125,8 +126,11 @@ def _ask(schema, prompt: str):
         )
 
     try:
-        return _invoke(schema, prompt)
+        result = _invoke(schema, prompt)
+        PROVIDER_CALLS.labels(settings.llm_provider, "success").inc()
+        return result
     except Exception as error:
+        PROVIDER_CALLS.labels(settings.llm_provider, "error").inc()
         if not is_rate_limited(error):
             raise
 
@@ -313,9 +317,14 @@ def build_graph(*, start_at: str | None = None, evidence_repository=None):
         node = globals()[name]
         if name == "evidence_collector" and evidence_repository is not None:
             node = partial(node, repository=evidence_repository)
+
+        def traced_node(state, *, _node=node, _name=name):
+            with span(f"mango.agent.{_name}"):
+                return _node(state)
+
         graph.add_node(
             name,
-            node,
+            traced_node,
             retry_policy=RetryPolicy(
                 max_attempts=3,
                 initial_interval=1,

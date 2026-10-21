@@ -34,16 +34,23 @@ services:
       timeout: 3s
       retries: 10
 
+  jaeger:
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.22.0
+    container_name: mango-jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+
   api:
     build: ./backend
     container_name: mango-api
     env_file: ./backend/.env
     environment:
       # Override the host-machine values in .env: inside the network these are service names
-      # and container paths. The daily LLM budget lives on a volume so a restart does not
-      # hand the process a fresh allowance.
+      # and container paths. The daily LLM budget is stored in Postgres.
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
       REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
       DUMMYCOMMERCE_LOG_PATH: /logs/app.jsonl
     ports:
       - "8000:8000"
@@ -54,6 +61,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   worker:
     build: ./backend
@@ -62,6 +71,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
       REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
       INVESTIGATION_WORKER_CONCURRENCY: ${INVESTIGATION_WORKER_CONCURRENCY:-4}
     command:
       - sh
@@ -72,6 +82,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   dummycommerce:
     build: ./dummycommerce

@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     llm_quota_timezone: str = "America/Los_Angeles"
     redis_url: str = "redis://localhost:6379/0"
     investigation_worker_concurrency: int = 4
+    otel_endpoint: str | None = None
 
     # A PENDING or RUNNING investigation older than this is treated as abandoned (the
     # process died mid-run) and no longer blocks a retry.

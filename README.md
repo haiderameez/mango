@@ -270,9 +270,12 @@ curl -X POST http://localhost:8000/ingest/logs \\
 ```
 
 Mango applies the active detection rules to each batch and opens incidents on a match. To
-measure the 500-record request path, start the API and PostgreSQL, install k6, create a key
-for `load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the
-environment. The script checks the 50 ms p95 target and reports records per second.
+measure the 500-record request path, start the Compose stack, install k6, create a key for
+`load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the environment.
+The script checks the 50 ms p95 target and reports records per second. `k6 run load/api.js`
+measures authenticated incident-register reads. `load/investigation.js` submits four
+investigations in parallel; set `MANGO_INCIDENT_IDS` to four distinct open incident IDs and
+account for the model request budget before running it.
 
 The dedup replay creates a fixture with 10,000 records, including 400 failures across six
 fault fingerprints. It needs an ingest key scoped to `outage-test` and a running API backed by
@@ -292,7 +295,9 @@ previous replay cannot inflate the new run's counts.
 ## Deployment
 
 The repository ships a `Dockerfile` for each service and a `docker-compose.yml` that runs the
-API, PostgreSQL, Redis, a Celery worker, and DummyCommerce together. The API image applies migrations at start, then serves on `$PORT`
+API, PostgreSQL, Redis, Jaeger, a Celery worker, and DummyCommerce together. Traces are
+available at `http://localhost:16686` and Prometheus metrics at `http://localhost:8000/metrics`.
+The API image applies migrations at start, then serves on `$PORT`
 (default `8000`), so a platform that injects a port works unchanged.
 
 ```bash

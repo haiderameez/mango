@@ -11,6 +11,7 @@ from app.core.exceptions import (
 from app.models.activity import ActivityType
 from app.models.incident import Incident
 from app.models.workflow import AgentExecution, RunStatus, WorkflowRun
+from app.observability import INVESTIGATIONS
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.ingest_repository import IngestRepository
@@ -230,6 +231,9 @@ class InvestigationService:
             )
 
         self.workflow_repository.save(run)
+        INVESTIGATIONS.labels(run.status.value).observe(
+            (datetime.now(UTC) - started_at).total_seconds()
+        )
         if failure is not None and raise_on_failure:
             raise failure
 

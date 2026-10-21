@@ -14,6 +14,7 @@ from app.core.notifications import notify_incident_created
 from app.models.activity import ActivityType
 from app.models.incident import Incident, IncidentGroup, SeverityLevel
 from app.models.ingest import DetectionRule, LogRecord, ServiceIngestKey
+from app.observability import DETECTION_FIRINGS, INGESTED_RECORDS
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.ingest_repository import IngestRepository
@@ -153,6 +154,7 @@ class IngestService:
             return 0
         self.repository.add_records(records)
         self._detect(records, key.created_by)
+        INGESTED_RECORDS.inc(len(records))
         return len(records)
 
     def _detect(self, batch: list[LogRecord], created_by: int) -> None:
@@ -218,6 +220,7 @@ class IngestService:
         created_by: int,
         new_count: int | None = None,
     ) -> None:
+        DETECTION_FIRINGS.inc()
         seen_at = max(record.ts for record in matches)
         error_type = matches[0].context.get("error_type")
         fingerprint = failure_fingerprint(service, matches[0].message, error_type)

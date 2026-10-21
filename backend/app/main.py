@@ -29,6 +29,7 @@ from app.core.exceptions import (
     InvestigationNotFoundError,
     UserNotFoundError,
 )
+from app.observability import MetricsMiddleware, configure_tracing, metrics_response
 
 # Uvicorn only configures its own loggers, so the application's progress and the agents'
 # reasoning would otherwise be invisible in the console.
@@ -43,6 +44,7 @@ app = FastAPI(
     description="AI-assisted incident management and investigation.",
     version="1.0.0",
 )
+app.add_middleware(MetricsMiddleware)
 
 app.add_exception_handler(IncidentNotFoundError, incident_not_found_handler)
 app.add_exception_handler(UserNotFoundError, user_not_found_handler)
@@ -65,3 +67,11 @@ app.include_router(ingest_router)
 @app.get("/health", tags=["operations"])
 def health():
     return {"status": "ok"}
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics():
+    return metrics_response()
+
+
+configure_tracing(app)

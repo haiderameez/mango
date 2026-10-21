@@ -47,7 +47,8 @@ aliases silently move between models, so the model is pinned, not aliased.
 ## 3. What exists today
 
 **Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Redis, Celery, Alembic, Pydantic v2, PyJWT,
-pwdlib/argon2, LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
+pwdlib/argon2, LangGraph, LangChain, Gemini, OpenTelemetry, Prometheus. Docker Compose,
+Jaeger, GitHub Actions CI.
 
 **Tables (11):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
 `agent_executions`, `service_keys`, `log_records`, `detection_rules`, `incident_groups`,
@@ -109,7 +110,7 @@ investigations from `scripts/demo_fixtures.json`. The fixtures were produced by
 demo shows genuine agent output with no log file and no API call.
 
 **Deployment:** Dockerfiles for the API and DummyCommerce, a compose stack with PostgreSQL,
-Redis, API, worker, and DummyCommerce, a persistent log volume, migrations at container
+Redis, Jaeger, API, worker, and DummyCommerce, a persistent log volume, migrations at container
 start, `$PORT` injection for managed platforms, and a boot-time validator that refuses a
 placeholder JWT signing key.
 
@@ -126,7 +127,13 @@ stopped the run; 48 cases remain ungraded. This two-case subset is not a full-be
 accuracy measurement. Full baseline and human review remain pending;
 the harness existing is not an accuracy claim.
 
-**Tests:** 223 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+**Observability:** FastAPI request traces propagate through Celery into worker spans for each
+agent node and export to Jaeger. `/metrics` exposes request and investigation duration,
+provider calls, daily budget remaining, queue depth, ingested records, and detection firings.
+`load/ingest.js`, `load/api.js`, and `load/investigation.js` exercise the main load paths. The
+live k6 measurements remain pending because Docker and k6 are unavailable in this environment.
+
+**Tests:** 225 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
 DummyCommerce suite was not runnable here because its environment has no pytest installed.
 The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
 the new ingestion behavior. CI runs both suites.
@@ -154,7 +161,7 @@ Summarised:
 | 3 | **pgvector RAG over history.** Embeddings of resolved incidents, HNSW index, a new `history` graph node feeding prior diagnoses into the root cause prompt above a similarity floor. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Implemented; multi-worker acceptance measurement pending.** Celery/Redis workers, two retries per graph node, resume from persisted node outputs, SSE in the console, PostgreSQL atomic daily budget, and shared Redis request pacing are built and tested. The eight-run/four-worker measurement still needs PostgreSQL and Redis running. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
-| 6 | **Observability and load.** OpenTelemetry traces across request → queue → each node, Prometheus metrics, k6 load scripts. | p95 and throughput measured rather than asserted. |
+| 6 | **Implemented; live load measurement pending.** OpenTelemetry request-to-Celery-to-agent traces, Prometheus metrics, and k6 scripts for ingestion, register reads, and investigation submission are built. Docker/k6 acceptance run remains pending. | p95 and throughput measured rather than asserted. |
 | 7 | **Integrations.** Slack notifications, escalation policies, RBAC. | Reads as an on-call tool, not a ticket tracker. |
 
 **Build order:** 5 (baseline) → 1 → 2 → 3 → re-run 5 for the lift → 4 → 6 → 7.

@@ -1,6 +1,8 @@
 from celery import Celery
+from celery.signals import worker_process_init
 
 from app.core.config import settings
+from app.observability import configure_celery_tracing
 
 celery_app = Celery(
     "mango",
@@ -20,3 +22,5 @@ celery_app.conf.update(
     result_expires=3600,
     task_routes={"app.tasks.run_investigation": {"queue": "investigations"}},
 )
+
+worker_process_init.connect(lambda **_kwargs: configure_celery_tracing(), weak=False)

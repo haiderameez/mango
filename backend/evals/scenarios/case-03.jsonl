@@ -1,0 +1,3 @@
+{"timestamp": "2026-10-04T11:59:30+00:00", "level": "WARNING", "message": "order worker RSS 510MiB approaches container limit 512MiB", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-03"}
+{"timestamp": "2026-10-04T11:59:31+00:00", "level": "ERROR", "message": "allocation failed in order worker: MemoryError", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-03"}
+{"timestamp": "2026-10-04T11:59:32+00:00", "level": "ERROR", "message": "order worker terminated: OOMKilled, exit 137", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-03"}

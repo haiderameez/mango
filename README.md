@@ -402,6 +402,14 @@ Set `LLM_SHOW_THINKING=false` to turn reasoning capture off.
 
 ## How good is the diagnosis?
 
+The reproducible benchmark lives in [`backend/evals/`](backend/evals/README.md): 50 synthetic
+scenarios generated from ten DummyCommerce fault families, exact category/service grading
+after answer-blind extraction, a separate root-cause judge, and confidence calibration.
+From `backend/`, run `python -m evals.run --report`; it resumes cached progress under the
+existing request budget. Stop the API LLM worker first because the budget is process-local.
+See [`RESULTS.md`](backend/evals/RESULTS.md) for actual coverage and measurements. A partial
+run is not a 50-scenario accuracy claim; human judge review remains a separate step.
+
 As good as the evidence, and it says so. Confidence is not a measure of how clever the agent
 is, it is a measure of what the logs could support:
 
@@ -434,7 +442,9 @@ curl -X POST localhost:8001/orders -H "content-type: application/json" \
   -d '{"product_id":1,"quantity":2}'
 ```
 
-Available faults: `db_connection`, `dependency_down`, `internal_error`, `slow`. Clear them
+Available faults: `db_connection`, `dependency_down`, `internal_error`, `slow`,
+`memory_pressure`, `disk_full`, `missing_field`, `invalid_credentials`, `invalid_endpoint`,
+`lock_contention`. Their shared fault table also generates the benchmark fixtures. Clear them
 with `curl -X DELETE localhost:8001/faults`.
 
 What happens: DummyCommerce logs the failure to `dummycommerce/logs/app.jsonl` with a request

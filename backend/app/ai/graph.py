@@ -305,13 +305,15 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
     return {"report": text}
 
 
-def build_graph():
+def build_graph(*, start_at: str | None = None):
+    if start_at is not None and start_at not in NODE_ORDER:
+        raise ValueError(f"Unknown investigation node: {start_at}")
     graph = StateGraph(InvestigationState)
 
     for name in NODE_ORDER:
         graph.add_node(name, globals()[name])
 
-    graph.set_entry_point(NODE_ORDER[0])
+    graph.set_entry_point(start_at or NODE_ORDER[0])
     for current, following in zip(NODE_ORDER, NODE_ORDER[1:], strict=False):
         graph.add_edge(current, following)
     graph.add_edge(NODE_ORDER[-1], END)

@@ -15,11 +15,10 @@ class Settings(BaseSettings):
     aws_sns_topic_arn: str | None = None
     aws_region: str = "us-east-1"
 
-    # AI investigation. "gemini" is the free-tier default; "anthropic" is also supported.
     log_level: str = "INFO"
 
-
-    llm_provider: Literal["gemini", "anthropic"] = "gemini"
+    # Provider is explicit and model identifiers stay pinned, never aliases.
+    llm_provider: Literal["gemini", "anthropic", "openrouter"] = "gemini"
 
     google_api_key: str | None = None
     # Pinned deliberately, not an alias: "gemini-flash-latest" moved to gemini-3.8-flash,
@@ -30,6 +29,9 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-5-5"
+
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "openai/gpt-4.1-mini"
 
     # Provider budget. Defaults are the conservative end of Gemini's free tier; check your
     # own limits in Google AI Studio and raise them here. Mango never sends a request that

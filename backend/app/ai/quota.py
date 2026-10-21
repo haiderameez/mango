@@ -67,7 +67,11 @@ def consume(requests: int = 1) -> bool:
 def wait_for_rate_slot() -> None:
     """Pace provider calls across every worker sharing the Redis broker."""
     interval = 60 / max(settings.llm_requests_per_minute, 1)
-    model = settings.gemini_model if settings.llm_provider == "gemini" else settings.anthropic_model
+    model = {
+        "gemini": settings.gemini_model,
+        "anthropic": settings.anthropic_model,
+        "openrouter": settings.openrouter_model,
+    }[settings.llm_provider]
     key = f"mango:llm:next:{settings.llm_provider}:{model}"
     while True:
         wait = float(_redis.eval(_RATE_SLOT_SCRIPT, 1, key, interval))

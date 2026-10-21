@@ -72,6 +72,23 @@ def get_llm():
             include_thoughts=settings.llm_show_thinking,
         )
 
+    if settings.llm_provider == "openrouter":
+        if not settings.openrouter_api_key:
+            raise RuntimeError(
+                "OPENROUTER_API_KEY is not configured, so an AI investigation cannot run."
+            )
+
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=settings.openrouter_model,
+            api_key=settings.openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1",
+            temperature=0,
+            timeout=120,
+            max_retries=settings.llm_max_retries,
+        )
+
     if not settings.anthropic_api_key:
         raise RuntimeError(
             "ANTHROPIC_API_KEY is not configured, so an AI investigation cannot run."

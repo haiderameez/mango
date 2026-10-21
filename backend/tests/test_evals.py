@@ -129,7 +129,12 @@ def test_answer_correction_only_repeats_the_judge(case, tmp_path, model):
 
 def test_changed_model_invalidates_pipeline_cache(case, tmp_path, model, monkeypatch):
     evaluate(case, tmp_path)
-    monkeypatch.setattr(settings, "gemini_model", "different-pinned-model")
+    model_setting = {
+        "gemini": "gemini_model",
+        "anthropic": "anthropic_model",
+        "openrouter": "openrouter_model",
+    }[settings.llm_provider]
+    monkeypatch.setattr(settings, model_setting, "different-pinned-model")
     evaluate(case, tmp_path)
     assert len(model.calls) == 10
 

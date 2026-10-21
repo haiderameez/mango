@@ -132,10 +132,11 @@ Copy `backend/.env.example` to `backend/.env` and set:
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `JWT_SECRET_KEY` | yes | Token signing key — `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 | `JWT_ALGORITHM`, `JWT_EXPIRATION_MINUTES` | no | Defaults `HS256`, `30` |
-| `LLM_PROVIDER` | no | `gemini` (default, free tier) or `anthropic` |
+| `LLM_PROVIDER` | no | `gemini` (default), `anthropic`, or `openrouter` |
 | `GOOGLE_API_KEY` | for investigations | Free key from [AI Studio](https://aistudio.google.com/apikey). Without it a run is recorded as `FAILED` with that reason |
 | `GEMINI_MODEL` | no | Default `gemini-3.5-flash`, pinned on purpose — see below |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | only for `anthropic` | Paid alternative |
+| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | only for `openrouter` | OpenRouter key and pinned model; default `openai/gpt-4.1-mini` |
 | `LLM_REQUESTS_PER_MINUTE` | no | Default `10`. Mango paces itself to this |
 | `LLM_REQUESTS_PER_DAY` | no | Default `20`. Mango stops before exceeding this |
 | `LLM_MAX_RETRIES` | no | Default `5`, with backoff, for a 429 that slips through |

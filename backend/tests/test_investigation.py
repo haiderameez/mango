@@ -257,6 +257,7 @@ def test_the_graph_is_the_documented_pipeline():
     [
         ("gemini", "google_api_key", "GOOGLE_API_KEY"),
         ("anthropic", "anthropic_api_key", "ANTHROPIC_API_KEY"),
+        ("openrouter", "openrouter_api_key", "OPENROUTER_API_KEY"),
     ],
 )
 def test_get_llm_refuses_to_run_without_a_key(monkeypatch, provider, key_setting, expected):

@@ -14,6 +14,7 @@ httpx
 langgraph
 langchain-anthropic
 langchain-google-genai
+langchain-openai
 celery[redis]
 prometheus-client
 opentelemetry-api

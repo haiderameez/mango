@@ -34,9 +34,11 @@ def source_hash(paths: list[Path]) -> str:
 def identity() -> dict:
     return {
         "provider": settings.llm_provider,
-        "model": (
-            settings.gemini_model if settings.llm_provider == "gemini" else settings.anthropic_model
-        ),
+        "model": {
+            "gemini": settings.gemini_model,
+            "anthropic": settings.anthropic_model,
+            "openrouter": settings.openrouter_model,
+        }[settings.llm_provider],
         "pipeline_hash": source_hash(
             list((BACKEND / "app" / "ai").glob("*.py"))
             + [BACKEND / "app" / "services" / "evidence.py"]

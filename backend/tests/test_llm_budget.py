@@ -39,12 +39,39 @@ def test_distributed_rate_slot_waits_for_the_shared_redis_slot(monkeypatch):
     assert calls[0][1:] == (1, "mango:llm:next:gemini:pinned-model", 6.0)
 
 
+def test_openrouter_uses_its_model_specific_shared_rate_slot(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        quota, "_redis", SimpleNamespace(eval=lambda *args: calls.append(args) or 0)
+    )
+    monkeypatch.setattr(settings, "llm_provider", "openrouter")
+    monkeypatch.setattr(settings, "openrouter_model", "vendor/pinned-model")
+    monkeypatch.setattr(settings, "llm_requests_per_minute", 5)
+
+    quota.wait_for_rate_slot()
+
+    assert calls[0][1:] == (1, "mango:llm:next:openrouter:vendor/pinned-model", 12.0)
+
+
 def test_the_model_is_built_with_the_configured_retries(monkeypatch):
     monkeypatch.setattr(settings, "llm_provider", "gemini")
     monkeypatch.setattr(settings, "google_api_key", "test-key")
 
     llm = graph.get_llm()
 
+    assert llm.max_retries == settings.llm_max_retries
+
+
+def test_openrouter_uses_the_pinned_model_and_api_endpoint(monkeypatch):
+    monkeypatch.setattr(settings, "llm_provider", "openrouter")
+    monkeypatch.setattr(settings, "openrouter_api_key", "test-openrouter-key")
+    monkeypatch.setattr(settings, "openrouter_model", "vendor/pinned-model")
+
+    llm = graph.get_llm()
+
+    assert llm.model_name == "vendor/pinned-model"
+    assert llm.openai_api_base == "https://openrouter.ai/api/v1"
+    assert llm.openai_api_key.get_secret_value() == "test-openrouter-key"
     assert llm.max_retries == settings.llm_max_retries
 
 

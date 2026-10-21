@@ -1,7 +1,9 @@
-from sqlalchemy import select
+from datetime import datetime
+
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
-from app.models.incident import Incident, StatusLevel
+from app.models.incident import Incident, IncidentGroup, StatusLevel
 from app.schemas.incident import IncidentFilters
 
 
@@ -18,6 +20,75 @@ class IncidentRepository:
     def get_by_id(self, incident_id: int) -> Incident | None:
         statement = select(Incident).where(Incident.id == incident_id)
         return self.db.execute(statement).scalar_one_or_none()
+
+    def get_open_by_fingerprint(self, fingerprint: str) -> Incident | None:
+        statement = select(Incident).where(
+            Incident.fingerprint == fingerprint,
+            Incident.status.in_((StatusLevel.OPEN, StatusLevel.INVESTIGATING)),
+        )
+        return self.db.execute(statement).scalar_one_or_none()
+
+    def increment_occurrence(self, incident_id: int, count: int, seen_at: datetime) -> Incident:
+        latest = func.max if self.db.bind.dialect.name == "sqlite" else func.greatest
+        self.db.execute(
+            update(Incident)
+            .where(Incident.id == incident_id)
+            .values(
+                occurrence_count=Incident.occurrence_count + count,
+                last_seen_at=latest(Incident.last_seen_at, seen_at),
+            )
+        )
+        self.db.commit()
+        return self.get_by_id(incident_id)
+
+    def get_related(
+        self, incident: Incident, since: datetime
+    ) -> list[Incident]:
+        correlation = []
+        if incident.request_id:
+            correlation.append(Incident.request_id == incident.request_id)
+        if incident.upstream_name:
+            correlation.append(Incident.upstream_name == incident.upstream_name)
+        if not correlation:
+            return []
+        statement = select(Incident).where(
+            Incident.id != incident.id,
+            Incident.service.is_not(None),
+            Incident.service != incident.service,
+            Incident.last_seen_at.between(since, incident.last_seen_at),
+            Incident.status.in_((StatusLevel.OPEN, StatusLevel.INVESTIGATING)),
+            or_(*correlation),
+        )
+        return list(self.db.execute(statement).scalars())
+
+    def get_service_incidents_since(self, service: str, since: datetime) -> list[Incident]:
+        statement = select(Incident).where(
+            Incident.service == service, Incident.created_at >= since
+        )
+        return list(self.db.execute(statement).scalars())
+
+    def add_group(self, group: IncidentGroup) -> IncidentGroup:
+        self.db.add(group)
+        self.db.flush()
+        return group
+
+    def set_group(self, incident_ids: list[int], group_id: int) -> None:
+        self.db.execute(
+            update(Incident).where(Incident.id.in_(incident_ids)).values(group_id=group_id)
+        )
+        self.db.commit()
+
+    def merge_groups(self, group_ids: set[int], target_group_id: int) -> None:
+        if len(group_ids) < 2:
+            return
+        old_group_ids = group_ids - {target_group_id}
+        self.db.execute(
+            update(Incident)
+            .where(Incident.group_id.in_(old_group_ids))
+            .values(group_id=target_group_id)
+        )
+        self.db.execute(delete(IncidentGroup).where(IncidentGroup.id.in_(old_group_ids)))
+        self.db.commit()
 
     def get_all(self, filters: IncidentFilters | None = None) -> list[Incident]:
         filters = filters or IncidentFilters()

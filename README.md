@@ -271,6 +271,21 @@ measure the 500-record request path, start the API and PostgreSQL, install k6, c
 for `load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the
 environment. The script checks the 50 ms p95 target and reports records per second.
 
+The dedup replay creates a fixture with 10,000 records, including 400 failures across six
+fault fingerprints. It needs an ingest key scoped to `outage-test` and a running API backed by
+PostgreSQL:
+
+```bash
+cd backend
+python -m scripts.create_ingest_key outage-test ops@example.com
+python -m scripts.generate_outage_fixture
+MANGO_INGEST_KEY=<key-from-command> python -m scripts.replay --fixture ../load/outage.jsonl --report
+```
+
+The replay reports the observed failure-to-incident ratio and exits nonzero unless this run
+produces 400 failures across 6 incidents. It gives each run a distinct error-type suffix so a
+previous replay cannot inflate the new run's counts.
+
 ## Deployment
 
 The repository ships a `Dockerfile` for each service and a `docker-compose.yml` that runs the

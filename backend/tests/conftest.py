@@ -139,7 +139,7 @@ def fake_llm(monkeypatch):
 
 
 @pytest.fixture
-def log_file(tmp_path, monkeypatch, db):
+def log_file(tmp_path, monkeypatch, session_factory):
     now = datetime.now(UTC)
     records = [
         {
@@ -163,17 +163,20 @@ def log_file(tmp_path, monkeypatch, db):
     path = tmp_path / "app.jsonl"
     path.write_text("\n".join(json.dumps(r) for r in records), encoding="utf-8")
     monkeypatch.setattr(settings, "dummycommerce_log_path", str(path))
-    db.add_all([
-        LogRecord(
-            ts=datetime.fromisoformat(record["timestamp"]),
-            service=record["service"],
-            level=record["level"],
-            message=record["message"],
-            request_id=record.get("request_id"),
-            context={"endpoint": record.get("endpoint"), "error_type": record.get("error_type")},
-        )
-        for record in records
-    ])
-    db.commit()
+    with session_factory() as db:
+        db.add_all([
+            LogRecord(
+                ts=datetime.fromisoformat(record["timestamp"]),
+                service=record["service"],
+                level=record["level"],
+                message=record["message"],
+                request_id=record.get("request_id"),
+                context={
+                    "endpoint": record.get("endpoint"), "error_type": record.get("error_type")
+                },
+            )
+            for record in records
+        ])
+        db.commit()
 
     return path

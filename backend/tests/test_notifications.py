@@ -101,3 +101,60 @@ def test_status_changes_do_not_notify(client, headers, sns):
     )
 
     assert len(sns.published) == 1
+
+
+def test_incident_creation_sends_a_slack_webhook_even_without_sns(monkeypatch):
+    sent = []
+
+    class SlackResponse:
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(settings, "aws_sns_topic_arn", None)
+    monkeypatch.setattr(settings, "slack_webhook_url", "https://hooks.example.test/secret")
+    monkeypatch.setattr(
+        "httpx.post",
+        lambda url, json, timeout: sent.append((url, json, timeout)) or SlackResponse(),
+    )
+    incident = Incident(
+        id=7,
+        title="Checkout failing",
+        severity=SeverityLevel.CRITICAL,
+        status=StatusLevel.OPEN,
+        created_by=1,
+    )
+
+    notifications.notify_incident_created(incident)
+
+    assert len(sent) == 1
+    assert "Checkout failing" in sent[0][1]["text"]
+
+
+def test_completed_investigation_notification_includes_the_reported_cause(monkeypatch):
+    sent = []
+
+    class SlackResponse:
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(settings, "slack_webhook_url", "https://hooks.example.test/secret")
+    monkeypatch.setattr(
+        "httpx.post",
+        lambda url, json, timeout: sent.append(json["text"]) or SlackResponse(),
+    )
+    incident = Incident(
+        id=8,
+        title="Database unavailable",
+        severity=SeverityLevel.HIGH,
+        status=StatusLevel.OPEN,
+        created_by=1,
+    )
+
+    report = (
+        "## Likely root cause\n\nThe connection pool is exhausted.\n\n"
+        "**Confidence: high**"
+    )
+    notifications.notify_investigation_completed(incident, report)
+
+    assert len(sent) == 1
+    assert "The connection pool is exhausted." in sent[0]

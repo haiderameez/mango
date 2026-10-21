@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     investigation_worker_concurrency: int = 4
     otel_endpoint: str | None = None
+    slack_webhook_url: str | None = None
 
     # A PENDING or RUNNING investigation older than this is treated as abandoned (the
     # process died mid-run) and no longer blocks a retry.

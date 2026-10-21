@@ -50,16 +50,18 @@ aliases silently move between models, so the model is pinned, not aliased.
 pwdlib/argon2, LangGraph, LangChain, Gemini, OpenTelemetry, Prometheus. Docker Compose,
 Jaeger, GitHub Actions CI.
 
-**Tables (11):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
+**Tables (12):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
 `agent_executions`, `service_keys`, `log_records`, `detection_rules`, `incident_groups`,
-`daily_llm_budgets`.
+`daily_llm_budgets`, `escalation_policies`.
 
-**API (23 endpoints):**
+**API (28 endpoints):**
 
 - `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
+- `PATCH /auth/users/{id}/role` (admin only)
 - `POST /incidents`, `GET /incidents`, `GET /incidents/{id}`,
   `PATCH /incidents/{id}`, `PATCH /incidents/{id}/status`,
-  `PATCH /incidents/{id}/assign`, `GET /incidents/{id}/activity`
+  `PATCH /incidents/{id}/assign`, `POST /incidents/{id}/acknowledge`,
+  `GET /incidents/{id}/activity`
 - `POST /incidents/{id}/comments`, `GET /incidents/{id}/comments`,
   `PATCH /comments/{id}`, `DELETE /comments/{id}`
 - `POST /incidents/{id}/investigate`, `GET /incidents/{id}/investigation`,
@@ -68,6 +70,7 @@ Jaeger, GitHub Actions CI.
   `GET /investigations/quota`
 - `POST /ingest/logs` (scoped service key; JSONL or gzip; batches up to 500 records),
   `GET /console`
+- `GET|POST /escalation-policies`, `PATCH /escalation-policies/{id}` (admin only)
 
 **Log ingestion and detection:** services send bounded JSONL batches with a per-service
 ingest key. Mango stores only a SHA-256 key hash, scrubs credential-like context fields,
@@ -114,6 +117,14 @@ Redis, Jaeger, API, worker, and DummyCommerce, a persistent log volume, migratio
 start, `$PORT` injection for managed platforms, and a boot-time validator that refuses a
 placeholder JWT signing key.
 
+**Integrations and access control:** users have `admin`, `responder`, or `viewer` access.
+Registration always creates a responder; an administrator assigns roles at
+`PATCH /auth/users/{id}/role`. The demo seed makes `demo@mango.dev` an administrator, and
+`python -m scripts.set_user_role <email> admin` bootstraps an initial administrator. Slack
+incoming webhooks receive incident-opened, investigation-completed, and escalation notices
+when `SLACK_WEBHOOK_URL` is configured. Admin-managed escalation policies can reassign
+unacknowledged incidents after their configured delay; Celery Beat checks them once a minute.
+
 **Evaluation tooling:** `backend/evals/` contains 50 reproducible synthetic scenarios
 (10 DummyCommerce fault families × 5 evidence/noise variants), an existing-pipeline runner,
 answer-blind category/service extraction with exact-match scoring, a separate root-cause
@@ -133,7 +144,7 @@ provider calls, daily budget remaining, queue depth, ingested records, and detec
 `load/ingest.js`, `load/api.js`, and `load/investigation.js` exercise the main load paths. The
 live k6 measurements remain pending because Docker and k6 are unavailable in this environment.
 
-**Tests:** 225 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+**Tests:** 233 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
 DummyCommerce suite was not runnable here because its environment has no pytest installed.
 The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
 the new ingestion behavior. CI runs both suites.
@@ -148,6 +159,8 @@ the new ingestion behavior. CI runs both suites.
 - Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.
   A cold evaluation costs 250 logical calls, including extraction and judging; the 20/day
   guard remains in force. No full-benchmark accuracy or retrieval lift can yet be claimed.
+- Phase 7 behavior is implemented and tested locally; Slack delivery and scheduled escalation
+  still need configured integration credentials and a live Compose run.
 
 ## 4. What is left
 
@@ -162,7 +175,7 @@ Summarised:
 | 4 | **Implemented; multi-worker acceptance measurement pending.** Celery/Redis workers, two retries per graph node, resume from persisted node outputs, SSE in the console, PostgreSQL atomic daily budget, and shared Redis request pacing are built and tested. The eight-run/four-worker measurement still needs PostgreSQL and Redis running. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Implemented; live load measurement pending.** OpenTelemetry request-to-Celery-to-agent traces, Prometheus metrics, and k6 scripts for ingestion, register reads, and investigation submission are built. Docker/k6 acceptance run remains pending. | p95 and throughput measured rather than asserted. |
-| 7 | **Integrations.** Slack notifications, escalation policies, RBAC. | Reads as an on-call tool, not a ticket tracker. |
+| 7 | **Implemented; live integration run pending.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Slack delivery requires `SLACK_WEBHOOK_URL`; the live Compose scheduler verification remains pending. | Reads as an on-call tool, not a ticket tracker. |
 
 **Build order:** 5 (baseline) → 1 → 2 → 3 → re-run 5 for the lift → 4 → 6 → 7.
 

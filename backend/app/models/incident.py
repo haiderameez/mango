@@ -83,6 +83,8 @@ class Incident(Base):
     request_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     upstream_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     group_id: Mapped[int | None] = mapped_column(ForeignKey("incident_groups.id"), nullable=True)
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    escalated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # Eager, because every incident is read with its people: a lazy load here is the
     # classic N+1 on the register, which is the most-hit endpoint in the product.

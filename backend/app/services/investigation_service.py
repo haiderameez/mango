@@ -8,6 +8,7 @@ from app.core.exceptions import (
     InvestigationAlreadyRunningError,
     InvestigationNotFoundError,
 )
+from app.core.notifications import notify_investigation_completed
 from app.models.activity import ActivityType
 from app.models.incident import Incident
 from app.models.workflow import AgentExecution, RunStatus, WorkflowRun
@@ -236,6 +237,8 @@ class InvestigationService:
         )
         if failure is not None and raise_on_failure:
             raise failure
+        if failure is None and run.status == RunStatus.COMPLETED:
+            notify_investigation_completed(incident, run.report)
 
     def get(self, run_id: int) -> InvestigationResponse:
         run = self.workflow_repository.get_run(run_id)

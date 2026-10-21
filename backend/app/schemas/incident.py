@@ -29,6 +29,8 @@ class IncidentResponse(BaseModel):
     last_seen_at: datetime
     service: str | None
     group_id: int | None
+    acknowledged_at: datetime | None
+    escalated_at: datetime | None
 
 
 class IncidentAssign(BaseModel):

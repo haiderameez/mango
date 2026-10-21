@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_responder
 from app.database.session import get_db
 from app.models.user import User
 from app.repositories.activity_repository import ActivityRepository
@@ -56,7 +56,7 @@ def get_comment_service(db: Session = Depends(get_db)) -> CommentService:
 )
 def create_incident(
     incident_data: IncidentCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: IncidentService = Depends(get_incident_service),
 ):
     return service.create(incident_data, created_by=current_user.id)
@@ -96,13 +96,14 @@ def get_incident(
 def assign_incident(
     incident_id: int,
     assignment_data: IncidentAssign,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: IncidentService = Depends(get_incident_service),
 ):
     return service.assign(
         incident_id=incident_id,
         assigned_to=assignment_data.assigned_to,
         current_user_id=current_user.id,
+        is_admin=current_user.role == "admin",
     )
 
 
@@ -114,14 +115,24 @@ def assign_incident(
 def update_status(
     incident_id: int,
     status_data: IncidentStatusUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: IncidentService = Depends(get_incident_service),
 ):
     return service.update_status(
         incident_id=incident_id,
         new_status=status_data.status,
         current_user_id=current_user.id,
+        is_admin=current_user.role == "admin",
     )
+
+
+@router.post("/{incident_id}/acknowledge", response_model=IncidentResponse)
+def acknowledge_incident(
+    incident_id: int,
+    current_user: User = Depends(require_responder),
+    service: IncidentService = Depends(get_incident_service),
+):
+    return service.acknowledge(incident_id, current_user.id)
 
 
 @router.get(
@@ -145,7 +156,7 @@ def get_incident_activity(
 def create_comment(
     comment: CommentCreate,
     incident_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: CommentService = Depends(get_comment_service),
 ):
     return service.create(comment, incident_id=incident_id, current_user_id=current_user.id)
@@ -185,13 +196,14 @@ def get_comment(
 def update_comment(
     comment_id: int,
     comment: CommentUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: CommentService = Depends(get_comment_service),
 ):
     return service.update_comment(
         comment_id=comment_id,
         comment=comment,
         current_user_id=current_user.id,
+        is_admin=current_user.role == "admin",
     )
 
 
@@ -202,7 +214,11 @@ def update_comment(
 )
 def delete_comment(
     comment_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: CommentService = Depends(get_comment_service),
 ):
-    return service.delete_comment(comment_id=comment_id, current_user_id=current_user.id)
+    return service.delete_comment(
+        comment_id=comment_id,
+        current_user_id=current_user.id,
+        is_admin=current_user.role == "admin",
+    )

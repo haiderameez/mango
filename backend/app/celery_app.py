@@ -8,7 +8,7 @@ celery_app = Celery(
     "mango",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks"],
+    include=["app.tasks", "app.tasks_escalation"],
 )
 celery_app.conf.update(
     task_serializer="json",
@@ -21,6 +21,13 @@ celery_app.conf.update(
     broker_transport_options={"visibility_timeout": 18_000},
     result_expires=3600,
     task_routes={"app.tasks.run_investigation": {"queue": "investigations"}},
+    beat_schedule={
+        "check-incident-escalations-every-minute": {
+            "task": "app.tasks_escalation.check_due_escalations",
+            "schedule": 60.0,
+            "options": {"queue": "investigations"},
+        }
+    },
 )
 
 worker_process_init.connect(lambda **_kwargs: configure_celery_tracing(), weak=False)

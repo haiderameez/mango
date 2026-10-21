@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.ai import quota
 from app.ai.graph import LLM_CALLS_PER_RUN
 from app.core.config import settings
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_responder
 from app.database.session import SessionLocal, get_db
 from app.models.user import User
 from app.repositories.activity_repository import ActivityRepository
@@ -103,7 +103,7 @@ investigation_queue = CeleryInvestigationQueue(run_investigation)
 )
 def start_investigation(
     incident_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: InvestigationService = Depends(get_investigation_service),
 ):
     """Queue an investigation. Returns immediately; one runs at a time."""

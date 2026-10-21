@@ -81,7 +81,7 @@ backend/
     repositories/  persistence
     services/      business logic, evidence collection, investigation orchestration
   alembic/         migrations
-  tests/           111 tests
+  tests/           233 backend tests
 dummycommerce/     the simulated failing application
 docker-compose.yml PostgreSQL 17
 ```
@@ -308,6 +308,14 @@ docker compose up --build       # local, or any host with a Docker runtime
 persistent process): point it at `backend/Dockerfile`, attach managed PostgreSQL as
 `DATABASE_URL`, and set `JWT_SECRET_KEY` plus `GOOGLE_API_KEY`. Nothing else is required.
 Health check: `GET /health`.
+
+`demo@mango.dev` is seeded as an administrator. Other new accounts default to `responder`;
+viewers can read but cannot change incidents. Admins can change roles at
+`PATCH /auth/users/{id}/role` and manage policies at `/escalation-policies`. To bootstrap an
+administrator in another environment, run `python -m scripts.set_user_role <email> admin`
+from `backend/` after registering the account. Set `SLACK_WEBHOOK_URL` for best-effort Slack
+notices when an incident opens, an investigation completes, or a policy escalates an incident.
+Acknowledging an incident with `POST /incidents/{id}/acknowledge` stops its escalation timer.
 
 Then seed the demo dataset once, so the first visitor sees finished investigations rather
 than an empty drawer:

@@ -125,3 +125,30 @@ class IncidentRepository:
         self.db.commit()
         self.db.refresh(incident)
         return incident
+
+    def acknowledge(self, incident: Incident, acknowledged_at: datetime) -> Incident:
+        incident.acknowledged_at = acknowledged_at
+        self.db.commit()
+        self.db.refresh(incident)
+        return incident
+
+    def get_due_for_escalation(self, severity: str, cutoff: datetime) -> list[Incident]:
+        statement = (
+            select(Incident)
+            .where(
+                Incident.severity == severity,
+                Incident.status == StatusLevel.OPEN,
+                Incident.acknowledged_at.is_(None),
+                Incident.escalated_at.is_(None),
+                Incident.created_at <= cutoff,
+            )
+            .with_for_update(skip_locked=True)
+        )
+        return list(self.db.execute(statement).scalars())
+
+    def escalate(self, incident: Incident, user_id: int, when: datetime) -> Incident:
+        incident.assigned_to = user_id
+        incident.escalated_at = when
+        self.db.commit()
+        self.db.refresh(incident)
+        return incident

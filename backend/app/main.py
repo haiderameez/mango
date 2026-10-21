@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
 from app.api.console import router as console_router
+from app.api.escalation import router as escalation_router
 from app.api.incident import comment_router
 from app.api.incident import router as incident_router
 from app.api.ingest import router as ingest_router
@@ -62,6 +63,7 @@ app.include_router(comment_router)
 app.include_router(incident_investigation_router)
 app.include_router(investigation_router)
 app.include_router(ingest_router)
+app.include_router(escalation_router)
 
 
 @app.get("/health", tags=["operations"])

@@ -85,6 +85,7 @@ def get_llm():
             api_key=settings.openrouter_api_key,
             base_url="https://openrouter.ai/api/v1",
             temperature=0,
+            max_tokens=2048,
             timeout=120,
             max_retries=settings.llm_max_retries,
         )

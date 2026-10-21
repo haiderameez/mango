@@ -72,6 +72,7 @@ def test_openrouter_uses_the_pinned_model_and_api_endpoint(monkeypatch):
     assert llm.model_name == "vendor/pinned-model"
     assert llm.openai_api_base == "https://openrouter.ai/api/v1"
     assert llm.openai_api_key.get_secret_value() == "test-openrouter-key"
+    assert llm.max_tokens == 2048
     assert llm.max_retries == settings.llm_max_retries
 
 

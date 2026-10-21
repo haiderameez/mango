@@ -1,0 +1,222 @@
+{
+  "identity": {
+    "max_records": 50,
+    "model": "gemini-3.5-flash",
+    "pipeline_hash": "24e5672a2ce7f442c9a1c7bda9cde258f27473b4580f9a2f42c353e96c11e740",
+    "provider": "gemini",
+    "retrieval": "off",
+    "runner_hash": "77e5d407f25976f409a257fe18daf9aaf7b9cdc1225d8ab5a2876552116f6b60",
+    "show_thinking": true,
+    "window_minutes": 15
+  },
+  "provenance": {
+    "commit": "9e30fbb1366db71b51ed93a6280fd01e7c9ccb1c",
+    "date": "2026-10-21T20:29:22.655701+00:00",
+    "dirty": true
+  },
+  "results": [
+    {
+      "error": "GoogleAuthenticationError",
+      "id": "case-01",
+      "status": "failed"
+    },
+    {
+      "id": "case-02",
+      "status": "pending"
+    },
+    {
+      "id": "case-03",
+      "status": "pending"
+    },
+    {
+      "id": "case-04",
+      "status": "pending"
+    },
+    {
+      "id": "case-05",
+      "status": "pending"
+    },
+    {
+      "id": "case-06",
+      "status": "pending"
+    },
+    {
+      "id": "case-07",
+      "status": "pending"
+    },
+    {
+      "id": "case-08",
+      "status": "pending"
+    },
+    {
+      "id": "case-09",
+      "status": "pending"
+    },
+    {
+      "id": "case-10",
+      "status": "pending"
+    },
+    {
+      "id": "case-11",
+      "status": "pending"
+    },
+    {
+      "id": "case-12",
+      "status": "pending"
+    },
+    {
+      "id": "case-13",
+      "status": "pending"
+    },
+    {
+      "id": "case-14",
+      "status": "pending"
+    },
+    {
+      "id": "case-15",
+      "status": "pending"
+    },
+    {
+      "id": "case-16",
+      "status": "pending"
+    },
+    {
+      "id": "case-17",
+      "status": "pending"
+    },
+    {
+      "id": "case-18",
+      "status": "pending"
+    },
+    {
+      "id": "case-19",
+      "status": "pending"
+    },
+    {
+      "id": "case-20",
+      "status": "pending"
+    },
+    {
+      "id": "case-21",
+      "status": "pending"
+    },
+    {
+      "id": "case-22",
+      "status": "pending"
+    },
+    {
+      "id": "case-23",
+      "status": "pending"
+    },
+    {
+      "id": "case-24",
+      "status": "pending"
+    },
+    {
+      "id": "case-25",
+      "status": "pending"
+    },
+    {
+      "id": "case-26",
+      "status": "pending"
+    },
+    {
+      "id": "case-27",
+      "status": "pending"
+    },
+    {
+      "id": "case-28",
+      "status": "pending"
+    },
+    {
+      "id": "case-29",
+      "status": "pending"
+    },
+    {
+      "id": "case-30",
+      "status": "pending"
+    },
+    {
+      "id": "case-31",
+      "status": "pending"
+    },
+    {
+      "id": "case-32",
+      "status": "pending"
+    },
+    {
+      "id": "case-33",
+      "status": "pending"
+    },
+    {
+      "id": "case-34",
+      "status": "pending"
+    },
+    {
+      "id": "case-35",
+      "status": "pending"
+    },
+    {
+      "id": "case-36",
+      "status": "pending"
+    },
+    {
+      "id": "case-37",
+      "status": "pending"
+    },
+    {
+      "id": "case-38",
+      "status": "pending"
+    },
+    {
+      "id": "case-39",
+      "status": "pending"
+    },
+    {
+      "id": "case-40",
+      "status": "pending"
+    },
+    {
+      "id": "case-41",
+      "status": "pending"
+    },
+    {
+      "id": "case-42",
+      "status": "pending"
+    },
+    {
+      "id": "case-43",
+      "status": "pending"
+    },
+    {
+      "id": "case-44",
+      "status": "pending"
+    },
+    {
+      "id": "case-45",
+      "status": "pending"
+    },
+    {
+      "id": "case-46",
+      "status": "pending"
+    },
+    {
+      "id": "case-47",
+      "status": "pending"
+    },
+    {
+      "id": "case-48",
+      "status": "pending"
+    },
+    {
+      "id": "case-49",
+      "status": "pending"
+    },
+    {
+      "id": "case-50",
+      "status": "pending"
+    }
+  ],
+  "stopped": "GoogleAuthenticationError",
+  "total": 50
+}

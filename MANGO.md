@@ -47,7 +47,7 @@ aliases silently move between models, so the model is pinned, not aliased.
 ## 3. What exists today
 
 **Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Redis, Celery, Alembic, Pydantic v2, PyJWT,
-pwdlib/argon2, LangGraph, LangChain, Gemini, OpenTelemetry, Prometheus. Docker Compose,
+pwdlib/argon2, LangGraph, LangChain, Gemini, optional OpenRouter, OpenTelemetry, Prometheus.
 Jaeger, GitHub Actions CI.
 
 **Tables (12):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
@@ -83,7 +83,7 @@ only the scrubbed record set. The deterministic 10k outage fixture is generated 
 `python -m scripts.generate_outage_fixture`; `python -m scripts.replay --fixture
 load/outage.jsonl --report` measures collapse. `load/ingest.js` measures the 500-record
 request path. The code and tests are in place; live replay and p95 measurements remain
-pending because the local Docker daemon and k6 are unavailable.
+pending; PostgreSQL and Redis are now available locally, but k6 is not installed.
 
 **The agent pipeline**, a LangGraph `StateGraph`, always in this order:
 `planner` → `evidence_collector` → `root_cause` → `fix_recommendation` → `report`.
@@ -131,20 +131,21 @@ answer-blind category/service extraction with exact-match scoring, a separate ro
 judge, and confidence calibration. Every model call uses the existing quota guard. Atomic
 checkpoints resume completed nodes and grades without paying for them again. Run
 `python -m evals.run --report` from `backend/`; measured coverage and results are recorded
-in `backend/evals/RESULTS.md`. On 22 October 2026 (India time), the resumed run used one
-fixed key from a separate project, with Mango's daily counter unchanged. It graded 2/50
-cases: category 2/2, service 1/2, and root-cause agreement 2/2. A later provider API error
-stopped the run; 48 cases remain ungraded. This two-case subset is not a full-benchmark
-accuracy measurement. Full baseline and human review remain pending;
-the harness existing is not an accuracy claim.
+in `backend/evals/RESULTS.md`. On 22 October 2026 (India time), the Gemini run graded 2/50
+cases: category 2/2, service 1/2, and root-cause agreement 2/2. An OpenRouter partial
+baseline is preserved separately in `backend/evals/openrouter-baseline/RESULTS.md`; it
+graded the same 2/50 cases at category 2/2, service 1/2, and agreement 2/2. Both subsets
+are correlated and too small to claim benchmark accuracy. The OpenRouter run's probe budget
+recorded 19/20 requests used, including two provider-rejected calls; 48 cases and the
+ten-case human review remain pending.
 
 **Observability:** FastAPI request traces propagate through Celery into worker spans for each
 agent node and export to Jaeger. `/metrics` exposes request and investigation duration,
 provider calls, daily budget remaining, queue depth, ingested records, and detection firings.
 `load/ingest.js`, `load/api.js`, and `load/investigation.js` exercise the main load paths. The
-live k6 measurements remain pending because Docker and k6 are unavailable in this environment.
+live k6 measurements remain pending because k6 is not installed in this environment.
 
-**Tests:** 233 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+**Tests:** 236 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
 DummyCommerce suite was not runnable here because its environment has no pytest installed.
 The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
 the new ingestion behavior. CI runs both suites.
@@ -152,8 +153,9 @@ the new ingestion behavior. CI runs both suites.
 
 ### Known limits of the current build
 
-- Phase 4 is implemented, but live multi-worker verification still needs PostgreSQL and
-  Redis. Docker Desktop is unavailable in this environment.
+- Phase 4 is implemented. One full API investigation ran through Celery/Redis and PostgreSQL,
+  including one ingested evidence record; the eight-run/four-worker acceptance measurement
+  remains pending.
 - Log ingestion and rule-based detection are implemented in Phase 1. The live 10k replay
   and p95 acceptance measurements remain pending.
 - Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.

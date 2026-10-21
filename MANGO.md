@@ -49,10 +49,10 @@ aliases silently move between models, so the model is pinned, not aliased.
 **Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Alembic, Pydantic v2, PyJWT, pwdlib/argon2,
 LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
 
-**Tables (6):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
-`agent_executions`.
+**Tables (9):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
+`agent_executions`, `service_keys`, `log_records`, `detection_rules`.
 
-**API (21 endpoints):**
+**API (22 endpoints):**
 
 - `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
 - `POST /incidents`, `GET /incidents`, `GET /incidents/{id}`,
@@ -63,7 +63,17 @@ LangGraph, LangChain, Gemini. Docker Compose, GitHub Actions CI.
 - `POST /incidents/{id}/investigate`, `GET /incidents/{id}/investigation`,
   `GET /incidents/{id}/investigations`, `GET /investigations/{run_id}`,
   `GET /investigations/quota`
-- `GET /console`
+- `POST /ingest/logs` (scoped service key; JSONL or gzip; batches up to 500 records),
+  `GET /console`
+
+**Log ingestion and detection:** services send bounded JSONL batches with a per-service
+ingest key. Mango stores only a SHA-256 key hash, scrubs credential-like context fields,
+and writes records to indexed PostgreSQL storage. Detection rules open incidents when a
+service crosses error-count, critical-pattern, or error-rate thresholds. Investigation
+evidence is retrieved from a bounded database query; the model still receives only the
+scrubbed record set. `load/ingest.js` measures the 500-record request path. The code and
+tests are in place; the live 10k replay and p95 measurement remain pending because the
+local Docker daemon and k6 are unavailable.
 
 **The agent pipeline**, a LangGraph `StateGraph`, always in this order:
 `planner` → `evidence_collector` → `root_cause` → `fix_recommendation` → `report`.
@@ -106,15 +116,18 @@ stopped the run; 48 cases remain ungraded. This two-case subset is not a full-be
 accuracy measurement. Full baseline and human review remain pending;
 the harness existing is not an accuracy claim.
 
-**Tests:** 214 (199 backend + 15 DummyCommerce), pytest against in-memory SQLite with `StaticPool`, plus ruff
+**Tests:** 213 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+DummyCommerce suite was not runnable here because its environment has no pytest installed.
+The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
+the new ingestion behavior. CI runs both suites.
 (E, F, I, UP, B; line length 100). Both run in CI on every push.
 
 ### Known limits of the current build
 
 - One API process only. The daily budget counter is a file, so a second worker would
   double-spend it. Phase 4 moves it into Postgres.
-- Applications self-report incidents. Mango does not yet read logs continuously or detect
-  anything itself. Phase 1.
+- Log ingestion and rule-based detection are implemented in Phase 1. The live 10k replay
+  and p95 acceptance measurements remain pending.
 - Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.
   A cold evaluation costs 250 logical calls, including extraction and judging; the 20/day
   guard remains in force. No full-benchmark accuracy or retrieval lift can yet be claimed.
@@ -126,7 +139,7 @@ Summarised:
 
 | Phase | What | Why it matters |
 |---|---|---|
-| 1 | **Log ingestion and detection.** `POST /ingest/logs`, a `log_records` table with BRIN+GIN indexes, service ingest keys, and rule-based detection that opens incidents. The evidence collector queries the table instead of a file. | Mango *finds* failures instead of being told about them. |
+| 1 | **Implemented; acceptance measurement pending.** `POST /ingest/logs`, indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The live 10k replay and p95 measurement still need to run. | Mango *finds* failures instead of being told about them. |
 | 2 | **Dedup and correlation.** A normalised `sha256` fingerprint per failure, partial unique index on open incidents, `occurrence_count`, and cross-service correlation into incident groups. | 400 failures become 6 incidents. The collapse ratio is the best number in the project. |
 | 3 | **pgvector RAG over history.** Embeddings of resolved incidents, HNSW index, a new `history` graph node feeding prior diagnoses into the root cause prompt above a similarity floor. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Celery + Redis, retries, SSE.** Distributed workers, per-node retry with checkpointing, the budget moved to an atomic Postgres `UPDATE`, and live reasoning streamed to the console. | Deletes the one-process limit and the two caveats in the README. |

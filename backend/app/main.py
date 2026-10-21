@@ -6,6 +6,7 @@ from app.api.auth import router as auth_router
 from app.api.console import router as console_router
 from app.api.incident import comment_router
 from app.api.incident import router as incident_router
+from app.api.ingest import router as ingest_router
 from app.api.investigation import incident_investigation_router, investigation_router
 from app.core.config import settings
 from app.core.exception_handlers import (
@@ -58,6 +59,7 @@ app.include_router(incident_router)
 app.include_router(comment_router)
 app.include_router(incident_investigation_router)
 app.include_router(investigation_router)
+app.include_router(ingest_router)
 
 
 @app.get("/health", tags=["operations"])

@@ -13,6 +13,7 @@ from app.models.incident import Incident
 from app.models.workflow import AgentExecution, RunStatus, WorkflowRun
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.incident_repository import IncidentRepository
+from app.repositories.ingest_repository import IngestRepository
 from app.repositories.workflow_repository import WorkflowRepository
 from app.schemas.workflow import (
     AgentExecutionResponse,
@@ -47,6 +48,7 @@ class InvestigationService:
         self.workflow_repository = workflow_repository
         self.incident_repository = incident_repository
         self.activity_repository = activity_repository
+        self.ingest_repository = IngestRepository(incident_repository.db)
 
     def start(
         self, incident_id: int, triggered_by: str, user_id: int | None = None
@@ -124,7 +126,9 @@ class InvestigationService:
                 " -> ".join(NODE_ORDER),
             )
 
-            for update in build_graph().stream(state, stream_mode="updates"):
+            for update in build_graph(evidence_repository=self.ingest_repository).stream(
+                state, stream_mode="updates"
+            ):
                 for node_name, delta in update.items():
                     finished_at = datetime.now(UTC)
                     state.update(delta)

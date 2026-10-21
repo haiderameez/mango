@@ -9,7 +9,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import TypedDict
 
 from langchain_core.rate_limiters import InMemoryRateLimiter
@@ -195,10 +195,10 @@ def planner(state: InvestigationState) -> InvestigationState:
     return {"plan": plan.model_dump()}
 
 
-def evidence_collector(state: InvestigationState) -> InvestigationState:
+def evidence_collector(state: InvestigationState, repository=None) -> InvestigationState:
     created_at = datetime.fromisoformat(state["incident"]["created_at"])
     keyword = (state.get("plan") or {}).get("log_keyword")
-    return {"evidence": evidence.collect(created_at, keyword=keyword)}
+    return {"evidence": evidence.collect(created_at, keyword=keyword, repository=repository)}
 
 
 def root_cause(state: InvestigationState) -> InvestigationState:
@@ -305,13 +305,16 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
     return {"report": text}
 
 
-def build_graph(*, start_at: str | None = None):
+def build_graph(*, start_at: str | None = None, evidence_repository=None):
     if start_at is not None and start_at not in NODE_ORDER:
         raise ValueError(f"Unknown investigation node: {start_at}")
     graph = StateGraph(InvestigationState)
 
     for name in NODE_ORDER:
-        graph.add_node(name, globals()[name])
+        node = globals()[name]
+        if name == "evidence_collector" and evidence_repository is not None:
+            node = partial(node, repository=evidence_repository)
+        graph.add_node(name, node)
 
     graph.set_entry_point(start_at or NODE_ORDER[0])
     for current, following in zip(NODE_ORDER, NODE_ORDER[1:], strict=False):

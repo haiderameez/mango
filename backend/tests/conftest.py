@@ -15,12 +15,13 @@ from sqlalchemy import create_engine, event  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 
 from app.ai import graph  # noqa: E402
-from app.api import investigation  # noqa: E402
+from app.api import ingest, investigation  # noqa: E402
 from app.core.config import settings  # noqa: E402
 from app.database.base import Base  # noqa: E402
 from app.database.session import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import *  # noqa: E402, F403  (registers every table on Base.metadata)
+from app.models.ingest import LogRecord  # noqa: E402
 from tests.fake_llm import FakeLLM  # noqa: E402
 
 
@@ -74,6 +75,7 @@ def client(session_factory, monkeypatch):
 
     # The investigation worker opens its own session; point it at the test database too.
     monkeypatch.setattr(investigation, "SessionLocal", session_factory)
+    monkeypatch.setattr(ingest, "SessionLocal", session_factory)
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
@@ -137,7 +139,7 @@ def fake_llm(monkeypatch):
 
 
 @pytest.fixture
-def log_file(tmp_path, monkeypatch):
+def log_file(tmp_path, monkeypatch, db):
     now = datetime.now(UTC)
     records = [
         {
@@ -161,5 +163,17 @@ def log_file(tmp_path, monkeypatch):
     path = tmp_path / "app.jsonl"
     path.write_text("\n".join(json.dumps(r) for r in records), encoding="utf-8")
     monkeypatch.setattr(settings, "dummycommerce_log_path", str(path))
+    db.add_all([
+        LogRecord(
+            ts=datetime.fromisoformat(record["timestamp"]),
+            service=record["service"],
+            level=record["level"],
+            message=record["message"],
+            request_id=record.get("request_id"),
+            context={"endpoint": record.get("endpoint"), "error_type": record.get("error_type")},
+        )
+        for record in records
+    ])
+    db.commit()
 
     return path

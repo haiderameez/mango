@@ -170,8 +170,8 @@ cd dummycommerce && pytest -q
 
 ## API
 
-All endpoints except `/health`, `/auth/register` and `/auth/login` need
-`Authorization: Bearer <token>`.
+All data endpoints need authentication. User endpoints use `Authorization: Bearer <token>`;
+`POST /ingest/logs` uses its service-scoped `X-Ingest-Key` header.
 
 | Method | Endpoint | Purpose |
 |---|---|---|
@@ -194,6 +194,7 @@ All endpoints except `/health`, `/auth/register` and `/auth/login` need
 | `GET` | `/incidents/{id}/investigation` | The latest investigation and its report |
 | `GET` | `/incidents/{id}/investigations` | Every run for the incident |
 | `GET` | `/investigations/{run_id}` | One run by id |
+| `POST` | `/ingest/logs` | Submit up to 500 JSONL log records with `X-Ingest-Key`; gzip is supported |
 | `GET` | `/health` | Liveness |
 | `GET` | `/console` | The web console (public page; its data calls are not) |
 
@@ -214,8 +215,8 @@ curl -s "localhost:8000/incidents?severity=CRITICAL&status=OPEN&limit=10" \
 
 ## How an incident reaches Mango
 
-Three ways in, all of them the same ordinary authenticated `POST /incidents`. There is no
-privileged intake path and no unauthenticated one.
+Incidents can be filed by a person or application, and Mango can create them from detected
+log failures. The ingestion endpoint uses a scoped service key rather than a user bearer token.
 
 **1. A person, from the console.** *New case* in the drawer takes a title, a severity and a
 description, and offers to start an investigation immediately. This is the path for an
@@ -250,9 +251,25 @@ Register the service account like any other user — in the console, or
 `POST /auth/register` — and keep it separate from the humans, so the activity timeline shows
 who actually filed each incident.
 
-A service account holding a password and logging in per incident is the honest version of
-what this is: fine for one trusted internal caller, and the thing to replace with a scoped
-API key or a signed webhook before a second service is pointed at it.
+**4. A service sends logs for automatic detection.** Create a key for an existing Mango user
+and the exact service name. The plaintext key is printed once; Mango stores only its SHA-256
+hash. Each newline-delimited record needs `timestamp` (or `ts`), `service`, `level`, and
+`message`. Batches are capped at 500 records and 5 MB after decompression. Credential-like
+context fields are dropped before storage, and the record service must match the key's scope.
+
+```bash
+cd backend
+python -m scripts.create_ingest_key checkout ops@example.com
+curl -X POST http://localhost:8000/ingest/logs \\
+  -H 'X-Ingest-Key: <key-from-command>' \\
+  -H 'Content-Type: application/x-ndjson' \\
+  --data-binary @logs.jsonl
+```
+
+Mango applies the active detection rules to each batch and opens incidents on a match. To
+measure the 500-record request path, start the API and PostgreSQL, install k6, create a key
+for `load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the
+environment. The script checks the 50 ms p95 target and reports records per second.
 
 ## Deployment
 
@@ -483,9 +500,9 @@ Three deliberate trade-offs, each with its upgrade path:
   single `uvicorn` command with no broker to run. The cost is that it scales up rather than
   out: one API instance, or two instances would keep two counters against one API key.
   Celery or Arq behind the same `InvestigationQueue` interface is the swap.
-- **Evidence comes from one JSONL file** on a path both services can see. The collector is
-  already an interface (`collect(incident_created_at, keyword, log_path)`), so a log API or
-  an object store replaces the body without touching the agents.
+- **Detection rules are basic thresholds and patterns.** They catch bursts and explicit
+  critical messages; Phase 2 adds fingerprinting and correlation so repeated matches do not
+  create repeated incidents.
 - **Permissions are per-incident rules** — creator, assignee, comment author — not roles.
   That is the right model for a small team and the wrong one the moment you need an
   on-call rotation or a read-only stakeholder.

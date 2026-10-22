@@ -116,7 +116,7 @@ class IncidentRepository:
         if filters.search:
             statement = statement.where(Incident.title.ilike(f"%{filters.search}%"))
 
-        statement = statement.order_by(Incident.id.desc())
+        statement = statement.order_by(Incident.created_at.desc(), Incident.id.desc())
         statement = statement.limit(filters.limit).offset(filters.offset)
 
         return list(self.db.execute(statement).scalars().all())

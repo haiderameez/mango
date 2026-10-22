@@ -42,6 +42,13 @@ class Incident(Base):
             postgresql_where=text("status IN ('OPEN', 'INVESTIGATING')"),
             sqlite_where=text("status IN ('OPEN', 'INVESTIGATING')"),
         ),
+        Index(
+            "ix_incidents_status_severity_created_at",
+            "status",
+            "severity",
+            text("created_at DESC"),
+            text("id DESC"),
+        ),
         Index("ix_incidents_request_id", "request_id"),
         Index("ix_incidents_upstream_name", "upstream_name"),
     )

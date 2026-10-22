@@ -49,3 +49,37 @@ p95: 927.30 ms  (threshold: < 250 ms; failed)
 The four queue entries were left unprocessed by design and the disposable Redis/PostgreSQL
 test containers were removed after measurement. These results do not support a claim of
 450 requests/s or 95 ms p95.
+
+## Phase 1 and 6 — filtered index retest
+
+Measured 22 October 2026 against a new disposable PostgreSQL 17 + pgvector database with
+10,000 synthetic incidents and an isolated Redis container. The API ran on the host with
+four Uvicorn workers; k6 ran in Docker and sent requests through `host.docker.internal`.
+The scripts accept a pre-issued `MANGO_TOKEN`, so setup login time is excluded from endpoint
+latency. The investigation worker was not running; submissions measured queue acceptance.
+
+The incident register filters on `status=OPEN&severity=HIGH`, orders by creation time, and
+has a composite index on `(status, severity, created_at DESC, id DESC)`. PostgreSQL selected
+an index-only scan for the filtered top-50 query, with 0.156 ms execution time in
+`EXPLAIN ANALYZE`. At 20 VUs, k6 recorded:
+
+```text
+requests: 2,274
+rate: 37.88 requests/s (includes the graceful drain interval)
+p95: 379.66 ms  (threshold: < 250 ms; failed)
+HTTP failures: 0
+```
+
+A separate 100-VU run against the smaller seeded dataset completed 3,055 register reads at
+99.02 requests/s, with p95 2.38 s and zero HTTP failures. This shows saturation well below
+the resume target and does not support 450 requests/s at 95 ms.
+
+With a 500-record ingestion payload and 10 VUs, the endpoint accepted 824 requests (412,000
+records) at 27.05 requests/s, with zero HTTP failures and p95 792.36 ms (threshold: < 50 ms;
+failed). This is HTTP acceptance into the disposable Redis broker; ingestion workers were
+not running, so it does not measure persistence or detection throughput. The broker was
+cleared after the run.
+
+Four parallel investigation submissions were accepted with zero HTTP failures. Their
+endpoint-only p95 was 408.24 ms (threshold: < 250 ms; failed). These queue entries were left
+unprocessed in the disposable environment.

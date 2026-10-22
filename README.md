@@ -289,6 +289,12 @@ measures authenticated incident-register reads. `load/investigation.js` submits 
 investigations in parallel; set `MANGO_INCIDENT_IDS` to four distinct open incident IDs and
 account for the model request budget before running it.
 
+To measure eight queued investigations against the atomic PostgreSQL budget without calling
+a provider, seed a disposable PostgreSQL database whose name ends in `_test`, point
+`DATABASE_URL` and `REDIS_URL` at it, then run `python -m scripts.measure_distributed_investigations`
+from `backend/`. The harness uses Celery with four worker threads and removes its synthetic
+incidents when the run completes.
+
 The dedup replay creates a fixture with 10,000 records, including 400 failures across six
 fault fingerprints. It needs an ingest key scoped to `outage-test` and a running API backed by
 PostgreSQL:

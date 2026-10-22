@@ -148,6 +148,14 @@ The in-process queue is the honest weak point: one worker, dies on deploy, canno
   runs them against a fake LLM and asserts the counter equals exactly the calls made.
 - Killing a worker mid-run leaves the run resumable, not FAILED.
 
+**Measure**
+```bash
+python -m scripts.measure_distributed_investigations
+# Requires a seeded disposable PostgreSQL database ending in _test and a Redis broker.
+# The fake model makes no provider requests; the harness checks eight runs, four-way
+# concurrency, and equality between fake calls and the PostgreSQL budget increment.
+```
+
 **Unlocks:** concurrency figures, and deletes two of the three caveats in the README.
 
 ---

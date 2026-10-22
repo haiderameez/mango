@@ -29,10 +29,12 @@ between receiving a provider response and saving it can require repeating that o
 Only the evaluator's process temporarily points the collector at a fixture; production
 defaults are restored after each case. No model receives tools or raw filesystem access.
 
-Pipeline caches depend on fixture content, incident, relevant source hashes, evidence
-configuration, provider, model and retrieval mode. Grading has a separate source hash and
-answer hash. An answer correction reuses the investigation and blind extraction, then
-re-judges. Changed pipeline/model/evidence settings require fresh investigations.
+Pipeline caches depend on fixture content, incident, pipeline source, evidence configuration,
+provider, model and retrieval mode. Evaluator-only code changes do not invalidate completed
+investigations. Older cache entries that also included the evaluator source hash remain
+reusable when their recorded pipeline identity and inputs match. Grading has a separate source
+hash and answer hash. An answer correction reuses the investigation and blind extraction,
+then re-judges. Changed pipeline/model/evidence settings require fresh investigations.
 
 ## Dataset and scoring
 

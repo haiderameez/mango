@@ -2,13 +2,16 @@
 
 Status: PARTIAL — not a full benchmark.
 Model: `openrouter/openai/gpt-4.1-mini`; retrieval: off.
-Report date (UTC): 2026-10-22T10:55:10.457656+00:00; commit: `2420fd9da1dcccfbc8b336ab157fe81f73073456`; working tree dirty: True.
+Report date (UTC): 2026-10-22T11:30:28.328973+00:00; commit: `35aaee7bdd60d458c60eadbe12534446fab6bd52`; working tree dirty: True.
 Pipeline source hash: `855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe`.
 
-Command (from backend): `python -m evals.run --report --limit 4 --output evals/openrouter-2026-10-22 --cache evals/.cache/openrouter`.
+Command (from backend): `python -m evals.run --report --limit 4 --cache 'evals\.cache\openrouter' --output 'evals\openrouter-2026-10-22'`.
 
 Coverage: **4/50 graded**, 0 failed, 46 pending.
 Stop reason: none.
+
+Quota note: the four OpenRouter scenarios were evaluated with 20 calls against an isolated
+test-database counter that began at zero. This does not verify the production shared budget.
 
 | Measure | Completed scenarios only |
 |---|---|

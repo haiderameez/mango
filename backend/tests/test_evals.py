@@ -137,6 +137,51 @@ def test_cached_evaluation_makes_no_more_provider_calls(case, tmp_path, model):
     assert len(model.calls) == 5
 
 
+def test_evaluator_only_changes_reuse_legacy_investigation_and_grade_caches(
+    case, tmp_path, model
+):
+    scenario, log_path = case
+    context = runner.identity()
+    first = runner.evaluate(scenario, log_path, tmp_path, context)
+    pipeline_key = first["pipeline_key"]
+    incident = scenario.incident.model_dump(mode="json")
+    logs = log_path.read_text(encoding="utf-8")
+    legacy_pipeline_key = runner.digest(
+        {"identity": context, "incident": incident, "logs": logs}
+    )
+    pipeline_path = tmp_path / "pipeline" / f"{pipeline_key}.json"
+    legacy_pipeline_path = tmp_path / "pipeline" / f"{legacy_pipeline_key}.json"
+    pipeline_record = runner.read(pipeline_path)
+    pipeline_record["key"] = legacy_pipeline_key
+    runner.save(legacy_pipeline_path, pipeline_record)
+    pipeline_path.unlink()
+
+    grader_hash = runner.source_hash(
+        [runner.BACKEND / "evals" / "grading.py", runner.BACKEND / "evals" / "models.py"]
+    )
+    labels_key = runner.digest({"pipeline": pipeline_key, "grader": grader_hash})
+    legacy_labels_key = runner.digest(
+        {"pipeline": legacy_pipeline_key, "grader": grader_hash}
+    )
+    (tmp_path / "labels" / f"{labels_key}.json").rename(
+        tmp_path / "labels" / f"{legacy_labels_key}.json"
+    )
+
+    judge_key = runner.digest({"labels": labels_key, "answer": scenario.answer()})
+    legacy_judge_key = runner.digest(
+        {"labels": legacy_labels_key, "answer": scenario.answer()}
+    )
+    (tmp_path / "judgments" / f"{judge_key}.json").rename(
+        tmp_path / "judgments" / f"{legacy_judge_key}.json"
+    )
+
+    changed_context = {**context, "runner_hash": "new-evaluator-only-hash"}
+    second = runner.evaluate(scenario, log_path, tmp_path, changed_context)
+
+    assert second["pipeline_key"] == legacy_pipeline_key
+    assert len(model.calls) == 5
+
+
 def test_answer_correction_only_repeats_the_judge(case, tmp_path, model):
     scenario, path = case
     evaluate(case, tmp_path)

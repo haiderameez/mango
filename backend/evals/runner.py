@@ -98,13 +98,42 @@ def read(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def _pipeline_identity(context: dict) -> dict:
+    return {key: value for key, value in context.items() if key != "runner_hash"}
+
+
+def _cached_pipeline(cache: Path, context: dict, incident: dict, logs: str):
+    key = digest(
+        {"identity": _pipeline_identity(context), "incident": incident, "logs": logs}
+    )
+    path = cache / "pipeline" / f"{key}.json"
+    record = read(path)
+    if record:
+        return key, path, record
+
+    # Older cache files included runner_hash in the key. Reuse one only when its
+    # recorded model, pipeline, evidence settings, retrieval mode and inputs match.
+    for candidate in sorted((cache / "pipeline").glob("*.json")):
+        previous = read(candidate)
+        previous_identity = previous.get("identity")
+        if not previous_identity or _pipeline_identity(previous_identity) != _pipeline_identity(
+            context
+        ):
+            continue
+        previous_key = digest(
+            {"identity": previous_identity, "incident": incident, "logs": logs}
+        )
+        if candidate.stem == previous_key:
+            return previous_key, candidate, previous
+    return key, path, {}
+
+
 def evaluate(scenario: Scenario, log_path: Path, cache: Path, context: dict) -> dict:
     incident = scenario.incident.model_dump(mode="json")
-    pipeline_key = digest(
-        {"identity": context, "incident": incident, "logs": log_path.read_text(encoding="utf-8")}
+    pipeline_key, path, record = _cached_pipeline(
+        cache, context, incident, log_path.read_text(encoding="utf-8")
     )
-    path = cache / "pipeline" / f"{pipeline_key}.json"
-    record = read(path) or {
+    record = record or {
         "state": {"incident": incident},
         "completed": [],
         "executions": [],

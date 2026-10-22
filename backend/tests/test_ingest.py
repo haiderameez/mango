@@ -137,6 +137,24 @@ def test_ingest_endpoint_authenticates_before_accepting_payload(client, db):
     assert len(db.execute(select(LogRecord)).scalars().all()) == 1
 
 
+def test_ingest_endpoint_only_enqueues_the_batch(client, db, monkeypatch):
+    _, token, key = create_ingest_key(db)
+    queued = []
+    monkeypatch.setattr(
+        "app.api.ingest.enqueue_ingest_batch",
+        lambda key_id, body, compressed: queued.append((key_id, body, compressed)),
+    )
+    body = payload(record())
+
+    response = client.post(
+        "/ingest/logs", content=body, headers={"X-Ingest-Key": token}
+    )
+
+    assert response.status_code == 202
+    assert queued == [(key.id, body, False)]
+    assert db.execute(select(LogRecord)).scalars().all() == []
+
+
 def test_ingest_endpoint_accepts_gzip_payload(client, db):
     _, token, _ = create_ingest_key(db)
     response = client.post(

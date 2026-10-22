@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -90,7 +91,13 @@ def client(session_factory, monkeypatch):
         "investigation_queue",
         InvestigationQueue(tasks.run_investigation_local),
     )
-    monkeypatch.setattr(ingest, "SessionLocal", session_factory)
+    monkeypatch.setattr(
+        ingest,
+        "enqueue_ingest_batch",
+        lambda key_id, payload, compressed: tasks.process_ingest_batch_local(
+            key_id, base64.b64encode(payload).decode("ascii"), compressed
+        ),
+    )
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:

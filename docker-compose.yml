@@ -85,6 +85,27 @@ services:
       jaeger:
         condition: service_started
 
+  ingest-worker:
+    build: ./backend
+    container_name: mango-ingest-worker
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
+      INGEST_WORKER_CONCURRENCY: ${INGEST_WORKER_CONCURRENCY:-4}
+    command:
+      - sh
+      - -c
+      - celery -A app.celery_app:celery_app worker --loglevel=INFO --concurrency=$${INGEST_WORKER_CONCURRENCY:-4} -Q ingestion
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+
   scheduler:
     build: ./backend
     container_name: mango-scheduler

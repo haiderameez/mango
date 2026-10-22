@@ -23,6 +23,7 @@ celery_app.conf.update(
     task_routes={
         "app.tasks.run_investigation": {"queue": "investigations"},
         "app.tasks.index_resolved_incident": {"queue": "investigations"},
+        "app.tasks.process_ingest_batch": {"queue": "ingestion"},
     },
     beat_schedule={
         "check-incident-escalations-every-minute": {

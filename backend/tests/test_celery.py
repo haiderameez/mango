@@ -2,7 +2,7 @@ from app.ai.graph import _retry_agent_error
 from app.celery_app import celery_app
 from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
 from app.services.celery_queue import INVESTIGATION_QUEUE_NAME
-from app.tasks import run_investigation
+from app.tasks import process_ingest_batch, run_investigation
 
 
 def test_celery_worker_requeues_a_task_after_worker_loss():
@@ -21,3 +21,9 @@ def test_celery_routes_investigations_to_the_shared_queue():
         celery_app.conf.task_routes["app.tasks.run_investigation"]["queue"]
         == INVESTIGATION_QUEUE_NAME
     )
+
+
+def test_celery_routes_ingestion_to_its_dedicated_queue():
+    assert celery_app.conf.task_routes[process_ingest_batch.name]["queue"] == "ingestion"
+    assert process_ingest_batch.acks_late is True
+    assert process_ingest_batch.reject_on_worker_lost is True

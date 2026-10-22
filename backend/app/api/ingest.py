@@ -1,32 +1,40 @@
 """The log intake endpoint only authenticates and enqueues bounded batches."""
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request, status
-from sqlalchemy.orm import Session
+import base64
 
-from app.database.session import SessionLocal, get_db
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
+
+from app.database.session import get_db
 from app.services.ingest_service import IngestService
+from app.tasks import process_ingest_batch
 
 router = APIRouter(prefix="/ingest", tags=["log ingestion"])
 MAX_COMPRESSED_BYTES = 1_000_000
 
 
-def process_ingest_batch(key_id: int, payload: bytes, compressed: bool) -> None:
-    """Background entry point owns its session; ingestion never couples to HTTP session."""
-    with SessionLocal() as db:
-        IngestService(db).process_batch(key_id, payload, compressed)
+def enqueue_ingest_batch(key_id: int, payload: bytes, compressed: bool) -> None:
+    """Queue batch bytes for the separate ingestion worker."""
+    process_ingest_batch.apply_async(
+        args=(key_id, base64.b64encode(payload).decode("ascii"), compressed),
+        queue="ingestion",
+    )
 
 
 @router.post("/logs", status_code=status.HTTP_202_ACCEPTED)
 async def ingest_logs(
     request: Request,
-    background_tasks: BackgroundTasks,
     ingest_key: str | None = Header(default=None, alias="X-Ingest-Key"),
     db: Session = Depends(get_db),
 ):
     if not ingest_key:
         raise HTTPException(status_code=401, detail="A valid X-Ingest-Key is required.")
-    key = IngestService(db).authenticate(ingest_key)
+    key = await run_in_threadpool(IngestService(db).authenticate, ingest_key)
     if key is None:
         raise HTTPException(status_code=401, detail="A valid X-Ingest-Key is required.")
+    key_id = key.id
+    # Do not hold a database connection while a client streams a large batch.
+    await run_in_threadpool(db.close)
 
     encoding = request.headers.get("content-encoding", "identity").lower()
     if encoding not in {"identity", "gzip"}:
@@ -45,5 +53,5 @@ async def ingest_logs(
     if not payload:
         raise HTTPException(status_code=400, detail="Batch cannot be empty.")
 
-    background_tasks.add_task(process_ingest_batch, key.id, payload, encoding == "gzip")
+    await run_in_threadpool(enqueue_ingest_batch, key_id, payload, encoding == "gzip")
     return {"status": "accepted"}

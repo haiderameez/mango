@@ -82,7 +82,7 @@ backend/
     repositories/  persistence
     services/      business logic, evidence collection, investigation orchestration
   alembic/         migrations
-  tests/           247 backend tests
+  tests/           249 backend tests
 dummycommerce/     the simulated failing application
 docker-compose.yml PostgreSQL 17 with pgvector
 ```
@@ -155,6 +155,7 @@ Copy `backend/.env.example` to `backend/.env` and set:
 | `LLM_QUOTA_TIMEZONE` | no | Which timezone defines the provider's daily budget reset |
 | `REDIS_URL` | yes for workers | Celery broker and result backend; default `redis://localhost:6379/0` |
 | `INVESTIGATION_WORKER_CONCURRENCY` | no | Celery worker concurrency; default `4` |
+| `INGEST_WORKER_CONCURRENCY` | no | Dedicated log ingestion worker concurrency; default `4` |
 | `STALE_RUN_MINUTES` | no | Default `60`; after this an unfinished run stops blocking retries |
 | `AWS_SNS_TOPIC_ARN` | no | Unset means notifications are logged, not published |
 | `AWS_REGION` | no | Default `us-east-1` |
@@ -281,7 +282,9 @@ curl -X POST http://localhost:8000/ingest/logs \\
 Mango applies the active detection rules to each batch and opens incidents on a match. To
 measure the 500-record request path, start the Compose stack, install k6, create a key for
 `load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the environment.
-The script checks the 50 ms p95 target and reports records per second. `k6 run load/api.js`
+The API queues each batch for the dedicated `ingest-worker` service; parsing,
+persistence, and detection happen there. The script checks the 50 ms p95 target and reports
+records per second. `k6 run load/api.js`
 measures authenticated incident-register reads. `load/investigation.js` submits four
 investigations in parallel; set `MANGO_INCIDENT_IDS` to four distinct open incident IDs and
 account for the model request budget before running it.

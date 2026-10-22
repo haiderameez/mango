@@ -75,7 +75,8 @@ Jaeger, GitHub Actions CI.
 
 **Log ingestion and detection:** services send bounded JSONL batches with a per-service
 ingest key. Mango stores only a SHA-256 key hash, scrubs credential-like context fields,
-and writes records to indexed PostgreSQL storage. Detection rules open incidents when a
+and queues bounded batches to a dedicated Celery ingestion worker, which writes
+records to indexed PostgreSQL storage. Detection rules open incidents when a
 service crosses error-count, critical-pattern, or error-rate thresholds. Open incidents are
 deduplicated by a normalized failure fingerprint; repeated matches update occurrence counts,
 and incidents across services can share a group through a common request ID or upstream.
@@ -85,7 +86,9 @@ only the scrubbed record set. The deterministic 10k outage fixture is generated 
 load/outage.jsonl --report` measures collapse. The live replay passed against PostgreSQL:
 400 failures became 6 incidents (66.7:1). The command waits for ingestion and detection
 completion and tags each run to keep measurements isolated. `load/ingest.js` measures the
-500-record request path; its live p95 measurement remains pending.
+500-record request path. The live 10-VU run accepted 815 batches at 26.82 requests/s with
+zero HTTP failures; p95 was 632.85 ms, so the 50 ms threshold was not met. The run is recorded
+in `load/RESULTS.md`.
 
 **The investigation pipeline**, a LangGraph `StateGraph`, runs:
 `planner` → `evidence_collector` → `history` → `root_cause` → `fix_recommendation` → `report`.
@@ -163,8 +166,10 @@ the new ingestion behavior. CI runs both suites.
 - Phase 4 is implemented. One full API investigation ran through Celery/Redis and PostgreSQL,
   including one ingested evidence record; the eight-run/four-worker acceptance measurement
   remains pending.
-- Log ingestion and rule-based detection are implemented in Phase 1. The live 10k replay
-  passed; the 500-record p95 acceptance measurement remains pending.
+- Log ingestion and rule-based detection are implemented in Phase 1, with batches handled by
+  a dedicated Celery queue. The live 10k replay passed. The 10-VU 500-record k6 run accepted
+  815 requests at 26.82 requests/s with zero HTTP failures, but p95 was 632.85 ms; the 50 ms
+  acceptance target remains unmet.
 - Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.
   A cold evaluation costs 250 logical calls, including extraction and judging; the 20/day
   guard remains in force. No full-benchmark accuracy or retrieval lift can yet be claimed.
@@ -182,7 +187,7 @@ Summarised:
 
 | Phase | What | Why it matters |
 |---|---|---|
-| 1 | **Implemented; acceptance measurement pending.** `POST /ingest/logs`, indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The live p95 measurement still needs to run. | Mango *finds* failures instead of being told about them. |
+| 1 | **Implemented; latency acceptance failed.** `POST /ingest/logs` authenticates and queues bounded batches to a dedicated Celery ingestion worker; indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The 10-VU k6 run accepted 815 500-record requests at 26.82 requests/s with zero HTTP failures; p95 was 632.85 ms against the 50 ms target. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented and measured.** The live API/PostgreSQL replay produced 400 failures → 6 incidents (66.7:1). The replay command tags each run and waits for all ingestion and detection work before measuring. | Measure how many repeated failures collapse into incidents. |
 | 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 23.63 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Implemented; multi-worker acceptance measurement pending.** Celery/Redis workers, two retries per graph node, resume from persisted node outputs, SSE in the console, PostgreSQL atomic daily budget, and shared Redis request pacing are built and tested. The eight-run/four-worker measurement still needs PostgreSQL and Redis running. | Removes the in-process queue and per-process budget limit. |

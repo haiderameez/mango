@@ -1,3 +1,5 @@
+import base64
+
 from app.celery_app import celery_app
 from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
 from app.database.session import SessionLocal
@@ -6,6 +8,7 @@ from app.repositories.incident_history_repository import IncidentHistoryReposito
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.workflow_repository import WorkflowRepository
 from app.services.incident_history import IncidentHistoryService
+from app.services.ingest_service import IngestService
 from app.services.investigation_service import InvestigationService
 
 
@@ -43,3 +46,19 @@ def index_resolved_incident(incident_id: int) -> bool:
     with SessionLocal() as db:
         service = IncidentHistoryService(IncidentHistoryRepository(db))
         return service.index_resolved(incident_id)
+
+
+def process_ingest_batch_local(key_id: int, payload: str, compressed: bool) -> int:
+    """Synchronous fake for tests; production uses the Celery task below."""
+    with SessionLocal() as db:
+        return IngestService(db).process_batch(key_id, base64.b64decode(payload), compressed)
+
+
+@celery_app.task(
+    name="app.tasks.process_ingest_batch",
+    acks_late=True,
+    reject_on_worker_lost=True,
+)
+def process_ingest_batch(key_id: int, payload: str, compressed: bool) -> int:
+    """Parse, persist, and detect in the dedicated ingestion queue worker."""
+    return process_ingest_batch_local(key_id, payload, compressed)

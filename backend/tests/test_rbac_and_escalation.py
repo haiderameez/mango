@@ -1,11 +1,32 @@
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.dialects import postgresql
+
 from app.models.activity import Activity, ActivityType
 from app.models.escalation import EscalationPolicy
 from app.models.incident import Incident, SeverityLevel
 from app.models.user import User
+from app.repositories.incident_repository import IncidentRepository
 from app.repositories.user_repository import UserRepository
 from app.services.escalation_service import EscalationService
+
+
+def test_escalation_lock_only_targets_incident_table():
+    class Result:
+        def scalars(self):
+            return []
+
+    class RecordingSession:
+        statement = None
+
+        def execute(self, statement):
+            self.statement = str(statement.compile(dialect=postgresql.dialect()))
+            return Result()
+
+    db = RecordingSession()
+    IncidentRepository(db).get_due_for_escalation("CRITICAL", datetime.now(UTC))
+
+    assert "FOR UPDATE OF incidents SKIP LOCKED" in db.statement
 
 
 def _user(db, email: str, role: str = "responder") -> User:

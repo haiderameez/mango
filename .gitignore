@@ -31,3 +31,4 @@ backend/scripts/.capture/
 .playwright-mcp/
 backend/evals/.cache/
 .tmp-load/
+backend/celerybeat-schedule*

@@ -149,7 +149,7 @@ class IncidentRepository:
                 Incident.escalated_at.is_(None),
                 Incident.created_at <= cutoff,
             )
-            .with_for_update(skip_locked=True)
+            .with_for_update(skip_locked=True, of=Incident)
         )
         return list(self.db.execute(statement).scalars())
 

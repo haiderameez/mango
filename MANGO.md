@@ -180,8 +180,9 @@ environment has no pytest installed. CI runs both suites.
   with an isolated test database quota counter, so it does not verify the production shared
   budget. Finish the 50-case baseline, paired retrieval run, and ten-case human review before
   making accuracy or lift claims.
-- Phase 7 behavior is implemented and tested locally; Slack delivery and scheduled escalation
-  still need configured integration credentials and a live Compose run.
+- Phase 7 behavior is implemented. A live Celery Beat + worker check on PostgreSQL/Redis
+  escalated a due incident and delivered the expected payload to a local webhook receiver.
+  A real Slack webhook and full Compose verification remain pending.
 - Phase 3 retrieval, indexing, pgvector migration, and console links are implemented. A
   disposable pgvector check returned the known top match from 50 synthetic vectors in
   49.28 ms. Provider-generated semantic retrieval and the paired benchmark lift remain
@@ -200,7 +201,7 @@ Summarised:
 | 4 | **Acceptance measured.** Eight fake-model investigations completed across four Celery worker threads; 24 fake calls matched the PostgreSQL budget increment, with peak concurrency 4/4. A separate prefork worker-loss test killed the child in `root_cause` after the planner checkpoint; Celery redelivered, resumed, and completed with the planner saved once and a 4-call budget increase matching 4 fake calls. The concurrency test uses the thread pool on Windows; the recovery test uses a Docker prefork worker. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Partial live baseline; completion pending.** The harness now supports retrieval off/on and requires at least 50 history embeddings for an on run. OpenRouter completed 4/50: category 4/4, service 1/4, judge agreement 4/4 on that subset. The partial run spent 20 calls against an isolated test database counter, so it did not verify the production shared budget. Finish the baseline, paired retrieval run and ten-case human review before claiming accuracy or lift. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Load measured; p95 targets failed.** The filtered 10k-row register query used the new composite index (0.156 ms database plan time), but the 20-VU endpoint run reached 37.88 requests/s at p95 379.66 ms; 100 VUs reached 99.02 requests/s at p95 2.38 s. Ingestion accepted 27.05 batches/s at p95 792.36 ms, and four investigation submissions had p95 408.24 ms. HTTP failures were zero. Results and test limits are in `load/RESULTS.md`; the data does not support 450 requests/s or 95 ms p95. | p95 and throughput measured rather than asserted. |
-| 7 | **Implemented; live integration run pending.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Slack delivery requires `SLACK_WEBHOOK_URL`; the live Compose scheduler verification remains pending. | Reads as an on-call tool, not a ticket tracker. |
+| 7 | **Implemented; local scheduled integration passed.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Celery Beat scheduled an escalation; a Celery worker updated a due critical incident and posted the expected payload to a local webhook receiver. Real Slack delivery and full Compose verification still require `SLACK_WEBHOOK_URL`. | Reads as an on-call tool, not a ticket tracker. |
 
 **Build order:** 5 (baseline) → 1 → 2 → 3 → re-run 5 for the lift → 4 → 6 → 7.
 

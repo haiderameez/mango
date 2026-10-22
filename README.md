@@ -284,10 +284,13 @@ measure the 500-record request path, start the Compose stack, install k6, create
 `load-test`, then run `k6 run load/ingest.js` with `MANGO_INGEST_KEY` set in the environment.
 The API queues each batch for the dedicated `ingest-worker` service; parsing,
 persistence, and detection happen there. The script checks the 50 ms p95 target and reports
-records per second. `k6 run load/api.js`
-measures authenticated incident-register reads. `load/investigation.js` submits four
+records per second. `k6 run load/api.js` measures authenticated incident-register reads.
+`load/investigation.js` submits four
 investigations in parallel; set `MANGO_INCIDENT_IDS` to four distinct open incident IDs and
 account for the model request budget before running it.
+
+Measured k6 output, including failed latency thresholds, is kept in
+[`load/RESULTS.md`](load/RESULTS.md).
 
 To measure eight queued investigations against the atomic PostgreSQL budget without calling
 a provider, seed a disposable PostgreSQL database whose name ends in `_test`, point

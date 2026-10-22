@@ -153,8 +153,9 @@ ten-case human review remain pending.
 agent node and export to Jaeger. `/metrics` exposes request and investigation duration,
 provider calls, daily budget remaining, queue depth, ingested records, and detection firings.
 `load/ingest.js`, `load/api.js`, and `load/investigation.js` exercise the main load paths. The
-first live ingestion k6 result is recorded in `load/RESULTS.md`; the register and investigation
-load runs remain pending.
+first live k6 results are recorded in `load/RESULTS.md`: log intake, incident-register reads,
+and four queued investigation submissions. All three failed their p95 targets; no 450 rps or
+95 ms p95 claim is supported by these measurements.
 
 **Tests:** The backend suite has 249 tests and runs against in-memory SQLite with `StaticPool`;
 all pass, and Ruff passes. The DummyCommerce suite was not runnable here because its
@@ -195,7 +196,7 @@ Summarised:
 | 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 23.63 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Acceptance measured.** Eight fake-model investigations completed across four Celery worker threads; 24 fake calls matched the PostgreSQL budget increment, with peak concurrency 4/4. A separate prefork worker-loss test killed the child in `root_cause` after the planner checkpoint; Celery redelivered, resumed, and completed with the planner saved once and a 4-call budget increase matching 4 fake calls. The concurrency test uses the thread pool on Windows; the recovery test uses a Docker prefork worker. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
-| 6 | **Implemented; live load measurement pending.** OpenTelemetry request-to-Celery-to-agent traces, Prometheus metrics, and k6 scripts for ingestion, register reads, and investigation submission are built. Docker/k6 acceptance run remains pending. | p95 and throughput measured rather than asserted. |
+| 6 | **Load measured; p95 targets failed.** At 10 VUs, ingestion accepted 26.82 requests/s with p95 632.85 ms. At 20 VUs, register reads reached 65.11 requests/s with p95 536.30 ms. Four investigation submissions were accepted with p95 927.30 ms (including login setup). HTTP failures were zero in all runs; results are in `load/RESULTS.md`. These measurements do not support 450 requests/s or 95 ms p95. | p95 and throughput measured rather than asserted. |
 | 7 | **Implemented; live integration run pending.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Slack delivery requires `SLACK_WEBHOOK_URL`; the live Compose scheduler verification remains pending. | Reads as an on-call tool, not a ticket tracker. |
 
 **Build order:** 5 (baseline) → 1 → 2 → 3 → re-run 5 for the lift → 4 → 6 → 7.

@@ -1,8 +1,11 @@
 from app.celery_app import celery_app
+from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
 from app.database.session import SessionLocal
 from app.repositories.activity_repository import ActivityRepository
+from app.repositories.incident_history_repository import IncidentHistoryRepository
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.workflow_repository import WorkflowRepository
+from app.services.incident_history import IncidentHistoryService
 from app.services.investigation_service import InvestigationService
 
 
@@ -26,3 +29,17 @@ def run_investigation(run_id: int) -> None:
             WorkflowRepository(db), IncidentRepository(db), ActivityRepository(db)
         )
         service.run(run_id, raise_on_failure=True)
+
+
+@celery_app.task(
+    name="app.tasks.index_resolved_incident",
+    autoretry_for=(LlmQuotaExhaustedError, LlmRateLimitedError),
+    retry_backoff=3600,
+    retry_backoff_max=21600,
+    max_retries=8,
+)
+def index_resolved_incident(incident_id: int) -> bool:
+    """Embed a resolved investigation asynchronously, retrying guarded provider deferrals."""
+    with SessionLocal() as db:
+        service = IncidentHistoryService(IncidentHistoryRepository(db))
+        return service.index_resolved(incident_id)

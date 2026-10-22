@@ -6,7 +6,7 @@
 # Console: http://localhost:8000/console   DummyCommerce: http://localhost:8001/docs
 services:
   postgres:
-    image: postgres:17
+    image: pgvector/pgvector:pg17
     container_name: mango-db
     environment:
       POSTGRES_USER: postgres

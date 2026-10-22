@@ -14,6 +14,7 @@ from app.models.incident import Incident
 from app.models.workflow import AgentExecution, RunStatus, WorkflowRun
 from app.observability import INVESTIGATIONS
 from app.repositories.activity_repository import ActivityRepository
+from app.repositories.incident_history_repository import IncidentHistoryRepository
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.ingest_repository import IngestRepository
 from app.repositories.workflow_repository import WorkflowRepository
@@ -22,6 +23,7 @@ from app.schemas.workflow import (
     InvestigationResponse,
     WorkflowRunResponse,
 )
+from app.services.incident_history import IncidentHistoryService
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,9 @@ class InvestigationService:
         self.incident_repository = incident_repository
         self.activity_repository = activity_repository
         self.ingest_repository = IngestRepository(incident_repository.db)
+        self.history_service = IncidentHistoryService(
+            IncidentHistoryRepository(incident_repository.db)
+        )
 
     def start(
         self, incident_id: int, triggered_by: str, user_id: int | None = None
@@ -152,6 +157,7 @@ class InvestigationService:
                 start_at=(NODE_ORDER[completed_nodes]
                           if completed_nodes < len(NODE_ORDER) else None),
                 evidence_repository=self.ingest_repository,
+                history_service=self.history_service,
             )
             updates = graph.stream(state, stream_mode="updates") if completed_nodes < len(
                 NODE_ORDER
@@ -287,6 +293,9 @@ class InvestigationService:
 
         if "evidence" in delta:
             return f"{len(delta['evidence'])} log record(s) collected"
+
+        if "history" in delta:
+            return f"{len(delta['history'])} similar resolved incident(s) found"
 
         if "root_cause" in delta:
             cause = delta["root_cause"].get("likely_cause", "")

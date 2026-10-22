@@ -949,6 +949,7 @@ function renderSheet(){
     act(() => api(`/incidents/${i.id}/comments`, {method:"POST", body:JSON.stringify({content:v})}));
   });
   document.querySelectorAll(".cite").forEach(b => b.onclick = () => {
+    if(b.dataset.historyId){ openCase(+b.dataset.historyId); return; }
     const t = $("#ex-"+b.dataset.ex);
     if(!t) return;
     document.querySelectorAll(".exhibit.lit").forEach(e => e.classList.remove("lit"));
@@ -964,7 +965,7 @@ async function act(fn){
   catch(e){ fail(e.message); }
 }
 
-const PIPELINE = ["planner","evidence_collector","root_cause","fix_recommendation","report"];
+const PIPELINE = ["planner","evidence_collector","history","root_cause","fix_recommendation","report"];
 const CONF = {low:1, medium:2, high:3};
 
 function renderInvestigation(inv){
@@ -972,7 +973,7 @@ function renderInvestigation(inv){
     <div class="block-head"><h2>Investigation</h2></div>
     <div class="block-body"><div class="empty" style="padding:22px 0">
       <h2>Not investigated</h2>
-      <p>No agent has looked at this case. Running one costs three model requests and takes about a minute.</p>
+      <p>No agent has looked at this case. Running one costs four model requests and takes about a minute.</p>
     </div></div></section>`;
 
   const done = Object.fromEntries(inv.executions.map(e => [e.agent_name, e]));
@@ -980,6 +981,7 @@ function renderInvestigation(inv){
   const rc = inv.executions.find(e => e.agent_name==="root_cause")?.output?.root_cause || {};
   const rec = inv.executions.find(e => e.agent_name==="fix_recommendation")?.output?.recommendations || {};
   const ev = out("evidence_collector").evidence || [];
+  const history = out("history").history || [];
   const conf = CONF[rc.confidence] || 0;
 
   const stops = PIPELINE.map(n => {
@@ -1046,6 +1048,14 @@ function renderInvestigation(inv){
       ${list("Recommended actions — for an engineer to review", rec.actions)}
       ${list("How to validate", rec.validation_steps)}
     </div>` : ""}
+
+    ${history.length ? `<div class="block-head" style="border-top:var(--hair) solid var(--card-3)">
+        <h2>${history.length} similar resolved incident${history.length===1?"":"s"}</h2>
+        <span class="n">last resolved ${Math.min(...history.map(x=>x.days_since_resolution ?? 0))} days ago</span></div>
+      <div class="block-body">${history.map(match=>`<div class="finding">
+        <button class="cite history-link" data-history-id="${match.incident_id}">INC ${pad(match.incident_id)}</button>
+        <p><strong>${esc(match.title)}</strong> · ${esc(match.likely_cause)}
+          <span class="legend">${Math.round(match.similarity*100)}% similar</span></p></div>`).join("")}</div>` : ""}
 
     ${ev.length ? `<div class="block-head" style="border-top:var(--hair) solid var(--card-3)">
         <h2>Exhibits</h2><span class="n">${ev.length} log record${ev.length===1?"":"s"}</span></div>

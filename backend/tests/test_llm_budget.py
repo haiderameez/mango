@@ -175,10 +175,13 @@ def test_an_agent_refuses_to_call_once_the_budget_is_spent(monkeypatch):
         graph.planner({"incident": AN_INCIDENT})
 
 
-def test_a_whole_run_costs_three_requests(client, incident, headers, fake_llm, log_file):
+def test_a_run_reserves_four_requests_including_history_embedding(
+    client, incident, headers, fake_llm, log_file
+):
     start_investigation(client, incident["id"], headers)
 
-    assert quota.used_today() == graph.LLM_CALLS_PER_RUN == 3
+    assert quota.used_today() == 3  # history lookup is disabled in the shared test fixture
+    assert graph.LLM_CALLS_PER_RUN == 4
 
 
 # --- the queue ------------------------------------------------------------------------
@@ -267,7 +270,7 @@ def test_the_quota_endpoint_reports_what_is_left(client, headers, monkeypatch):
     assert body["provider"] == settings.llm_provider
     assert body["requests_used_today"] == 3
     assert body["requests_remaining_today"] == 27
-    assert body["investigations_affordable_today"] == 9
+    assert body["investigations_affordable_today"] == 6
     assert body["queue_depth"] == 0
     assert body["seconds_until_reset"] > 0
 

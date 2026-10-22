@@ -10,8 +10,8 @@ Phase detail and acceptance criteria live in [plan.md](plan.md); this is the map
 An incident management platform that investigates its own incidents with a multi-agent
 AI workflow reading the failing application's real logs.
 
-The loop: an application breaks → an incident exists in Mango → five agents run over the
-logs around that incident → an engineer reads a report naming a probable cause, the
+The loop: an application breaks → an incident exists in Mango → an investigation reads its
+logs and similar resolved cases → an engineer reads a report naming a probable cause, the
 evidence behind it, a confidence level, and what to check next.
 
 A companion app, `dummycommerce/`, is a deliberately breakable storefront. It fails on
@@ -20,10 +20,10 @@ makes the whole thing demonstrable without a real outage.
 
 ## 2. Why it is built this way
 
-**The investigation is evidence-bound, not a chatbot.** Log retrieval is ordinary tested
-Python (`app/services/evidence.py`), not a model with filesystem access. The model only
-ever sees a bounded, credential-scrubbed set of records. This is the one property a
-generic "paste your error into an LLM" tool cannot truthfully claim.
+**The investigation is evidence-bound, not a chatbot.** Log retrieval and history search
+are ordinary tested Python, not a model with filesystem or database access. The model sees
+bounded, credential-scrubbed log records and only similarity-qualified diagnoses and fixes
+from resolved incidents.
 
 **Every agent run is persisted.** `AgentExecution` stores each agent's output, duration
 and reasoning, so any conclusion traces back to what produced it. An unauditable diagnosis
@@ -46,13 +46,14 @@ aliases silently move between models, so the model is pinned, not aliased.
 
 ## 3. What exists today
 
-**Stack:** FastAPI, SQLAlchemy 2, PostgreSQL, Redis, Celery, Alembic, Pydantic v2, PyJWT,
-pwdlib/argon2, LangGraph, LangChain, Gemini, optional OpenRouter, OpenTelemetry, Prometheus.
+**Stack:** FastAPI, SQLAlchemy 2, PostgreSQL + pgvector, Redis, Celery, Alembic, Pydantic v2,
+PyJWT, pwdlib/argon2, LangGraph, LangChain, Gemini, OpenRouter embeddings, OpenTelemetry,
+Prometheus.
 Jaeger, GitHub Actions CI.
 
-**Tables (12):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
+**Tables (13):** `users`, `incidents`, `comments`, `activity`, `workflow_runs`,
 `agent_executions`, `service_keys`, `log_records`, `detection_rules`, `incident_groups`,
-`daily_llm_budgets`, `escalation_policies`.
+`daily_llm_budgets`, `escalation_policies`, `incident_embeddings`.
 
 **API (28 endpoints):**
 
@@ -84,11 +85,16 @@ only the scrubbed record set. The deterministic 10k outage fixture is generated 
 load/outage.jsonl --report` measures collapse. The live replay passed against PostgreSQL:
 400 failures became 6 incidents (66.7:1). The command waits for ingestion and detection
 completion and tags each run to keep measurements isolated. `load/ingest.js` measures the
-500-record request path; its live p95 measurement remains pending because k6 is not installed.
+500-record request path; its live p95 measurement remains pending.
 
-**The agent pipeline**, a LangGraph `StateGraph`, always in this order:
-`planner` → `evidence_collector` → `root_cause` → `fix_recommendation` → `report`.
-Two of them (`evidence_collector`, `report`) are plain Python with no model call.
+**The investigation pipeline**, a LangGraph `StateGraph`, runs:
+`planner` → `evidence_collector` → `history` → `root_cause` → `fix_recommendation` → `report`.
+The evidence collector, history database search, and report formatter are ordinary Python.
+OpenRouter embeddings use the existing daily quota and shared rate limiter; the configured
+768-dimensional vectors live in PostgreSQL with an HNSW cosine index. Resolving an incident
+queues embedding of its completed diagnosis and fix. `python -m scripts.index_resolved_history`
+backfills older completed incidents in one batched request. The history node returns up to
+three resolved matches above a 0.75 similarity floor, and the console links to each case.
 Structured output uses LangChain's `with_structured_output(schema, include_raw=True)`.
 Each node retries transient failures up to twice. Completed node outputs are persisted and a
 redelivered task resumes at the first unfinished node. Celery workers consume Redis tasks;
@@ -104,8 +110,8 @@ author edits or deletes a comment.
 console by hand, seeded demo data, or service-scoped log ingestion with automatic detection.
 
 **Console:** incident register with severity and status, incident detail with activity
-timeline and comments, and the investigation view showing the five agent route with real
-durations, reasoning, and the final report.
+timeline and comments, and the investigation view showing the agent route, similar resolved
+cases, real durations, reasoning, and the final report.
 
 **Demo data:** `scripts/seed_demo.py` seeds three users, six incidents across every
 severity and status, comments and timelines, then replays two *real* captured
@@ -144,9 +150,9 @@ ten-case human review remain pending.
 agent node and export to Jaeger. `/metrics` exposes request and investigation duration,
 provider calls, daily budget remaining, queue depth, ingested records, and detection firings.
 `load/ingest.js`, `load/api.js`, and `load/investigation.js` exercise the main load paths. The
-live k6 measurements remain pending because k6 is not installed in this environment.
+live k6 measurements remain pending.
 
-**Tests:** 238 backend tests pass against in-memory SQLite with `StaticPool`; Ruff passes. The
+**Tests:** Backend tests run against in-memory SQLite with `StaticPool`; Ruff passes. The
 DummyCommerce suite was not runnable here because its environment has no pytest installed.
 The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
 the new ingestion behavior. CI runs both suites.
@@ -164,6 +170,10 @@ the new ingestion behavior. CI runs both suites.
   guard remains in force. No full-benchmark accuracy or retrieval lift can yet be claimed.
 - Phase 7 behavior is implemented and tested locally; Slack delivery and scheduled escalation
   still need configured integration credentials and a live Compose run.
+- Phase 3 retrieval, indexing, pgvector migration, and console links are implemented. A
+  disposable PostgreSQL check returned the known top match from 50 synthetic vectors in
+  23.63 ms; semantic retrieval with provider-generated vectors and its benchmark lift remain
+  unmeasured.
 
 ## 4. What is left
 
@@ -174,7 +184,7 @@ Summarised:
 |---|---|---|
 | 1 | **Implemented; acceptance measurement pending.** `POST /ingest/logs`, indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The live p95 measurement still needs to run. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented and measured.** The live API/PostgreSQL replay produced 400 failures → 6 incidents (66.7:1). The replay command tags each run and waits for all ingestion and detection work before measuring. | Measure how many repeated failures collapse into incidents. |
-| 3 | **pgvector RAG over history.** Embeddings of resolved incidents, HNSW index, a new `history` graph node feeding prior diagnoses into the root cause prompt above a similarity floor. | The agents reason from everything already learned, not one incident's logs. |
+| 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 23.63 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Implemented; multi-worker acceptance measurement pending.** Celery/Redis workers, two retries per graph node, resume from persisted node outputs, SSE in the console, PostgreSQL atomic daily budget, and shared Redis request pacing are built and tested. The eight-run/four-worker measurement still needs PostgreSQL and Redis running. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Implemented; live load measurement pending.** OpenTelemetry request-to-Celery-to-agent traces, Prometheus metrics, and k6 scripts for ingestion, register reads, and investigation submission are built. Docker/k6 acceptance run remains pending. | p95 and throughput measured rather than asserted. |

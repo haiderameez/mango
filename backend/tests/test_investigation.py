@@ -246,6 +246,7 @@ def test_the_graph_is_the_documented_pipeline():
     assert graph.NODE_ORDER == [
         "planner",
         "evidence_collector",
+        "history",
         "root_cause",
         "fix_recommendation",
         "report",
@@ -355,14 +356,14 @@ def test_the_run_is_observable_while_it_is_still_going(
 
     try:
         client.post(f"/incidents/{incident['id']}/investigate", headers=headers)
+        assert root_entered.wait(5), "root cause node did not begin"
 
         for _ in range(100):
             mid = client.get(
                 f"/incidents/{incident['id']}/investigation", headers=headers
             ).json()
-            if root_entered.is_set() and any(
-                e["agent_name"] == "evidence_collector" for e in mid["executions"]
-            ):
+            recorded = {e["agent_name"] for e in mid["executions"]}
+            if root_entered.is_set() and {"evidence_collector", "history"} <= recorded:
                 break
             time.sleep(0.05)
     finally:
@@ -370,4 +371,6 @@ def test_the_run_is_observable_while_it_is_still_going(
 
     assert mid["status"] == "RUNNING"
     assert mid["report"] is None
-    assert [e["agent_name"] for e in mid["executions"]] == ["planner", "evidence_collector"]
+    assert [e["agent_name"] for e in mid["executions"]] == [
+        "planner", "evidence_collector", "history"
+    ]

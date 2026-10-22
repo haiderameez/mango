@@ -1,5 +1,7 @@
+import logging
 from datetime import UTC, datetime
 
+from app.core.config import settings
 from app.core.exceptions import (
     IncidentAssignmentError,
     IncidentNotFoundError,
@@ -14,6 +16,8 @@ from app.repositories.incident_repository import IncidentRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.activity import ActivityResponse
 from app.schemas.incident import IncidentCreate, IncidentFilters, IncidentResponse
+
+logger = logging.getLogger(__name__)
 
 # Allowed status transitions. Anything not listed here is rejected.
 NEXT_STATUS = {
@@ -127,6 +131,17 @@ class IncidentService:
         )
 
         updated_incident = self.incident_repository.update_status(incident, new_status)
+
+        if new_status == StatusLevel.RESOLVED and settings.incident_history_enabled:
+            # Indexing runs in the worker; resolving an incident must not wait for a provider.
+            try:
+                from app.tasks import index_resolved_incident
+
+                index_resolved_incident.delay(incident.id)
+            except Exception:
+                logger.exception(
+                    "Could not queue resolved incident %s for history indexing", incident.id
+                )
 
         return IncidentResponse.model_validate(updated_incident)
 

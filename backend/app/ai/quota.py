@@ -64,10 +64,10 @@ def consume(requests: int = 1) -> bool:
             )
 
 
-def wait_for_rate_slot() -> None:
+def wait_for_rate_slot(model_name: str | None = None) -> None:
     """Pace provider calls across every worker sharing the Redis broker."""
     interval = 60 / max(settings.llm_requests_per_minute, 1)
-    model = {
+    model = model_name or {
         "gemini": settings.gemini_model,
         "anthropic": settings.anthropic_model,
         "openrouter": settings.openrouter_model,

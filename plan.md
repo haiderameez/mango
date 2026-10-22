@@ -95,8 +95,9 @@ organisation has already learned.
 **Build**
 
 - `pgvector` extension; `incident_embeddings` table holding a 768-dim embedding of
-  `title + description + root cause` per resolved incident, generated with Gemini's
-  `text-embedding-004` (free, and separate from the chat quota).
+  `title + description + root cause + resolution` per resolved incident, generated with the
+  pinned `openai/text-embedding-3-small` model through OpenRouter. Embedding calls share Mango's
+  atomic daily request budget and Redis model pacing with chat calls.
 - An HNSW index (`vector_cosine_ops`, `m=16`, `ef_construction=64`) — not IVFFlat, which
   needs training data this table will not have for months.
 - A new graph node, **`history`**, between `evidence_collector` and `root_cause`: fetches the
@@ -105,12 +106,18 @@ organisation has already learned.
   neighbour is worse than no neighbour.
 - Surface it in the console: *"3 similar incidents, last resolved 11 days ago"* with links.
   This is the feature that makes someone watching a demo sit up.
+- Resolving an incident queues best-effort indexing after the incident is committed. A batched
+  backfill command indexes older resolved investigations without one request per incident.
 
 **Acceptance**
 
 - With a seeded history of 50 resolved incidents, a repeat of a known fault must retrieve its
-  own prior incident as the top match.
-- Retrieval adds under 100ms to a run.
+  own prior incident as the top match. Verify database retrieval independently with
+  `python -m scripts.measure_history_retrieval` against a disposable `*_test` database; verify
+  semantic retrieval with provider-generated vectors when the OpenRouter embedding budget is
+  available.
+- The vector lookup adds under 100ms; measure query/index latency separately from the remote
+  embedding request.
 
 **Unlocks:** "RAG over incident history", and a measurable accuracy lift in Phase 5.
 

@@ -22,9 +22,9 @@ integration is unavailable, engineers can still run incidents through Mango.
   never cost you an incident.
 - **Persisted investigations** — every run is a `WorkflowRun` with one `AgentExecution` per
   agent, so a failure is visible and explainable rather than silent.
-- **AI investigation** — a LangGraph pipeline that plans, collects log evidence, diagnoses,
-  recommends fixes, and assembles a report that separates collected facts from model
-  conclusions.
+- **AI investigation** — a LangGraph pipeline that plans, collects log evidence, retrieves
+  similar resolved cases from pgvector, diagnoses, recommends fixes, and assembles a report
+  that separates collected facts from model conclusions.
 - **DummyCommerce** — a companion app that fails on demand and leaves behind the log
   sequence a real failure would (pool warnings, retries, health checks, circuit breaker
   transitions), then reports the failure to Mango.
@@ -54,7 +54,7 @@ integration is unavailable, engineers can still run incidents through Mango.
          |                           |
          +---> Evidence collector -> LangGraph workflow
                                      |
-            planner -> evidence_collector -> root_cause
+                                     planner -> evidence_collector -> history -> root_cause
                     -> fix_recommendation -> report
                                      |
                            Final report (PostgreSQL)
@@ -66,7 +66,8 @@ HTTP, services hold the business rules and permissions, repositories only persis
 ## Technology
 
 Python 3.12+, FastAPI, SQLAlchemy 2.0, Alembic, PostgreSQL, Pydantic, PyJWT, argon2 (pwdlib),
-LangGraph, LangChain (Google Gemini or Anthropic), boto3 (SNS), Docker Compose, pytest, Ruff.
+LangGraph, LangChain (Google Gemini or Anthropic), pgvector (OpenRouter embeddings), boto3
+(SNS), Docker Compose, pytest, Ruff.
 
 ## Project structure
 
@@ -76,14 +77,14 @@ backend/
     api/           routers: auth, incident (+comments), investigation
     core/          config, security, dependencies, exceptions, handlers, notifications
     ai/            LangGraph workflow and the agents' structured output schemas
-    models/        user, incident, comment, activity, workflow
+    models/        user, incident, history vectors, comment, activity, workflow
     schemas/       request/response models
     repositories/  persistence
     services/      business logic, evidence collection, investigation orchestration
   alembic/         migrations
-  tests/           233 backend tests
+  tests/           247 backend tests
 dummycommerce/     the simulated failing application
-docker-compose.yml PostgreSQL 17
+docker-compose.yml PostgreSQL 17 with pgvector
 ```
 
 ## Setup
@@ -91,7 +92,7 @@ docker-compose.yml PostgreSQL 17
 Everything at once, in containers:
 
 ```bash
-cp backend/.env.example backend/.env       # set JWT_SECRET_KEY and GOOGLE_API_KEY
+cp backend/.env.example backend/.env       # set JWT_SECRET_KEY and a chat/embedding provider key
 docker compose up --build                  # Postgres, Mango on :8000, DummyCommerce on :8001
 ```
 
@@ -123,6 +124,10 @@ python -m scripts.seed_demo        # from backend/, after alembic upgrade head
 Then sign in at `/console` as `demo@mango.dev` / `mango-demo`. Re-run with `--reset` to
 replace the data.
 
+Resolved incidents are embedded after their completed investigation is resolved. To index
+older demo or imported cases in one quota-guarded batch, configure `OPENROUTER_API_KEY` and run
+`python -m scripts.index_resolved_history --limit 50` from `backend/`.
+
 ### Configuration
 
 Copy `backend/.env.example` to `backend/.env` and set:
@@ -136,7 +141,10 @@ Copy `backend/.env.example` to `backend/.env` and set:
 | `GOOGLE_API_KEY` | for investigations | Free key from [AI Studio](https://aistudio.google.com/apikey). Without it a run is recorded as `FAILED` with that reason |
 | `GEMINI_MODEL` | no | Default `gemini-3.5-flash`, pinned on purpose — see below |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | only for `anthropic` | Paid alternative |
-| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | only for `openrouter` | OpenRouter key and pinned model; default `openai/gpt-4.1-mini` |
+| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | for `openrouter` investigations or incident-history embeddings | OpenRouter key and pinned chat model; default `openai/gpt-4.1-mini` |
+| `OPENROUTER_EMBEDDING_MODEL` | no | Pinned history embedding model; default `openai/text-embedding-3-small` |
+| `INCIDENT_HISTORY_ENABLED` | no | Index resolved investigations and retrieve similar cases; default `true` |
+| `INCIDENT_HISTORY_SIMILARITY_FLOOR`, `INCIDENT_HISTORY_LIMIT` | no | Similarity floor `0.75`, maximum matches `3` |
 | `LLM_REQUESTS_PER_MINUTE` | no | Default `10`. Mango paces itself to this |
 | `LLM_REQUESTS_PER_DAY` | no | Default `20`. Mango stops before exceeding this |
 | `LLM_MAX_RETRIES` | no | Default `5`, with backoff, for a 429 that slips through |
@@ -348,9 +356,8 @@ deployment you intend to reproduce; `pip freeze > requirements.lock` before you 
 ## The console
 
 `http://localhost:8000/console` is the operator surface: a filtered, paginated case register,
-the case file with its activity timeline and comments, and the investigation — the five agents
-as a pipeline with their durations and their own reasoning, the probable cause with its
-confidence, the numbered exhibits, and the report.
+the case file with its activity timeline and comments, and the investigation route with
+durations, reasoning, similar resolved cases, the probable cause, exhibits, and report.
 
 It is one static HTML file (`backend/app/static/console.html`) with no build step, no npm and
 no framework. The page is public; every piece of data it shows is not.
@@ -386,11 +393,12 @@ none of them is a retry loop:
 ```bash
 curl -s localhost:8000/investigations/quota -H "Authorization: Bearer $TOKEN"
 # {"provider":"gemini","requests_per_day":20,"requests_used_today":9,
-#  "requests_remaining_today":11,"investigations_affordable_today":3,"queue_depth":0, ...}
+#  "requests_remaining_today":11,"investigations_affordable_today":2,"queue_depth":0, ...}
 ```
 
-One investigation costs **3 requests** — planner, root cause, fix recommendation. Evidence
-collection and the report are plain Python and cost nothing.
+An investigation uses three chat requests (planner, root cause, recommendation) and, when
+resolved history has been indexed, one embedding request. Evidence collection, vector lookup,
+and report formatting are Python and SQL. The quota endpoint budgets four requests per run.
 
 **Pin the model, do not use an alias.** This project originally ran on
 `gemini-flash-latest`, which by October 2026 resolved to `gemini-3.8-flash` — whose free tier
@@ -403,9 +411,9 @@ limit: 20, model: gemini-3.8-flash.  Please retry in 9h35m20s.
 ```
 
 A budget guard can only protect a limit it was told about, and an alias can move that limit
-overnight. The default is therefore a pinned `gemini-3.5-flash` with `LLM_REQUESTS_PER_DAY=20`
-— about **6 investigations a day**. The quota is **per model**, so naming a different one
-gives you a separate allowance; `*-flash-lite` models are usually the most generous.
+overnight. The default is therefore a pinned `gemini-3.5-flash` with `LLM_REQUESTS_PER_DAY=20`.
+Mango shares that configured daily counter across its chat and OpenRouter embedding calls, so
+it remains a conservative ceiling when the providers have separate model allowances.
 
 **Read your own numbers at [aistudio.google.com/rate-limit](https://aistudio.google.com/rate-limit)**
 and put them in `LLM_REQUESTS_PER_MINUTE` / `LLM_REQUESTS_PER_DAY`. Google stopped publishing

@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 alembic
 psycopg[binary]
+pgvector
 pydantic
 pydantic-settings
 python-dotenv

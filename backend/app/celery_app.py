@@ -20,7 +20,10 @@ celery_app.conf.update(
     task_track_started=True,
     broker_transport_options={"visibility_timeout": 18_000},
     result_expires=3600,
-    task_routes={"app.tasks.run_investigation": {"queue": "investigations"}},
+    task_routes={
+        "app.tasks.run_investigation": {"queue": "investigations"},
+        "app.tasks.index_resolved_incident": {"queue": "investigations"},
+    },
     beat_schedule={
         "check-incident-escalations-every-minute": {
             "task": "app.tasks_escalation.check_due_escalations",

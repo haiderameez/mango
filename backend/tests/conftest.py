@@ -71,6 +71,7 @@ def isolated_llm_budget(monkeypatch, session_factory):
     monkeypatch.setattr(quota, "_redis", LocalRateSlotStub())
     monkeypatch.setattr(tasks, "SessionLocal", session_factory)
     monkeypatch.setattr(settings, "llm_requests_per_day", 1000)
+    monkeypatch.setattr(settings, "incident_history_enabled", False)
 
 
 @pytest.fixture

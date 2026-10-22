@@ -24,11 +24,12 @@ from app.services import evidence
 
 logger = logging.getLogger("mango.investigation")
 
-NODE_ORDER = ["planner", "evidence_collector", "root_cause", "fix_recommendation", "report"]
+NODE_ORDER = [
+    "planner", "evidence_collector", "history", "root_cause", "fix_recommendation", "report"
+]
 
-# How many provider requests one investigation needs. evidence_collector and report are
-# plain Python and cost nothing.
-LLM_CALLS_PER_RUN = 3
+# The embedding request, planner, root cause and recommendations each use the shared guard.
+LLM_CALLS_PER_RUN = 4
 
 
 def _retry_agent_error(error: Exception) -> bool:
@@ -47,6 +48,7 @@ class InvestigationState(TypedDict, total=False):
     incident: dict
     plan: dict
     evidence: list[dict]
+    history: list[dict]
     root_cause: dict
     recommendations: dict
     report: str
@@ -222,6 +224,12 @@ def evidence_collector(state: InvestigationState, repository=None) -> Investigat
     return {"evidence": evidence.collect(created_at, keyword=keyword, repository=repository)}
 
 
+def history(state: InvestigationState, service=None) -> InvestigationState:
+    if service is None or not settings.incident_history_enabled:
+        return {"history": []}
+    return {"history": service.find_similar(state["incident"], state.get("evidence") or [])}
+
+
 def root_cause(state: InvestigationState) -> InvestigationState:
     analysis = _ask(
         RootCause,
@@ -229,6 +237,10 @@ def root_cause(state: InvestigationState) -> InvestigationState:
         f"Incident: {json.dumps(state['incident'])}\n"
         f"Investigation plan: {json.dumps(state.get('plan') or {})}\n"
         f"Evidence (application log records): {json.dumps(state.get('evidence') or [])}\n\n"
+        f"Resolved incident history (similarity-qualified prior art): "
+        f"{json.dumps(state.get('history') or [])}\n\n"
+        "Use prior incidents only as context. Diagnose this incident from its own supplied "
+        "evidence, and say when the historical cases do not apply.\n"
         f"{GROUNDING_RULES}",
     )
     return {"root_cause": analysis.model_dump()}
@@ -274,6 +286,7 @@ def report(state: InvestigationState) -> InvestigationState:
     analysis = state.get("root_cause") or {}
     recommendations = state.get("recommendations") or {}
     records = state.get("evidence") or []
+    history_matches = state.get("history") or []
 
     text = f"""# Investigation report - incident #{incident["id"]}
 
@@ -294,6 +307,12 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
 {len(records)} log record(s) from the incident window.
 
 {_bullets([_evidence_line(r) for r in records], "_no log records matched the incident window._")}
+
+## Similar resolved incidents
+
+{_bullets([f"Incident #{item['incident_id']} — {item['title']} (similarity "
+           f"{item['similarity']:.2f}): {item['likely_cause']}" for item in history_matches],
+          "_no similar resolved incidents met the similarity threshold._")}
 
 ## Observed facts
 
@@ -326,7 +345,7 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
     return {"report": text}
 
 
-def build_graph(*, start_at: str | None = None, evidence_repository=None):
+def build_graph(*, start_at: str | None = None, evidence_repository=None, history_service=None):
     if start_at is not None and start_at not in NODE_ORDER:
         raise ValueError(f"Unknown investigation node: {start_at}")
     graph = StateGraph(InvestigationState)
@@ -335,6 +354,8 @@ def build_graph(*, start_at: str | None = None, evidence_repository=None):
         node = globals()[name]
         if name == "evidence_collector" and evidence_repository is not None:
             node = partial(node, repository=evidence_repository)
+        if name == "history" and history_service is not None:
+            node = partial(node, service=history_service)
 
         def traced_node(state, *, _node=node, _name=name):
             with span(f"mango.agent.{_name}"):

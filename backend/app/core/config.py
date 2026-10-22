@@ -32,6 +32,10 @@ class Settings(BaseSettings):
 
     openrouter_api_key: str | None = None
     openrouter_model: str = "openai/gpt-4.1-mini"
+    openrouter_embedding_model: str = "openai/text-embedding-3-small"
+    incident_history_similarity_floor: float = 0.75
+    incident_history_limit: int = 3
+    incident_history_enabled: bool = True
 
     # Provider budget. Defaults are the conservative end of Gemini's free tier; check your
     # own limits in Google AI Studio and raise them here. Mango never sends a request that

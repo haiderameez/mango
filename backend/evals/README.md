@@ -6,15 +6,19 @@ From `backend/`, install `requirements-dev.txt`, then run:
 .\.venv\Scripts\python.exe -m evals.run --report
 ```
 
-The command calls the configured pinned model and uses the existing quota file, pacing,
-and cooldown. Stop the API LLM worker first: the existing quota implementation is safe
-within one process only. Do not reset or separate quota files to obtain more budget.
+The command calls the configured pinned model and uses the shared PostgreSQL daily budget,
+Redis pacing, and provider cooldown. Stop the API LLM worker first so the evaluator can use
+the remaining daily budget predictably. Do not reset or separate quota state to obtain more
+budget.
 The evaluator lock prevents two evaluators sharing a cache from running together.
 
-A cold run requires 250 logical requests: 50 × (3 investigation + 1 answer-blind label
-extraction + 1 judge). SDK retries can add provider attempts under the current production
-client's retry policy. No quota increase or model rotation is performed. Resume the same
-command when budget is available. Exit 2 means incomplete, not a successful full benchmark.
+A cold baseline run requires 250 logical requests: 50 × (3 investigation + 1 answer-blind
+label extraction + 1 judge). Retrieval adds one embedding request per scenario, for 300
+logical requests. SDK retries can add provider attempts under the current production client's
+retry policy. No quota increase or model rotation is performed. Resume the same command when
+budget is available. Exit 2 means incomplete, not a successful full benchmark. Select the
+mode explicitly with `--retrieval off` (baseline) or `--retrieval on` (requires at least 50
+resolved-history embeddings in the configured database).
 Provider exceptions stop the batch; results store exception classes, not potentially
 credential-bearing error text. `--report-only` renders saved results without provider calls.
 
@@ -60,7 +64,6 @@ their scores. A human reviewer should read the saved report and answer before th
 decision, then record their own decision, rationale, disagreements and reviewer/date in
 `REVIEW.md`. Until then, manual validation is explicitly pending.
 
-Phase 3 must add a real retrieval switch; the current harness supports only `retrieval=off`.
 Compare the same frozen scenario hashes, pinned model and grading protocol. Historical
 retrieval entries must be separate from evaluation cases, never their copied answer keys.
-Keep the baseline results as an immutable artifact before writing retrieval results.
+Keep baseline and retrieval results in separate output and cache directories.

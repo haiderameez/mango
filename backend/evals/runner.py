@@ -31,7 +31,9 @@ def source_hash(paths: list[Path]) -> str:
     )
 
 
-def identity() -> dict:
+def identity(retrieval: str = "off") -> dict:
+    if retrieval not in {"off", "on"}:
+        raise ValueError("Retrieval mode must be 'off' or 'on'.")
     return {
         "provider": settings.llm_provider,
         "model": {
@@ -47,7 +49,7 @@ def identity() -> dict:
         "window_minutes": settings.evidence_window_minutes,
         "max_records": settings.evidence_max_records,
         "show_thinking": settings.llm_show_thinking,
-        "retrieval": "off",
+        "retrieval": retrieval,
     }
 
 
@@ -114,25 +116,44 @@ def evaluate(scenario: Scenario, log_path: Path, cache: Path, context: dict) -> 
     if completed != graph.NODE_ORDER[: len(completed)]:
         raise ValueError("Invalid graph checkpoint order")
     previous_path = settings.dummycommerce_log_path
+    previous_history_setting = settings.incident_history_enabled
+    retrieval_enabled = context.get("retrieval", "off") == "on"
     try:
         settings.dummycommerce_log_path = str(log_path)
+        settings.incident_history_enabled = retrieval_enabled
         if len(completed) < len(graph.NODE_ORDER):
-            workflow = graph.build_graph(start_at=graph.NODE_ORDER[len(completed)])
-            for update in workflow.stream(record["state"], stream_mode="updates"):
-                for name, delta in update.items():
-                    record["state"].update(delta)
-                    completed.append(name)
-                    record["executions"].append(
-                        {
-                            "node": name,
-                            "output": delta,
-                            "thinking": graph.take_thinking(),
-                            "finished_at": datetime.now(UTC).isoformat(),
-                        }
-                    )
-                    save(path, record)
+            history_db = None
+            history_service = None
+            if retrieval_enabled:
+                from app.database.session import SessionLocal
+                from app.repositories.incident_history_repository import IncidentHistoryRepository
+                from app.services.incident_history import IncidentHistoryService
+
+                history_db = SessionLocal()
+                history_service = IncidentHistoryService(IncidentHistoryRepository(history_db))
+            try:
+                workflow = graph.build_graph(
+                    start_at=graph.NODE_ORDER[len(completed)], history_service=history_service
+                )
+                for update in workflow.stream(record["state"], stream_mode="updates"):
+                    for name, delta in update.items():
+                        record["state"].update(delta)
+                        completed.append(name)
+                        record["executions"].append(
+                            {
+                                "node": name,
+                                "output": delta,
+                                "thinking": graph.take_thinking(),
+                                "finished_at": datetime.now(UTC).isoformat(),
+                            }
+                        )
+                        save(path, record)
+            finally:
+                if history_db is not None:
+                    history_db.close()
     finally:
         settings.dummycommerce_log_path = previous_path
+        settings.incident_history_enabled = previous_history_setting
         graph.take_thinking()
 
     # Label extraction does not depend on the answer key. Updating an answer must
@@ -173,8 +194,10 @@ def evaluate(scenario: Scenario, log_path: Path, cache: Path, context: dict) -> 
     }
 
 
-def run(scenarios: list, cache: Path, *, limit: int | None = None) -> dict:
-    context = identity()
+def run(
+    scenarios: list, cache: Path, *, limit: int | None = None, retrieval: str = "off"
+) -> dict:
+    context = identity(retrieval)
     results = []
     stopped = None
     for index, (scenario, log_path) in enumerate(scenarios):

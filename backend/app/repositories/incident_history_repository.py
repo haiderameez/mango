@@ -72,6 +72,9 @@ class IncidentHistoryRepository:
     def has_embeddings(self) -> bool:
         return self.db.execute(select(IncidentEmbedding.incident_id).limit(1)).first() is not None
 
+    def embedding_count(self) -> int:
+        return self.db.execute(select(func.count()).select_from(IncidentEmbedding)).scalar_one()
+
     def _recommendations(self, run_id: int) -> dict:
         statement = select(AgentExecution.output).where(
             AgentExecution.workflow_run_id == run_id,

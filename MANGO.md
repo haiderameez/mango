@@ -174,14 +174,17 @@ environment has no pytest installed. CI runs both suites.
   a dedicated Celery queue. The live 10k replay passed. The 10-VU 500-record k6 run accepted
   815 requests at 26.82 requests/s with zero HTTP failures, but p95 was 632.85 ms; the 50 ms
   acceptance target remains unmet.
-- Phase 5 tooling exists, but the full 50-case live baseline and manual judge check remain.
-  A cold evaluation costs 250 logical calls, including extraction and judging; the 20/day
-  guard remains in force. No full-benchmark accuracy or retrieval lift can yet be claimed.
+- Phase 5 now has a retrieval on/off switch and a resumable OpenRouter partial baseline:
+  4/50 scenarios completed, with category 4/4, service 1/4, and judge agreement 4/4 on
+  that four-case subset. This is not a full-benchmark accuracy result. The run used 20 calls
+  with an isolated test database quota counter, so it does not verify the production shared
+  budget. Finish the 50-case baseline, paired retrieval run, and ten-case human review before
+  making accuracy or lift claims.
 - Phase 7 behavior is implemented and tested locally; Slack delivery and scheduled escalation
   still need configured integration credentials and a live Compose run.
 - Phase 3 retrieval, indexing, pgvector migration, and console links are implemented. A
-  disposable PostgreSQL check returned the known top match from 50 synthetic vectors in
-  23.63 ms; semantic retrieval with provider-generated vectors and its benchmark lift remain
+  disposable pgvector check returned the known top match from 50 synthetic vectors in
+  49.28 ms. Provider-generated semantic retrieval and the paired benchmark lift remain
   unmeasured.
 
 ## 4. What is left
@@ -193,9 +196,9 @@ Summarised:
 |---|---|---|
 | 1 | **Implemented; latency acceptance failed.** `POST /ingest/logs` authenticates and queues bounded batches to a dedicated Celery ingestion worker; indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The 10-VU k6 run accepted 815 500-record requests at 26.82 requests/s with zero HTTP failures; p95 was 632.85 ms against the 50 ms target. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented and measured.** The live API/PostgreSQL replay produced 400 failures → 6 incidents (66.7:1). The replay command tags each run and waits for all ingestion and detection work before measuring. | Measure how many repeated failures collapse into incidents. |
-| 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 23.63 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
+| 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 49.28 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Acceptance measured.** Eight fake-model investigations completed across four Celery worker threads; 24 fake calls matched the PostgreSQL budget increment, with peak concurrency 4/4. A separate prefork worker-loss test killed the child in `root_cause` after the planner checkpoint; Celery redelivered, resumed, and completed with the planner saved once and a 4-call budget increase matching 4 fake calls. The concurrency test uses the thread pool on Windows; the recovery test uses a Docker prefork worker. | Removes the in-process queue and per-process budget limit. |
-| 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
+| 5 | **Partial live baseline; completion pending.** The harness now supports retrieval off/on and requires at least 50 history embeddings for an on run. OpenRouter completed 4/50: category 4/4, service 1/4, judge agreement 4/4 on that subset. The partial run spent 20 calls against an isolated test database counter, so it did not verify the production shared budget. Finish the baseline, paired retrieval run and ten-case human review before claiming accuracy or lift. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Load measured; p95 targets failed.** At 10 VUs, ingestion accepted 26.82 requests/s with p95 632.85 ms. At 20 VUs, register reads reached 65.11 requests/s with p95 536.30 ms. Four investigation submissions were accepted with p95 927.30 ms (including login setup). HTTP failures were zero in all runs; results are in `load/RESULTS.md`. These measurements do not support 450 requests/s or 95 ms p95. | p95 and throughput measured rather than asserted. |
 | 7 | **Implemented; live integration run pending.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Slack delivery requires `SLACK_WEBHOOK_URL`; the live Compose scheduler verification remains pending. | Reads as an on-call tool, not a ticket tracker. |
 

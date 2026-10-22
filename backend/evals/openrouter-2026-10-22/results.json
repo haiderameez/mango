@@ -1,0 +1,1496 @@
+{
+  "command": "python -m evals.run --report --limit 4 --output evals/openrouter-2026-10-22 --cache evals/.cache/openrouter",
+  "identity": {
+    "max_records": 50,
+    "model": "openai/gpt-4.1-mini",
+    "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+    "provider": "openrouter",
+    "retrieval": "off",
+    "runner_hash": "d9890e9a8da7582da554fbd6a4b14db3bfaf51fc78b26eff5a930c23279f7838",
+    "show_thinking": true,
+    "window_minutes": 15
+  },
+  "provenance": {
+    "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+    "date": "2026-10-22T10:55:10.457656+00:00",
+    "dirty": true
+  },
+  "results": [
+    {
+      "answer": {
+        "category": "dependency",
+        "fix": "Restore database connectivity and verify the listener and health check.",
+        "root_cause": "orders-db refuses connections",
+        "service": "orders-db"
+      },
+      "confidence": "high",
+      "family": "db_connection",
+      "id": "case-01",
+      "judge_key": "e52bbbd27d03e95d6c93d3fd1035e271260f95ddde4dd14fa85100c4bc04f20f",
+      "judge_provenance": {
+        "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+        "date": "2026-10-22T10:53:58.769864+00:00",
+        "dirty": true
+      },
+      "judgment": {
+        "agree": true,
+        "reason": "The report concludes that the orders-db server is unreachable or down, causing connection refusals and connection pool exhaustion, which matches the answer key's root cause that orders-db refuses connections due to connectivity issues."
+      },
+      "labels": {
+        "category": "dependency",
+        "service": "orders-db"
+      },
+      "pipeline": {
+        "completed": [
+          "planner",
+          "evidence_collector",
+          "history",
+          "root_cause",
+          "fix_recommendation",
+          "report"
+        ],
+        "executions": [
+          {
+            "finished_at": "2026-10-22T10:53:45.911644+00:00",
+            "node": "planner",
+            "output": {
+              "plan": {
+                "log_keyword": "POST /orders",
+                "rationale": "Since the incident involves failing or degraded POST /orders requests with a specific request_id, focusing on logs containing 'POST /orders' will help isolate relevant errors and trace the problematic request for a targeted investigation.",
+                "steps": [
+                  "Check the application logs for errors related to POST /orders around the incident time.",
+                  "Analyze the request_id=request-01 to trace the specific failing request in logs and monitoring tools.",
+                  "Review recent deployments or configuration changes that might affect order processing.",
+                  "Examine the health and performance metrics of the order processing service and its dependencies.",
+                  "Verify the database connectivity and response times for order-related queries."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:53:45.915027+00:00",
+            "node": "evidence_collector",
+            "output": {
+              "evidence": [
+                {
+                  "context": {
+                    "retry": 3
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "ERROR",
+                  "message": "could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:35+00:00"
+                },
+                {
+                  "context": {
+                    "check": "db:orders-db"
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "HealthCheckFailed",
+                  "level": "ERROR",
+                  "message": "health check db:orders-db failed: no route to 10.0.3.17:5432",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:34+00:00"
+                },
+                {
+                  "context": {
+                    "retry": 2
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "WARNING",
+                  "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:33+00:00"
+                },
+                {
+                  "context": {
+                    "retry": 1
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "OperationalError",
+                  "level": "WARNING",
+                  "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:32+00:00"
+                },
+                {
+                  "context": {
+                    "duration_ms": 2000
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "checkout of a pooled connection timed out after 2000ms, opening a new one",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:31+00:00"
+                },
+                {
+                  "context": {
+                    "pool_in_use": 10,
+                    "pool_size": 10,
+                    "pool_waiters": 4
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+                  "request_id": "request-01",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-02T11:59:30+00:00"
+                }
+              ]
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:53:45.918213+00:00",
+            "node": "history",
+            "output": {
+              "history": []
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:53:50.757911+00:00",
+            "node": "root_cause",
+            "output": {
+              "root_cause": {
+                "confidence": "high",
+                "likely_cause": "The orders-db database server at 10.0.3.17 is unreachable or down, causing connection attempts to fail and exhausting the connection pool, leading to POST /orders request failures.",
+                "missing_or_contradicting": [
+                  "No logs or evidence about recent deployments or configuration changes to confirm if they contributed.",
+                  "No direct metrics or health status of the orders-db server beyond connectivity errors.",
+                  "No evidence about network infrastructure issues or firewall changes that might cause no route errors."
+                ],
+                "observed_facts": [
+                  "The incident involves failing or degraded POST /orders requests with request_id=request-01.",
+                  "Logs show warnings about the connection pool for orders-db being exhausted: 10/10 connections in use with 4 waiters.",
+                  "There is a warning about a checkout of a pooled connection timing out after 2000ms, leading to opening a new connection.",
+                  "Multiple retries to connect to orders-db at 10.0.3.17:5432 failed with connection refused errors.",
+                  "A health check for db:orders-db failed due to no route to 10.0.3.17:5432."
+                ],
+                "supporting_evidence": [
+                  "2026-10-02T11:59:30+00:00: connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+                  "2026-10-02T11:59:31+00:00: checkout of a pooled connection timed out after 2000ms, opening a new one",
+                  "2026-10-02T11:59:32+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+                  "2026-10-02T11:59:33+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+                  "2026-10-02T11:59:34+00:00: health check db:orders-db failed: no route to 10.0.3.17:5432",
+                  "2026-10-02T11:59:35+00:00: could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?"
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:53:54.029225+00:00",
+            "node": "fix_recommendation",
+            "output": {
+              "recommendations": {
+                "actions": [
+                  "Verify the operational status of the orders-db server at 10.0.3.17, including checking if the database process is running and accepting connections on port 5432.",
+                  "Check network connectivity and routing between the application servers and the orders-db server to identify any network issues causing 'no route' errors.",
+                  "Review firewall rules or security groups that might block traffic to 10.0.3.17:5432 and adjust if necessary.",
+                  "Restart the orders-db database server if it is unresponsive or down, after confirming the cause of failure.",
+                  "Monitor the connection pool usage after restoring connectivity to ensure it returns to normal levels and no longer exhausts connections.",
+                  "Investigate recent changes or incidents in the network or database infrastructure that might have caused the orders-db server to become unreachable."
+                ],
+                "notes": "The evidence strongly indicates that the orders-db server at 10.0.3.17 is down or unreachable, causing connection pool exhaustion and request failures. No evidence of recent deployments or configuration changes was found, so focus should be on server availability and network connectivity.",
+                "validation_steps": [
+                  "Attempt to ping or traceroute to 10.0.3.17 from the application servers to confirm network reachability.",
+                  "Use tools like netstat or ss on the orders-db server to confirm the database is listening on port 5432.",
+                  "Check database server logs for errors or crashes around the incident time.",
+                  "Perform a manual connection test (e.g., psql) from the application server to the orders-db server to verify connectivity.",
+                  "After corrective actions, confirm that POST /orders requests succeed without connection pool exhaustion or timeouts.",
+                  "Verify that health checks for db:orders-db pass successfully after remediation."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:53:54.032238+00:00",
+            "node": "report",
+            "output": {
+              "report": "# Investigation report - incident #1\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-02T12:00:00Z\n\nInvestigate POST /orders, request_id=request-01.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders around the incident time.\n- Analyze the request_id=request-01 to trace the specific failing request in logs and monitoring tools.\n- Review recent deployments or configuration changes that might affect order processing.\n- Examine the health and performance metrics of the order processing service and its dependencies.\n- Verify the database connectivity and response times for order-related queries.\n\nSince the incident involves failing or degraded POST /orders requests with a specific request_id, focusing on logs containing 'POST /orders' will help isolate relevant errors and trace the problematic request for a targeted investigation.\n\n## Evidence collected (facts)\n\n6 log record(s) from the incident window.\n\n- `2026-10-02T11:59:35+00:00` **ERROR** could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432? - POST /orders (request request-01)  `retry=3`\n- `2026-10-02T11:59:34+00:00` **ERROR** health check db:orders-db failed: no route to 10.0.3.17:5432 - POST /orders (request request-01)  `check=db:orders-db`\n- `2026-10-02T11:59:33+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms - POST /orders (request request-01)  `retry=2`\n- `2026-10-02T11:59:32+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms - POST /orders (request request-01)  `retry=1`\n- `2026-10-02T11:59:31+00:00` **WARNING** checkout of a pooled connection timed out after 2000ms, opening a new one - POST /orders (request request-01)  `duration_ms=2000`\n- `2026-10-02T11:59:30+00:00` **WARNING** connection pool for orders-db exhausted: 10/10 in use, 4 waiters - POST /orders (request request-01)  `pool_size=10` `pool_in_use=10` `pool_waiters=4`\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The incident involves failing or degraded POST /orders requests with request_id=request-01.\n- Logs show warnings about the connection pool for orders-db being exhausted: 10/10 connections in use with 4 waiters.\n- There is a warning about a checkout of a pooled connection timing out after 2000ms, leading to opening a new connection.\n- Multiple retries to connect to orders-db at 10.0.3.17:5432 failed with connection refused errors.\n- A health check for db:orders-db failed due to no route to 10.0.3.17:5432.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe orders-db database server at 10.0.3.17 is unreachable or down, causing connection attempts to fail and exhausting the connection pool, leading to POST /orders request failures.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-02T11:59:30+00:00: connection pool for orders-db exhausted: 10/10 in use, 4 waiters\n- 2026-10-02T11:59:31+00:00: checkout of a pooled connection timed out after 2000ms, opening a new one\n- 2026-10-02T11:59:32+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms\n- 2026-10-02T11:59:33+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms\n- 2026-10-02T11:59:34+00:00: health check db:orders-db failed: no route to 10.0.3.17:5432\n- 2026-10-02T11:59:35+00:00: could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?\n\n### Missing or contradicting evidence\n\n- No logs or evidence about recent deployments or configuration changes to confirm if they contributed.\n- No direct metrics or health status of the orders-db server beyond connectivity errors.\n- No evidence about network infrastructure issues or firewall changes that might cause no route errors.\n\n## Recommended actions (for an engineer to review)\n\n- Verify the operational status of the orders-db server at 10.0.3.17, including checking if the database process is running and accepting connections on port 5432.\n- Check network connectivity and routing between the application servers and the orders-db server to identify any network issues causing 'no route' errors.\n- Review firewall rules or security groups that might block traffic to 10.0.3.17:5432 and adjust if necessary.\n- Restart the orders-db database server if it is unresponsive or down, after confirming the cause of failure.\n- Monitor the connection pool usage after restoring connectivity to ensure it returns to normal levels and no longer exhausts connections.\n- Investigate recent changes or incidents in the network or database infrastructure that might have caused the orders-db server to become unreachable.\n\n### How to validate\n\n- Attempt to ping or traceroute to 10.0.3.17 from the application servers to confirm network reachability.\n- Use tools like netstat or ss on the orders-db server to confirm the database is listening on port 5432.\n- Check database server logs for errors or crashes around the incident time.\n- Perform a manual connection test (e.g., psql) from the application server to the orders-db server to verify connectivity.\n- After corrective actions, confirm that POST /orders requests succeed without connection pool exhaustion or timeouts.\n- Verify that health checks for db:orders-db pass successfully after remediation.\n\nThe evidence strongly indicates that the orders-db server at 10.0.3.17 is down or unreachable, causing connection pool exhaustion and request failures. No evidence of recent deployments or configuration changes was found, so focus should be on server availability and network connectivity.\n"
+            },
+            "thinking": null
+          }
+        ],
+        "identity": {
+          "max_records": 50,
+          "model": "openai/gpt-4.1-mini",
+          "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+          "provider": "openrouter",
+          "retrieval": "off",
+          "runner_hash": "d9890e9a8da7582da554fbd6a4b14db3bfaf51fc78b26eff5a930c23279f7838",
+          "show_thinking": true,
+          "window_minutes": 15
+        },
+        "key": "43b1a196187ec542047c27908a772f5463306ff504a329a31ae3397cd9c0ac55",
+        "provenance": {
+          "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+          "date": "2026-10-22T10:53:41.448373+00:00",
+          "dirty": true
+        },
+        "state": {
+          "evidence": [
+            {
+              "context": {
+                "retry": 3
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "ERROR",
+              "message": "could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:35+00:00"
+            },
+            {
+              "context": {
+                "check": "db:orders-db"
+              },
+              "endpoint": "POST /orders",
+              "error_type": "HealthCheckFailed",
+              "level": "ERROR",
+              "message": "health check db:orders-db failed: no route to 10.0.3.17:5432",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:34+00:00"
+            },
+            {
+              "context": {
+                "retry": 2
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "WARNING",
+              "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:33+00:00"
+            },
+            {
+              "context": {
+                "retry": 1
+              },
+              "endpoint": "POST /orders",
+              "error_type": "OperationalError",
+              "level": "WARNING",
+              "message": "connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:32+00:00"
+            },
+            {
+              "context": {
+                "duration_ms": 2000
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "checkout of a pooled connection timed out after 2000ms, opening a new one",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:31+00:00"
+            },
+            {
+              "context": {
+                "pool_in_use": 10,
+                "pool_size": 10,
+                "pool_waiters": 4
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+              "request_id": "request-01",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-02T11:59:30+00:00"
+            }
+          ],
+          "history": [],
+          "incident": {
+            "created_at": "2026-10-02T12:00:00Z",
+            "description": "Investigate POST /orders, request_id=request-01.",
+            "id": 1,
+            "severity": "CRITICAL",
+            "status": "OPEN",
+            "title": "Order requests failing or degraded"
+          },
+          "plan": {
+            "log_keyword": "POST /orders",
+            "rationale": "Since the incident involves failing or degraded POST /orders requests with a specific request_id, focusing on logs containing 'POST /orders' will help isolate relevant errors and trace the problematic request for a targeted investigation.",
+            "steps": [
+              "Check the application logs for errors related to POST /orders around the incident time.",
+              "Analyze the request_id=request-01 to trace the specific failing request in logs and monitoring tools.",
+              "Review recent deployments or configuration changes that might affect order processing.",
+              "Examine the health and performance metrics of the order processing service and its dependencies.",
+              "Verify the database connectivity and response times for order-related queries."
+            ]
+          },
+          "recommendations": {
+            "actions": [
+              "Verify the operational status of the orders-db server at 10.0.3.17, including checking if the database process is running and accepting connections on port 5432.",
+              "Check network connectivity and routing between the application servers and the orders-db server to identify any network issues causing 'no route' errors.",
+              "Review firewall rules or security groups that might block traffic to 10.0.3.17:5432 and adjust if necessary.",
+              "Restart the orders-db database server if it is unresponsive or down, after confirming the cause of failure.",
+              "Monitor the connection pool usage after restoring connectivity to ensure it returns to normal levels and no longer exhausts connections.",
+              "Investigate recent changes or incidents in the network or database infrastructure that might have caused the orders-db server to become unreachable."
+            ],
+            "notes": "The evidence strongly indicates that the orders-db server at 10.0.3.17 is down or unreachable, causing connection pool exhaustion and request failures. No evidence of recent deployments or configuration changes was found, so focus should be on server availability and network connectivity.",
+            "validation_steps": [
+              "Attempt to ping or traceroute to 10.0.3.17 from the application servers to confirm network reachability.",
+              "Use tools like netstat or ss on the orders-db server to confirm the database is listening on port 5432.",
+              "Check database server logs for errors or crashes around the incident time.",
+              "Perform a manual connection test (e.g., psql) from the application server to the orders-db server to verify connectivity.",
+              "After corrective actions, confirm that POST /orders requests succeed without connection pool exhaustion or timeouts.",
+              "Verify that health checks for db:orders-db pass successfully after remediation."
+            ]
+          },
+          "report": "# Investigation report - incident #1\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-02T12:00:00Z\n\nInvestigate POST /orders, request_id=request-01.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders around the incident time.\n- Analyze the request_id=request-01 to trace the specific failing request in logs and monitoring tools.\n- Review recent deployments or configuration changes that might affect order processing.\n- Examine the health and performance metrics of the order processing service and its dependencies.\n- Verify the database connectivity and response times for order-related queries.\n\nSince the incident involves failing or degraded POST /orders requests with a specific request_id, focusing on logs containing 'POST /orders' will help isolate relevant errors and trace the problematic request for a targeted investigation.\n\n## Evidence collected (facts)\n\n6 log record(s) from the incident window.\n\n- `2026-10-02T11:59:35+00:00` **ERROR** could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432? - POST /orders (request request-01)  `retry=3`\n- `2026-10-02T11:59:34+00:00` **ERROR** health check db:orders-db failed: no route to 10.0.3.17:5432 - POST /orders (request request-01)  `check=db:orders-db`\n- `2026-10-02T11:59:33+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms - POST /orders (request request-01)  `retry=2`\n- `2026-10-02T11:59:32+00:00` **WARNING** connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms - POST /orders (request request-01)  `retry=1`\n- `2026-10-02T11:59:31+00:00` **WARNING** checkout of a pooled connection timed out after 2000ms, opening a new one - POST /orders (request request-01)  `duration_ms=2000`\n- `2026-10-02T11:59:30+00:00` **WARNING** connection pool for orders-db exhausted: 10/10 in use, 4 waiters - POST /orders (request request-01)  `pool_size=10` `pool_in_use=10` `pool_waiters=4`\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The incident involves failing or degraded POST /orders requests with request_id=request-01.\n- Logs show warnings about the connection pool for orders-db being exhausted: 10/10 connections in use with 4 waiters.\n- There is a warning about a checkout of a pooled connection timing out after 2000ms, leading to opening a new connection.\n- Multiple retries to connect to orders-db at 10.0.3.17:5432 failed with connection refused errors.\n- A health check for db:orders-db failed due to no route to 10.0.3.17:5432.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe orders-db database server at 10.0.3.17 is unreachable or down, causing connection attempts to fail and exhausting the connection pool, leading to POST /orders request failures.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-02T11:59:30+00:00: connection pool for orders-db exhausted: 10/10 in use, 4 waiters\n- 2026-10-02T11:59:31+00:00: checkout of a pooled connection timed out after 2000ms, opening a new one\n- 2026-10-02T11:59:32+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms\n- 2026-10-02T11:59:33+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms\n- 2026-10-02T11:59:34+00:00: health check db:orders-db failed: no route to 10.0.3.17:5432\n- 2026-10-02T11:59:35+00:00: could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?\n\n### Missing or contradicting evidence\n\n- No logs or evidence about recent deployments or configuration changes to confirm if they contributed.\n- No direct metrics or health status of the orders-db server beyond connectivity errors.\n- No evidence about network infrastructure issues or firewall changes that might cause no route errors.\n\n## Recommended actions (for an engineer to review)\n\n- Verify the operational status of the orders-db server at 10.0.3.17, including checking if the database process is running and accepting connections on port 5432.\n- Check network connectivity and routing between the application servers and the orders-db server to identify any network issues causing 'no route' errors.\n- Review firewall rules or security groups that might block traffic to 10.0.3.17:5432 and adjust if necessary.\n- Restart the orders-db database server if it is unresponsive or down, after confirming the cause of failure.\n- Monitor the connection pool usage after restoring connectivity to ensure it returns to normal levels and no longer exhausts connections.\n- Investigate recent changes or incidents in the network or database infrastructure that might have caused the orders-db server to become unreachable.\n\n### How to validate\n\n- Attempt to ping or traceroute to 10.0.3.17 from the application servers to confirm network reachability.\n- Use tools like netstat or ss on the orders-db server to confirm the database is listening on port 5432.\n- Check database server logs for errors or crashes around the incident time.\n- Perform a manual connection test (e.g., psql) from the application server to the orders-db server to verify connectivity.\n- After corrective actions, confirm that POST /orders requests succeed without connection pool exhaustion or timeouts.\n- Verify that health checks for db:orders-db pass successfully after remediation.\n\nThe evidence strongly indicates that the orders-db server at 10.0.3.17 is down or unreachable, causing connection pool exhaustion and request failures. No evidence of recent deployments or configuration changes was found, so focus should be on server availability and network connectivity.\n",
+          "root_cause": {
+            "confidence": "high",
+            "likely_cause": "The orders-db database server at 10.0.3.17 is unreachable or down, causing connection attempts to fail and exhausting the connection pool, leading to POST /orders request failures.",
+            "missing_or_contradicting": [
+              "No logs or evidence about recent deployments or configuration changes to confirm if they contributed.",
+              "No direct metrics or health status of the orders-db server beyond connectivity errors.",
+              "No evidence about network infrastructure issues or firewall changes that might cause no route errors."
+            ],
+            "observed_facts": [
+              "The incident involves failing or degraded POST /orders requests with request_id=request-01.",
+              "Logs show warnings about the connection pool for orders-db being exhausted: 10/10 connections in use with 4 waiters.",
+              "There is a warning about a checkout of a pooled connection timing out after 2000ms, leading to opening a new connection.",
+              "Multiple retries to connect to orders-db at 10.0.3.17:5432 failed with connection refused errors.",
+              "A health check for db:orders-db failed due to no route to 10.0.3.17:5432."
+            ],
+            "supporting_evidence": [
+              "2026-10-02T11:59:30+00:00: connection pool for orders-db exhausted: 10/10 in use, 4 waiters",
+              "2026-10-02T11:59:31+00:00: checkout of a pooled connection timed out after 2000ms, opening a new one",
+              "2026-10-02T11:59:32+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 1/3 in 200ms",
+              "2026-10-02T11:59:33+00:00: connection to \"orders-db\" (10.0.3.17:5432) failed, retry 2/3 in 400ms",
+              "2026-10-02T11:59:34+00:00: health check db:orders-db failed: no route to 10.0.3.17:5432",
+              "2026-10-02T11:59:35+00:00: could not connect to server: Connection refused. Is the server running on host \"orders-db\" (10.0.3.17) and accepting TCP/IP connections on port 5432?"
+            ]
+          }
+        }
+      },
+      "pipeline_key": "43b1a196187ec542047c27908a772f5463306ff504a329a31ae3397cd9c0ac55",
+      "scores": {
+        "agreement": true,
+        "category": true,
+        "service": true
+      },
+      "status": "completed",
+      "variant": "clean"
+    },
+    {
+      "answer": {
+        "category": "dependency",
+        "fix": "Restore payment upstream availability and verify circuit recovery.",
+        "root_cause": "payment upstream returns HTTP 503",
+        "service": "payments.internal"
+      },
+      "confidence": "high",
+      "family": "dependency_down",
+      "id": "case-02",
+      "judge_key": "8c66d77eddcaae8340173bb92a78eec9ca5453a2e5d98ca7333466870c8112ed",
+      "judge_provenance": {
+        "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+        "date": "2026-10-22T10:54:20.420172+00:00",
+        "dirty": true
+      },
+      "judgment": {
+        "agree": true,
+        "reason": "The report identifies the root cause as the payments.internal service returning HTTP 503 errors, causing the circuit breaker to open and fail order requests. This matches the answer key's root cause that the payment upstream returns HTTP 503, indicating unavailability of the dependency service."
+      },
+      "labels": {
+        "category": "dependency",
+        "service": "payments.internal payment gateway"
+      },
+      "pipeline": {
+        "completed": [
+          "planner",
+          "evidence_collector",
+          "history",
+          "root_cause",
+          "fix_recommendation",
+          "report"
+        ],
+        "executions": [
+          {
+            "finished_at": "2026-10-22T10:54:04.727094+00:00",
+            "node": "planner",
+            "output": {
+              "plan": {
+                "log_keyword": "request-02",
+                "rationale": "Focusing on the specific request_id 'request-02' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the high-severity incident.",
+                "steps": [
+                  "Check the application logs for errors related to POST /orders using the request_id request-02.",
+                  "Review recent deployments or configuration changes that might affect the order service.",
+                  "Analyze system metrics (CPU, memory, network) on the order service instances around the incident time.",
+                  "Verify database connectivity and query performance for order-related operations.",
+                  "Examine any rate limiting or throttling mechanisms that could impact order requests."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:04.730222+00:00",
+            "node": "evidence_collector",
+            "output": {
+              "evidence": [
+                {
+                  "context": {
+                    "circuit_state": "OPEN",
+                    "upstream": "payments.internal"
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "ERROR",
+                  "message": "circuit breaker for payments.internal is OPEN, failing fast for 30s",
+                  "request_id": "request-02",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-03T11:59:35+00:00"
+                },
+                {
+                  "context": {
+                    "upstream": "payments.internal",
+                    "upstream_status": 503
+                  },
+                  "endpoint": "POST /orders",
+                  "error_type": "PaymentGatewayUnavailable",
+                  "level": "ERROR",
+                  "message": "POST https://payments.internal/charge failed: HTTP 503 after 3 retries",
+                  "request_id": "request-02",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-03T11:59:34+00:00"
+                },
+                {
+                  "context": {
+                    "circuit_state": "HALF_OPEN",
+                    "upstream": "payments.internal"
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "circuit breaker for payments.internal moved to HALF_OPEN after 2 failures",
+                  "request_id": "request-02",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-03T11:59:33+00:00"
+                },
+                {
+                  "context": {
+                    "duration_ms": 1500,
+                    "upstream": "payments.internal",
+                    "upstream_status": 503
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "payments.internal returned HTTP 503 in 1500ms (attempt 2/3)",
+                  "request_id": "request-02",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-03T11:59:32+00:00"
+                },
+                {
+                  "context": {
+                    "duration_ms": 1500,
+                    "upstream": "payments.internal",
+                    "upstream_status": 503
+                  },
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "payments.internal returned HTTP 503 in 1500ms (attempt 1/3)",
+                  "request_id": "request-02",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-03T11:59:31+00:00"
+                }
+              ]
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:04.732617+00:00",
+            "node": "history",
+            "output": {
+              "history": []
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:08.304541+00:00",
+            "node": "root_cause",
+            "output": {
+              "root_cause": {
+                "confidence": "high",
+                "likely_cause": "The payments.internal payment gateway service is unavailable or returning HTTP 503 errors, causing the circuit breaker in the order service to open and fail POST /orders requests.",
+                "missing_or_contradicting": [
+                  "No logs or evidence about recent deployments or configuration changes.",
+                  "No system metrics (CPU, memory, network) data provided for order service instances.",
+                  "No database connectivity or query performance data related to orders.",
+                  "No information on rate limiting or throttling mechanisms impacting order requests."
+                ],
+                "observed_facts": [
+                  "POST /orders requests with request_id=request-02 are failing with errors related to the payments.internal service.",
+                  "The payments.internal service returned HTTP 503 errors on multiple attempts (at least 2) with 1500ms duration each.",
+                  "The circuit breaker for payments.internal moved to HALF_OPEN after 2 failures, then to OPEN state, causing immediate failure for 30 seconds.",
+                  "The failure is classified as PaymentGatewayUnavailable in the logs.",
+                  "No evidence of other errors or system metrics is provided."
+                ],
+                "supporting_evidence": [
+                  "2026-10-03T11:59:31+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 1/3)",
+                  "2026-10-03T11:59:32+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 2/3)",
+                  "2026-10-03T11:59:33+00:00: circuit breaker for payments.internal moved to HALF_OPEN after 2 failures",
+                  "2026-10-03T11:59:34+00:00: POST https://payments.internal/charge failed: HTTP 503 after 3 retries",
+                  "2026-10-03T11:59:35+00:00: circuit breaker for payments.internal is OPEN, failing fast for 30s"
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:13.408015+00:00",
+            "node": "fix_recommendation",
+            "output": {
+              "recommendations": {
+                "actions": [
+                  "Investigate the health and availability of the payments.internal service to identify why it is returning HTTP 503 errors.",
+                  "Check the payments.internal service logs and monitoring dashboards around the incident time for any errors, resource exhaustion, or outages.",
+                  "Coordinate with the payments.internal service team to confirm if there were any ongoing incidents, deployments, or maintenance activities causing unavailability.",
+                  "Review the circuit breaker configuration in the order service to ensure it is tuned appropriately for transient failures and does not cause prolonged outages.",
+                  "Consider implementing fallback or retry strategies in the order service to handle temporary payment gateway unavailability more gracefully.",
+                  "Monitor the order service and payments.internal service closely after remediation to confirm that POST /orders requests succeed and circuit breaker remains closed."
+                ],
+                "notes": "The root cause appears to be the unavailability of the payments.internal service causing HTTP 503 errors and triggering the circuit breaker. No evidence of recent deployments or configuration changes was found, so the issue likely lies within the payments.internal service itself or its environment.",
+                "validation_steps": [
+                  "Verify that the payments.internal service is operational and responding with HTTP 200 or expected success codes to payment requests.",
+                  "Confirm that the circuit breaker for payments.internal in the order service transitions back to CLOSED state and does not remain OPEN unnecessarily.",
+                  "Check that POST /orders requests with request_id=request-02 and others are processed successfully without payment-related errors.",
+                  "Review logs and metrics post-fix to ensure no further HTTP 503 errors or PaymentGatewayUnavailable errors occur.",
+                  "Validate that the order service metrics (success rate, latency) have returned to normal levels after the incident."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:13.410580+00:00",
+            "node": "report",
+            "output": {
+              "report": "# Investigation report - incident #2\n\n**Order requests failing or degraded**\n\nSeverity HIGH - status OPEN - opened 2026-10-03T12:00:00Z\n\nInvestigate POST /orders, request_id=request-02.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders using the request_id request-02.\n- Review recent deployments or configuration changes that might affect the order service.\n- Analyze system metrics (CPU, memory, network) on the order service instances around the incident time.\n- Verify database connectivity and query performance for order-related operations.\n- Examine any rate limiting or throttling mechanisms that could impact order requests.\n\nFocusing on the specific request_id 'request-02' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the high-severity incident.\n\n## Evidence collected (facts)\n\n5 log record(s) from the incident window.\n\n- `2026-10-03T11:59:35+00:00` **ERROR** circuit breaker for payments.internal is OPEN, failing fast for 30s - POST /orders (request request-02)  `upstream=payments.internal` `circuit_state=OPEN`\n- `2026-10-03T11:59:34+00:00` **ERROR** POST https://payments.internal/charge failed: HTTP 503 after 3 retries - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503`\n- `2026-10-03T11:59:33+00:00` **WARNING** circuit breaker for payments.internal moved to HALF_OPEN after 2 failures - POST /orders (request request-02)  `upstream=payments.internal` `circuit_state=HALF_OPEN`\n- `2026-10-03T11:59:32+00:00` **WARNING** payments.internal returned HTTP 503 in 1500ms (attempt 2/3) - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503` `duration_ms=1500`\n- `2026-10-03T11:59:31+00:00` **WARNING** payments.internal returned HTTP 503 in 1500ms (attempt 1/3) - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503` `duration_ms=1500`\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- POST /orders requests with request_id=request-02 are failing with errors related to the payments.internal service.\n- The payments.internal service returned HTTP 503 errors on multiple attempts (at least 2) with 1500ms duration each.\n- The circuit breaker for payments.internal moved to HALF_OPEN after 2 failures, then to OPEN state, causing immediate failure for 30 seconds.\n- The failure is classified as PaymentGatewayUnavailable in the logs.\n- No evidence of other errors or system metrics is provided.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe payments.internal payment gateway service is unavailable or returning HTTP 503 errors, causing the circuit breaker in the order service to open and fail POST /orders requests.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-03T11:59:31+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 1/3)\n- 2026-10-03T11:59:32+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 2/3)\n- 2026-10-03T11:59:33+00:00: circuit breaker for payments.internal moved to HALF_OPEN after 2 failures\n- 2026-10-03T11:59:34+00:00: POST https://payments.internal/charge failed: HTTP 503 after 3 retries\n- 2026-10-03T11:59:35+00:00: circuit breaker for payments.internal is OPEN, failing fast for 30s\n\n### Missing or contradicting evidence\n\n- No logs or evidence about recent deployments or configuration changes.\n- No system metrics (CPU, memory, network) data provided for order service instances.\n- No database connectivity or query performance data related to orders.\n- No information on rate limiting or throttling mechanisms impacting order requests.\n\n## Recommended actions (for an engineer to review)\n\n- Investigate the health and availability of the payments.internal service to identify why it is returning HTTP 503 errors.\n- Check the payments.internal service logs and monitoring dashboards around the incident time for any errors, resource exhaustion, or outages.\n- Coordinate with the payments.internal service team to confirm if there were any ongoing incidents, deployments, or maintenance activities causing unavailability.\n- Review the circuit breaker configuration in the order service to ensure it is tuned appropriately for transient failures and does not cause prolonged outages.\n- Consider implementing fallback or retry strategies in the order service to handle temporary payment gateway unavailability more gracefully.\n- Monitor the order service and payments.internal service closely after remediation to confirm that POST /orders requests succeed and circuit breaker remains closed.\n\n### How to validate\n\n- Verify that the payments.internal service is operational and responding with HTTP 200 or expected success codes to payment requests.\n- Confirm that the circuit breaker for payments.internal in the order service transitions back to CLOSED state and does not remain OPEN unnecessarily.\n- Check that POST /orders requests with request_id=request-02 and others are processed successfully without payment-related errors.\n- Review logs and metrics post-fix to ensure no further HTTP 503 errors or PaymentGatewayUnavailable errors occur.\n- Validate that the order service metrics (success rate, latency) have returned to normal levels after the incident.\n\nThe root cause appears to be the unavailability of the payments.internal service causing HTTP 503 errors and triggering the circuit breaker. No evidence of recent deployments or configuration changes was found, so the issue likely lies within the payments.internal service itself or its environment.\n"
+            },
+            "thinking": null
+          }
+        ],
+        "identity": {
+          "max_records": 50,
+          "model": "openai/gpt-4.1-mini",
+          "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+          "provider": "openrouter",
+          "retrieval": "off",
+          "runner_hash": "d9890e9a8da7582da554fbd6a4b14db3bfaf51fc78b26eff5a930c23279f7838",
+          "show_thinking": true,
+          "window_minutes": 15
+        },
+        "key": "1709c97d79971791595fc9a526d149a149416e2d914c23dbc69fa0f4bb022a2a",
+        "provenance": {
+          "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+          "date": "2026-10-22T10:53:58.927471+00:00",
+          "dirty": true
+        },
+        "state": {
+          "evidence": [
+            {
+              "context": {
+                "circuit_state": "OPEN",
+                "upstream": "payments.internal"
+              },
+              "endpoint": "POST /orders",
+              "level": "ERROR",
+              "message": "circuit breaker for payments.internal is OPEN, failing fast for 30s",
+              "request_id": "request-02",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-03T11:59:35+00:00"
+            },
+            {
+              "context": {
+                "upstream": "payments.internal",
+                "upstream_status": 503
+              },
+              "endpoint": "POST /orders",
+              "error_type": "PaymentGatewayUnavailable",
+              "level": "ERROR",
+              "message": "POST https://payments.internal/charge failed: HTTP 503 after 3 retries",
+              "request_id": "request-02",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-03T11:59:34+00:00"
+            },
+            {
+              "context": {
+                "circuit_state": "HALF_OPEN",
+                "upstream": "payments.internal"
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "circuit breaker for payments.internal moved to HALF_OPEN after 2 failures",
+              "request_id": "request-02",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-03T11:59:33+00:00"
+            },
+            {
+              "context": {
+                "duration_ms": 1500,
+                "upstream": "payments.internal",
+                "upstream_status": 503
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "payments.internal returned HTTP 503 in 1500ms (attempt 2/3)",
+              "request_id": "request-02",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-03T11:59:32+00:00"
+            },
+            {
+              "context": {
+                "duration_ms": 1500,
+                "upstream": "payments.internal",
+                "upstream_status": 503
+              },
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "payments.internal returned HTTP 503 in 1500ms (attempt 1/3)",
+              "request_id": "request-02",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-03T11:59:31+00:00"
+            }
+          ],
+          "history": [],
+          "incident": {
+            "created_at": "2026-10-03T12:00:00Z",
+            "description": "Investigate POST /orders, request_id=request-02.",
+            "id": 2,
+            "severity": "HIGH",
+            "status": "OPEN",
+            "title": "Order requests failing or degraded"
+          },
+          "plan": {
+            "log_keyword": "request-02",
+            "rationale": "Focusing on the specific request_id 'request-02' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the high-severity incident.",
+            "steps": [
+              "Check the application logs for errors related to POST /orders using the request_id request-02.",
+              "Review recent deployments or configuration changes that might affect the order service.",
+              "Analyze system metrics (CPU, memory, network) on the order service instances around the incident time.",
+              "Verify database connectivity and query performance for order-related operations.",
+              "Examine any rate limiting or throttling mechanisms that could impact order requests."
+            ]
+          },
+          "recommendations": {
+            "actions": [
+              "Investigate the health and availability of the payments.internal service to identify why it is returning HTTP 503 errors.",
+              "Check the payments.internal service logs and monitoring dashboards around the incident time for any errors, resource exhaustion, or outages.",
+              "Coordinate with the payments.internal service team to confirm if there were any ongoing incidents, deployments, or maintenance activities causing unavailability.",
+              "Review the circuit breaker configuration in the order service to ensure it is tuned appropriately for transient failures and does not cause prolonged outages.",
+              "Consider implementing fallback or retry strategies in the order service to handle temporary payment gateway unavailability more gracefully.",
+              "Monitor the order service and payments.internal service closely after remediation to confirm that POST /orders requests succeed and circuit breaker remains closed."
+            ],
+            "notes": "The root cause appears to be the unavailability of the payments.internal service causing HTTP 503 errors and triggering the circuit breaker. No evidence of recent deployments or configuration changes was found, so the issue likely lies within the payments.internal service itself or its environment.",
+            "validation_steps": [
+              "Verify that the payments.internal service is operational and responding with HTTP 200 or expected success codes to payment requests.",
+              "Confirm that the circuit breaker for payments.internal in the order service transitions back to CLOSED state and does not remain OPEN unnecessarily.",
+              "Check that POST /orders requests with request_id=request-02 and others are processed successfully without payment-related errors.",
+              "Review logs and metrics post-fix to ensure no further HTTP 503 errors or PaymentGatewayUnavailable errors occur.",
+              "Validate that the order service metrics (success rate, latency) have returned to normal levels after the incident."
+            ]
+          },
+          "report": "# Investigation report - incident #2\n\n**Order requests failing or degraded**\n\nSeverity HIGH - status OPEN - opened 2026-10-03T12:00:00Z\n\nInvestigate POST /orders, request_id=request-02.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders using the request_id request-02.\n- Review recent deployments or configuration changes that might affect the order service.\n- Analyze system metrics (CPU, memory, network) on the order service instances around the incident time.\n- Verify database connectivity and query performance for order-related operations.\n- Examine any rate limiting or throttling mechanisms that could impact order requests.\n\nFocusing on the specific request_id 'request-02' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the high-severity incident.\n\n## Evidence collected (facts)\n\n5 log record(s) from the incident window.\n\n- `2026-10-03T11:59:35+00:00` **ERROR** circuit breaker for payments.internal is OPEN, failing fast for 30s - POST /orders (request request-02)  `upstream=payments.internal` `circuit_state=OPEN`\n- `2026-10-03T11:59:34+00:00` **ERROR** POST https://payments.internal/charge failed: HTTP 503 after 3 retries - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503`\n- `2026-10-03T11:59:33+00:00` **WARNING** circuit breaker for payments.internal moved to HALF_OPEN after 2 failures - POST /orders (request request-02)  `upstream=payments.internal` `circuit_state=HALF_OPEN`\n- `2026-10-03T11:59:32+00:00` **WARNING** payments.internal returned HTTP 503 in 1500ms (attempt 2/3) - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503` `duration_ms=1500`\n- `2026-10-03T11:59:31+00:00` **WARNING** payments.internal returned HTTP 503 in 1500ms (attempt 1/3) - POST /orders (request request-02)  `upstream=payments.internal` `upstream_status=503` `duration_ms=1500`\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- POST /orders requests with request_id=request-02 are failing with errors related to the payments.internal service.\n- The payments.internal service returned HTTP 503 errors on multiple attempts (at least 2) with 1500ms duration each.\n- The circuit breaker for payments.internal moved to HALF_OPEN after 2 failures, then to OPEN state, causing immediate failure for 30 seconds.\n- The failure is classified as PaymentGatewayUnavailable in the logs.\n- No evidence of other errors or system metrics is provided.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe payments.internal payment gateway service is unavailable or returning HTTP 503 errors, causing the circuit breaker in the order service to open and fail POST /orders requests.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-03T11:59:31+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 1/3)\n- 2026-10-03T11:59:32+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 2/3)\n- 2026-10-03T11:59:33+00:00: circuit breaker for payments.internal moved to HALF_OPEN after 2 failures\n- 2026-10-03T11:59:34+00:00: POST https://payments.internal/charge failed: HTTP 503 after 3 retries\n- 2026-10-03T11:59:35+00:00: circuit breaker for payments.internal is OPEN, failing fast for 30s\n\n### Missing or contradicting evidence\n\n- No logs or evidence about recent deployments or configuration changes.\n- No system metrics (CPU, memory, network) data provided for order service instances.\n- No database connectivity or query performance data related to orders.\n- No information on rate limiting or throttling mechanisms impacting order requests.\n\n## Recommended actions (for an engineer to review)\n\n- Investigate the health and availability of the payments.internal service to identify why it is returning HTTP 503 errors.\n- Check the payments.internal service logs and monitoring dashboards around the incident time for any errors, resource exhaustion, or outages.\n- Coordinate with the payments.internal service team to confirm if there were any ongoing incidents, deployments, or maintenance activities causing unavailability.\n- Review the circuit breaker configuration in the order service to ensure it is tuned appropriately for transient failures and does not cause prolonged outages.\n- Consider implementing fallback or retry strategies in the order service to handle temporary payment gateway unavailability more gracefully.\n- Monitor the order service and payments.internal service closely after remediation to confirm that POST /orders requests succeed and circuit breaker remains closed.\n\n### How to validate\n\n- Verify that the payments.internal service is operational and responding with HTTP 200 or expected success codes to payment requests.\n- Confirm that the circuit breaker for payments.internal in the order service transitions back to CLOSED state and does not remain OPEN unnecessarily.\n- Check that POST /orders requests with request_id=request-02 and others are processed successfully without payment-related errors.\n- Review logs and metrics post-fix to ensure no further HTTP 503 errors or PaymentGatewayUnavailable errors occur.\n- Validate that the order service metrics (success rate, latency) have returned to normal levels after the incident.\n\nThe root cause appears to be the unavailability of the payments.internal service causing HTTP 503 errors and triggering the circuit breaker. No evidence of recent deployments or configuration changes was found, so the issue likely lies within the payments.internal service itself or its environment.\n",
+          "root_cause": {
+            "confidence": "high",
+            "likely_cause": "The payments.internal payment gateway service is unavailable or returning HTTP 503 errors, causing the circuit breaker in the order service to open and fail POST /orders requests.",
+            "missing_or_contradicting": [
+              "No logs or evidence about recent deployments or configuration changes.",
+              "No system metrics (CPU, memory, network) data provided for order service instances.",
+              "No database connectivity or query performance data related to orders.",
+              "No information on rate limiting or throttling mechanisms impacting order requests."
+            ],
+            "observed_facts": [
+              "POST /orders requests with request_id=request-02 are failing with errors related to the payments.internal service.",
+              "The payments.internal service returned HTTP 503 errors on multiple attempts (at least 2) with 1500ms duration each.",
+              "The circuit breaker for payments.internal moved to HALF_OPEN after 2 failures, then to OPEN state, causing immediate failure for 30 seconds.",
+              "The failure is classified as PaymentGatewayUnavailable in the logs.",
+              "No evidence of other errors or system metrics is provided."
+            ],
+            "supporting_evidence": [
+              "2026-10-03T11:59:31+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 1/3)",
+              "2026-10-03T11:59:32+00:00: payments.internal returned HTTP 503 in 1500ms (attempt 2/3)",
+              "2026-10-03T11:59:33+00:00: circuit breaker for payments.internal moved to HALF_OPEN after 2 failures",
+              "2026-10-03T11:59:34+00:00: POST https://payments.internal/charge failed: HTTP 503 after 3 retries",
+              "2026-10-03T11:59:35+00:00: circuit breaker for payments.internal is OPEN, failing fast for 30s"
+            ]
+          }
+        }
+      },
+      "pipeline_key": "1709c97d79971791595fc9a526d149a149416e2d914c23dbc69fa0f4bb022a2a",
+      "scores": {
+        "agreement": true,
+        "category": true,
+        "service": false
+      },
+      "status": "completed",
+      "variant": "clean"
+    },
+    {
+      "answer": {
+        "category": "resource_exhaustion",
+        "fix": "Reduce worker memory use or increase its memory limit; verify no OOMs.",
+        "root_cause": "order worker exceeds memory limit",
+        "service": "dummycommerce"
+      },
+      "confidence": "high",
+      "family": "memory_pressure",
+      "id": "case-03",
+      "judge_key": "9e766df3da9cb83d80a105637cd1f54c02787573a8b4dcbed4996253c5282e9f",
+      "judge_provenance": {
+        "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+        "date": "2026-10-22T10:54:37.373538+00:00",
+        "dirty": true
+      },
+      "judgment": {
+        "agree": true,
+        "reason": "The report explicitly concludes that the order worker handling the POST /orders request exceeded its container memory limit and was OOMKilled, matching the answer key's root cause that the order worker exceeds memory limit. The report provides causal mechanism linking memory usage approaching the limit, allocation failure, and process termination, which aligns with the answer key's diagnosis."
+      },
+      "labels": {
+        "category": "resource_exhaustion",
+        "service": "order worker"
+      },
+      "pipeline": {
+        "completed": [
+          "planner",
+          "evidence_collector",
+          "history",
+          "root_cause",
+          "fix_recommendation",
+          "report"
+        ],
+        "executions": [
+          {
+            "finished_at": "2026-10-22T10:54:22.592603+00:00",
+            "node": "planner",
+            "output": {
+              "plan": {
+                "log_keyword": "request-03",
+                "rationale": "The incident involves failures or degradation in POST /orders requests with a specific request_id=request-03. Investigating logs filtered by this unique request ID will directly surface relevant errors, while checking recent changes and system health will help identify root causes.",
+                "steps": [
+                  "Check the application logs for errors related to POST /orders requests, focusing on request_id=request-03.",
+                  "Review recent deployments or configuration changes that might affect the order processing service.",
+                  "Analyze system metrics (CPU, memory, network) on the servers handling order requests to identify resource bottlenecks.",
+                  "Verify the status and connectivity of dependent services such as databases or payment gateways involved in order processing.",
+                  "Reproduce the issue in a staging environment using the same request parameters to isolate the failure cause."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:22.596709+00:00",
+            "node": "evidence_collector",
+            "output": {
+              "evidence": [
+                {
+                  "endpoint": "POST /orders",
+                  "level": "ERROR",
+                  "message": "order worker terminated: OOMKilled, exit 137",
+                  "request_id": "request-03",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-04T11:59:32+00:00"
+                },
+                {
+                  "endpoint": "POST /orders",
+                  "level": "ERROR",
+                  "message": "allocation failed in order worker: MemoryError",
+                  "request_id": "request-03",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-04T11:59:31+00:00"
+                },
+                {
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "order worker RSS 510MiB approaches container limit 512MiB",
+                  "request_id": "request-03",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-04T11:59:30+00:00"
+                }
+              ]
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:22.601697+00:00",
+            "node": "history",
+            "output": {
+              "history": []
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:28.627667+00:00",
+            "node": "root_cause",
+            "output": {
+              "root_cause": {
+                "confidence": "high",
+                "likely_cause": "The order worker handling the POST /orders request ran out of memory and was killed by the system due to exceeding the container memory limit.",
+                "missing_or_contradicting": [
+                  "No evidence about recent deployments or configuration changes is provided to confirm if a change caused increased memory usage.",
+                  "No system metrics (CPU, memory, network) beyond the container memory limit are provided to assess overall resource bottlenecks.",
+                  "No information about dependent services' status or connectivity is given.",
+                  "No reproduction attempts or staging environment tests are reported."
+                ],
+                "observed_facts": [
+                  "The application logs for POST /orders with request_id=request-03 show a warning that the order worker RSS memory usage reached 510MiB, close to the container limit of 512MiB.",
+                  "Shortly after, there is an error indicating a MemoryError allocation failure in the order worker.",
+                  "Finally, the order worker process terminated with exit code 137 due to being OOMKilled (out-of-memory killed)."
+                ],
+                "supporting_evidence": [
+                  "2026-10-04T11:59:30+00:00 WARNING: order worker RSS 510MiB approaches container limit 512MiB",
+                  "2026-10-04T11:59:31+00:00 ERROR: allocation failed in order worker: MemoryError",
+                  "2026-10-04T11:59:32+00:00 ERROR: order worker terminated: OOMKilled, exit 137"
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:31.492751+00:00",
+            "node": "fix_recommendation",
+            "output": {
+              "recommendations": {
+                "actions": [
+                  "Increase the container memory limit for the order worker to provide more headroom beyond 512MiB to prevent OOM kills.",
+                  "Investigate the order worker's memory usage patterns to identify potential memory leaks or inefficient memory usage in the POST /orders handling code.",
+                  "Add monitoring and alerting on memory usage trends for the order worker to detect approaching limits before failures occur.",
+                  "Perform load and memory profiling in a staging environment to reproduce and analyze the memory consumption during order processing.",
+                  "Review recent code changes or deployments (if any) that might have increased memory usage, even though no evidence was provided yet.",
+                  "Consider implementing graceful degradation or request throttling if memory usage spikes under high load."
+                ],
+                "notes": "The diagnosis is highly confident that the immediate cause of failure is the order worker exceeding its container memory limit and being OOMKilled. However, the root cause of increased memory usage is not identified due to lack of information on recent changes or detailed memory profiling.",
+                "validation_steps": [
+                  "Verify that the container memory limit is currently set to 512MiB and confirm the order worker is OOMKilled when memory usage approaches this limit.",
+                  "Monitor the order worker logs and metrics after increasing the memory limit to confirm that MemoryError and OOMKilled events no longer occur.",
+                  "Run memory profiling tools or heap dumps in a test environment to identify memory leaks or excessive allocations during order processing.",
+                  "Check for any recent code changes or deployments correlating with increased memory usage, if possible.",
+                  "Confirm that monitoring alerts trigger appropriately when memory usage approaches the new limit."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:31.495758+00:00",
+            "node": "report",
+            "output": {
+              "report": "# Investigation report - incident #3\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-04T12:00:00Z\n\nInvestigate POST /orders, request_id=request-03.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders requests, focusing on request_id=request-03.\n- Review recent deployments or configuration changes that might affect the order processing service.\n- Analyze system metrics (CPU, memory, network) on the servers handling order requests to identify resource bottlenecks.\n- Verify the status and connectivity of dependent services such as databases or payment gateways involved in order processing.\n- Reproduce the issue in a staging environment using the same request parameters to isolate the failure cause.\n\nThe incident involves failures or degradation in POST /orders requests with a specific request_id=request-03. Investigating logs filtered by this unique request ID will directly surface relevant errors, while checking recent changes and system health will help identify root causes.\n\n## Evidence collected (facts)\n\n3 log record(s) from the incident window.\n\n- `2026-10-04T11:59:32+00:00` **ERROR** order worker terminated: OOMKilled, exit 137 - POST /orders (request request-03)\n- `2026-10-04T11:59:31+00:00` **ERROR** allocation failed in order worker: MemoryError - POST /orders (request request-03)\n- `2026-10-04T11:59:30+00:00` **WARNING** order worker RSS 510MiB approaches container limit 512MiB - POST /orders (request request-03)\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The application logs for POST /orders with request_id=request-03 show a warning that the order worker RSS memory usage reached 510MiB, close to the container limit of 512MiB.\n- Shortly after, there is an error indicating a MemoryError allocation failure in the order worker.\n- Finally, the order worker process terminated with exit code 137 due to being OOMKilled (out-of-memory killed).\n\n## Likely root cause (model conclusion, needs validation)\n\nThe order worker handling the POST /orders request ran out of memory and was killed by the system due to exceeding the container memory limit.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-04T11:59:30+00:00 WARNING: order worker RSS 510MiB approaches container limit 512MiB\n- 2026-10-04T11:59:31+00:00 ERROR: allocation failed in order worker: MemoryError\n- 2026-10-04T11:59:32+00:00 ERROR: order worker terminated: OOMKilled, exit 137\n\n### Missing or contradicting evidence\n\n- No evidence about recent deployments or configuration changes is provided to confirm if a change caused increased memory usage.\n- No system metrics (CPU, memory, network) beyond the container memory limit are provided to assess overall resource bottlenecks.\n- No information about dependent services' status or connectivity is given.\n- No reproduction attempts or staging environment tests are reported.\n\n## Recommended actions (for an engineer to review)\n\n- Increase the container memory limit for the order worker to provide more headroom beyond 512MiB to prevent OOM kills.\n- Investigate the order worker's memory usage patterns to identify potential memory leaks or inefficient memory usage in the POST /orders handling code.\n- Add monitoring and alerting on memory usage trends for the order worker to detect approaching limits before failures occur.\n- Perform load and memory profiling in a staging environment to reproduce and analyze the memory consumption during order processing.\n- Review recent code changes or deployments (if any) that might have increased memory usage, even though no evidence was provided yet.\n- Consider implementing graceful degradation or request throttling if memory usage spikes under high load.\n\n### How to validate\n\n- Verify that the container memory limit is currently set to 512MiB and confirm the order worker is OOMKilled when memory usage approaches this limit.\n- Monitor the order worker logs and metrics after increasing the memory limit to confirm that MemoryError and OOMKilled events no longer occur.\n- Run memory profiling tools or heap dumps in a test environment to identify memory leaks or excessive allocations during order processing.\n- Check for any recent code changes or deployments correlating with increased memory usage, if possible.\n- Confirm that monitoring alerts trigger appropriately when memory usage approaches the new limit.\n\nThe diagnosis is highly confident that the immediate cause of failure is the order worker exceeding its container memory limit and being OOMKilled. However, the root cause of increased memory usage is not identified due to lack of information on recent changes or detailed memory profiling.\n"
+            },
+            "thinking": null
+          }
+        ],
+        "identity": {
+          "max_records": 50,
+          "model": "openai/gpt-4.1-mini",
+          "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+          "provider": "openrouter",
+          "retrieval": "off",
+          "runner_hash": "d9890e9a8da7582da554fbd6a4b14db3bfaf51fc78b26eff5a930c23279f7838",
+          "show_thinking": true,
+          "window_minutes": 15
+        },
+        "key": "0ea39787e1d0f464e807ea0a7ac1b77097d6b39f1111000d55a2851695c5a791",
+        "provenance": {
+          "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+          "date": "2026-10-22T10:54:20.563208+00:00",
+          "dirty": true
+        },
+        "state": {
+          "evidence": [
+            {
+              "endpoint": "POST /orders",
+              "level": "ERROR",
+              "message": "order worker terminated: OOMKilled, exit 137",
+              "request_id": "request-03",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-04T11:59:32+00:00"
+            },
+            {
+              "endpoint": "POST /orders",
+              "level": "ERROR",
+              "message": "allocation failed in order worker: MemoryError",
+              "request_id": "request-03",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-04T11:59:31+00:00"
+            },
+            {
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "order worker RSS 510MiB approaches container limit 512MiB",
+              "request_id": "request-03",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-04T11:59:30+00:00"
+            }
+          ],
+          "history": [],
+          "incident": {
+            "created_at": "2026-10-04T12:00:00Z",
+            "description": "Investigate POST /orders, request_id=request-03.",
+            "id": 3,
+            "severity": "CRITICAL",
+            "status": "OPEN",
+            "title": "Order requests failing or degraded"
+          },
+          "plan": {
+            "log_keyword": "request-03",
+            "rationale": "The incident involves failures or degradation in POST /orders requests with a specific request_id=request-03. Investigating logs filtered by this unique request ID will directly surface relevant errors, while checking recent changes and system health will help identify root causes.",
+            "steps": [
+              "Check the application logs for errors related to POST /orders requests, focusing on request_id=request-03.",
+              "Review recent deployments or configuration changes that might affect the order processing service.",
+              "Analyze system metrics (CPU, memory, network) on the servers handling order requests to identify resource bottlenecks.",
+              "Verify the status and connectivity of dependent services such as databases or payment gateways involved in order processing.",
+              "Reproduce the issue in a staging environment using the same request parameters to isolate the failure cause."
+            ]
+          },
+          "recommendations": {
+            "actions": [
+              "Increase the container memory limit for the order worker to provide more headroom beyond 512MiB to prevent OOM kills.",
+              "Investigate the order worker's memory usage patterns to identify potential memory leaks or inefficient memory usage in the POST /orders handling code.",
+              "Add monitoring and alerting on memory usage trends for the order worker to detect approaching limits before failures occur.",
+              "Perform load and memory profiling in a staging environment to reproduce and analyze the memory consumption during order processing.",
+              "Review recent code changes or deployments (if any) that might have increased memory usage, even though no evidence was provided yet.",
+              "Consider implementing graceful degradation or request throttling if memory usage spikes under high load."
+            ],
+            "notes": "The diagnosis is highly confident that the immediate cause of failure is the order worker exceeding its container memory limit and being OOMKilled. However, the root cause of increased memory usage is not identified due to lack of information on recent changes or detailed memory profiling.",
+            "validation_steps": [
+              "Verify that the container memory limit is currently set to 512MiB and confirm the order worker is OOMKilled when memory usage approaches this limit.",
+              "Monitor the order worker logs and metrics after increasing the memory limit to confirm that MemoryError and OOMKilled events no longer occur.",
+              "Run memory profiling tools or heap dumps in a test environment to identify memory leaks or excessive allocations during order processing.",
+              "Check for any recent code changes or deployments correlating with increased memory usage, if possible.",
+              "Confirm that monitoring alerts trigger appropriately when memory usage approaches the new limit."
+            ]
+          },
+          "report": "# Investigation report - incident #3\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-04T12:00:00Z\n\nInvestigate POST /orders, request_id=request-03.\n\n## Investigation plan\n\n- Check the application logs for errors related to POST /orders requests, focusing on request_id=request-03.\n- Review recent deployments or configuration changes that might affect the order processing service.\n- Analyze system metrics (CPU, memory, network) on the servers handling order requests to identify resource bottlenecks.\n- Verify the status and connectivity of dependent services such as databases or payment gateways involved in order processing.\n- Reproduce the issue in a staging environment using the same request parameters to isolate the failure cause.\n\nThe incident involves failures or degradation in POST /orders requests with a specific request_id=request-03. Investigating logs filtered by this unique request ID will directly surface relevant errors, while checking recent changes and system health will help identify root causes.\n\n## Evidence collected (facts)\n\n3 log record(s) from the incident window.\n\n- `2026-10-04T11:59:32+00:00` **ERROR** order worker terminated: OOMKilled, exit 137 - POST /orders (request request-03)\n- `2026-10-04T11:59:31+00:00` **ERROR** allocation failed in order worker: MemoryError - POST /orders (request request-03)\n- `2026-10-04T11:59:30+00:00` **WARNING** order worker RSS 510MiB approaches container limit 512MiB - POST /orders (request request-03)\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The application logs for POST /orders with request_id=request-03 show a warning that the order worker RSS memory usage reached 510MiB, close to the container limit of 512MiB.\n- Shortly after, there is an error indicating a MemoryError allocation failure in the order worker.\n- Finally, the order worker process terminated with exit code 137 due to being OOMKilled (out-of-memory killed).\n\n## Likely root cause (model conclusion, needs validation)\n\nThe order worker handling the POST /orders request ran out of memory and was killed by the system due to exceeding the container memory limit.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-04T11:59:30+00:00 WARNING: order worker RSS 510MiB approaches container limit 512MiB\n- 2026-10-04T11:59:31+00:00 ERROR: allocation failed in order worker: MemoryError\n- 2026-10-04T11:59:32+00:00 ERROR: order worker terminated: OOMKilled, exit 137\n\n### Missing or contradicting evidence\n\n- No evidence about recent deployments or configuration changes is provided to confirm if a change caused increased memory usage.\n- No system metrics (CPU, memory, network) beyond the container memory limit are provided to assess overall resource bottlenecks.\n- No information about dependent services' status or connectivity is given.\n- No reproduction attempts or staging environment tests are reported.\n\n## Recommended actions (for an engineer to review)\n\n- Increase the container memory limit for the order worker to provide more headroom beyond 512MiB to prevent OOM kills.\n- Investigate the order worker's memory usage patterns to identify potential memory leaks or inefficient memory usage in the POST /orders handling code.\n- Add monitoring and alerting on memory usage trends for the order worker to detect approaching limits before failures occur.\n- Perform load and memory profiling in a staging environment to reproduce and analyze the memory consumption during order processing.\n- Review recent code changes or deployments (if any) that might have increased memory usage, even though no evidence was provided yet.\n- Consider implementing graceful degradation or request throttling if memory usage spikes under high load.\n\n### How to validate\n\n- Verify that the container memory limit is currently set to 512MiB and confirm the order worker is OOMKilled when memory usage approaches this limit.\n- Monitor the order worker logs and metrics after increasing the memory limit to confirm that MemoryError and OOMKilled events no longer occur.\n- Run memory profiling tools or heap dumps in a test environment to identify memory leaks or excessive allocations during order processing.\n- Check for any recent code changes or deployments correlating with increased memory usage, if possible.\n- Confirm that monitoring alerts trigger appropriately when memory usage approaches the new limit.\n\nThe diagnosis is highly confident that the immediate cause of failure is the order worker exceeding its container memory limit and being OOMKilled. However, the root cause of increased memory usage is not identified due to lack of information on recent changes or detailed memory profiling.\n",
+          "root_cause": {
+            "confidence": "high",
+            "likely_cause": "The order worker handling the POST /orders request ran out of memory and was killed by the system due to exceeding the container memory limit.",
+            "missing_or_contradicting": [
+              "No evidence about recent deployments or configuration changes is provided to confirm if a change caused increased memory usage.",
+              "No system metrics (CPU, memory, network) beyond the container memory limit are provided to assess overall resource bottlenecks.",
+              "No information about dependent services' status or connectivity is given.",
+              "No reproduction attempts or staging environment tests are reported."
+            ],
+            "observed_facts": [
+              "The application logs for POST /orders with request_id=request-03 show a warning that the order worker RSS memory usage reached 510MiB, close to the container limit of 512MiB.",
+              "Shortly after, there is an error indicating a MemoryError allocation failure in the order worker.",
+              "Finally, the order worker process terminated with exit code 137 due to being OOMKilled (out-of-memory killed)."
+            ],
+            "supporting_evidence": [
+              "2026-10-04T11:59:30+00:00 WARNING: order worker RSS 510MiB approaches container limit 512MiB",
+              "2026-10-04T11:59:31+00:00 ERROR: allocation failed in order worker: MemoryError",
+              "2026-10-04T11:59:32+00:00 ERROR: order worker terminated: OOMKilled, exit 137"
+            ]
+          }
+        }
+      },
+      "pipeline_key": "0ea39787e1d0f464e807ea0a7ac1b77097d6b39f1111000d55a2851695c5a791",
+      "scores": {
+        "agreement": true,
+        "category": true,
+        "service": false
+      },
+      "status": "completed",
+      "variant": "clean"
+    },
+    {
+      "answer": {
+        "category": "resource_exhaustion",
+        "fix": "Free or expand database storage and verify WAL writes.",
+        "root_cause": "database data volume is full",
+        "service": "orders-db"
+      },
+      "confidence": "high",
+      "family": "disk_full",
+      "id": "case-04",
+      "judge_key": "86cd7762d32e485b435cae30e27d0f29db6e6ae169ef8ebcd8d24a43ccf634f4",
+      "judge_provenance": {
+        "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+        "date": "2026-10-22T10:55:10.329393+00:00",
+        "dirty": true
+      },
+      "judgment": {
+        "agree": true,
+        "reason": "The report's primary root cause conclusion explicitly identifies the orders database storage volume being completely full as the cause of transaction failures, matching the answer key's root cause that the database data volume is full. The report explains the causal mechanism through WAL extension failures and transaction aborts due to no free space, which aligns with the answer key's diagnosis beyond merely stating a symptom."
+      },
+      "labels": {
+        "category": "resource_exhaustion",
+        "service": "orders database"
+      },
+      "pipeline": {
+        "completed": [
+          "planner",
+          "evidence_collector",
+          "history",
+          "root_cause",
+          "fix_recommendation",
+          "report"
+        ],
+        "executions": [
+          {
+            "finished_at": "2026-10-22T10:54:54.175576+00:00",
+            "node": "planner",
+            "output": {
+              "plan": {
+                "log_keyword": "request-04",
+                "rationale": "Focusing on the specific request_id 'request-04' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the critical incident.",
+                "steps": [
+                  "Check the error logs for POST /orders requests with request_id=request-04 to identify specific error messages or stack traces.",
+                  "Review recent deployments or configuration changes around the time the incident started to identify potential causes.",
+                  "Monitor system metrics such as CPU, memory, and database connection pools to detect resource exhaustion or bottlenecks.",
+                  "Verify the health and connectivity of dependent services like databases or external APIs involved in order processing.",
+                  "Reproduce the issue in a staging environment using the same request parameters to understand failure conditions."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:54.178978+00:00",
+            "node": "evidence_collector",
+            "output": {
+              "evidence": [
+                {
+                  "endpoint": "POST /orders",
+                  "level": "ERROR",
+                  "message": "transaction aborted because orders-db storage is full",
+                  "request_id": "request-04",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-05T11:59:32+00:00"
+                },
+                {
+                  "endpoint": "POST /orders",
+                  "level": "ERROR",
+                  "message": "orders-db cannot extend WAL: No space left on device",
+                  "request_id": "request-04",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-05T11:59:31+00:00"
+                },
+                {
+                  "endpoint": "POST /orders",
+                  "level": "WARNING",
+                  "message": "orders-db data volume utilization 100%, free bytes 0",
+                  "request_id": "request-04",
+                  "service": "dummycommerce",
+                  "source": "dummycommerce",
+                  "timestamp": "2026-10-05T11:59:30+00:00"
+                }
+              ]
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:54:54.181746+00:00",
+            "node": "history",
+            "output": {
+              "history": []
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:55:00.077594+00:00",
+            "node": "root_cause",
+            "output": {
+              "root_cause": {
+                "confidence": "high",
+                "likely_cause": "The orders database storage volume is completely full, causing write-ahead log extension failures and transaction aborts for POST /orders requests.",
+                "missing_or_contradicting": [
+                  "No evidence about recent deployments or configuration changes to rule out other causes.",
+                  "No system metrics like CPU or memory usage provided to exclude resource exhaustion.",
+                  "No information on dependent services' health or connectivity."
+                ],
+                "observed_facts": [
+                  "The POST /orders request with request_id=request-04 failed with errors indicating storage issues.",
+                  "At 2026-10-05T11:59:30+00:00, a warning log states 'orders-db data volume utilization 100%, free bytes 0'.",
+                  "At 2026-10-05T11:59:31+00:00, an error log states 'orders-db cannot extend WAL: No space left on device'.",
+                  "At 2026-10-05T11:59:32+00:00, an error log states 'transaction aborted because orders-db storage is full'."
+                ],
+                "supporting_evidence": [
+                  "2026-10-05T11:59:30+00:00 WARNING: orders-db data volume utilization 100%, free bytes 0",
+                  "2026-10-05T11:59:31+00:00 ERROR: orders-db cannot extend WAL: No space left on device",
+                  "2026-10-05T11:59:32+00:00 ERROR: transaction aborted because orders-db storage is full"
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:55:02.731855+00:00",
+            "node": "fix_recommendation",
+            "output": {
+              "recommendations": {
+                "actions": [
+                  "Free up disk space on the orders database storage volume by deleting unnecessary files or archiving old data.",
+                  "Increase the storage capacity of the orders database volume to prevent immediate recurrence of full disk issues.",
+                  "Restart the orders database service after freeing space to ensure it can resume normal write operations.",
+                  "Monitor disk usage closely to detect and alert on high utilization before it reaches 100%.",
+                  "Review database maintenance tasks such as vacuuming or log rotation to optimize storage usage."
+                ],
+                "notes": "The diagnosis is highly confident based on multiple error logs indicating the storage volume is completely full, causing transaction failures. However, no information about recent deployments or other system metrics was provided, so other contributing factors cannot be fully ruled out.",
+                "validation_steps": [
+                  "Check the current disk usage of the orders database storage volume to confirm it is no longer at 100%.",
+                  "Verify that the orders database logs no longer contain errors related to WAL extension or transaction aborts due to storage full.",
+                  "Perform a test POST /orders request to confirm that order requests are processed successfully without errors.",
+                  "Monitor the orders database metrics and logs for a period after remediation to ensure stability and no recurrence of storage issues."
+                ]
+              }
+            },
+            "thinking": null
+          },
+          {
+            "finished_at": "2026-10-22T10:55:02.734207+00:00",
+            "node": "report",
+            "output": {
+              "report": "# Investigation report - incident #4\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-05T12:00:00Z\n\nInvestigate POST /orders, request_id=request-04.\n\n## Investigation plan\n\n- Check the error logs for POST /orders requests with request_id=request-04 to identify specific error messages or stack traces.\n- Review recent deployments or configuration changes around the time the incident started to identify potential causes.\n- Monitor system metrics such as CPU, memory, and database connection pools to detect resource exhaustion or bottlenecks.\n- Verify the health and connectivity of dependent services like databases or external APIs involved in order processing.\n- Reproduce the issue in a staging environment using the same request parameters to understand failure conditions.\n\nFocusing on the specific request_id 'request-04' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the critical incident.\n\n## Evidence collected (facts)\n\n3 log record(s) from the incident window.\n\n- `2026-10-05T11:59:32+00:00` **ERROR** transaction aborted because orders-db storage is full - POST /orders (request request-04)\n- `2026-10-05T11:59:31+00:00` **ERROR** orders-db cannot extend WAL: No space left on device - POST /orders (request request-04)\n- `2026-10-05T11:59:30+00:00` **WARNING** orders-db data volume utilization 100%, free bytes 0 - POST /orders (request request-04)\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The POST /orders request with request_id=request-04 failed with errors indicating storage issues.\n- At 2026-10-05T11:59:30+00:00, a warning log states 'orders-db data volume utilization 100%, free bytes 0'.\n- At 2026-10-05T11:59:31+00:00, an error log states 'orders-db cannot extend WAL: No space left on device'.\n- At 2026-10-05T11:59:32+00:00, an error log states 'transaction aborted because orders-db storage is full'.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe orders database storage volume is completely full, causing write-ahead log extension failures and transaction aborts for POST /orders requests.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-05T11:59:30+00:00 WARNING: orders-db data volume utilization 100%, free bytes 0\n- 2026-10-05T11:59:31+00:00 ERROR: orders-db cannot extend WAL: No space left on device\n- 2026-10-05T11:59:32+00:00 ERROR: transaction aborted because orders-db storage is full\n\n### Missing or contradicting evidence\n\n- No evidence about recent deployments or configuration changes to rule out other causes.\n- No system metrics like CPU or memory usage provided to exclude resource exhaustion.\n- No information on dependent services' health or connectivity.\n\n## Recommended actions (for an engineer to review)\n\n- Free up disk space on the orders database storage volume by deleting unnecessary files or archiving old data.\n- Increase the storage capacity of the orders database volume to prevent immediate recurrence of full disk issues.\n- Restart the orders database service after freeing space to ensure it can resume normal write operations.\n- Monitor disk usage closely to detect and alert on high utilization before it reaches 100%.\n- Review database maintenance tasks such as vacuuming or log rotation to optimize storage usage.\n\n### How to validate\n\n- Check the current disk usage of the orders database storage volume to confirm it is no longer at 100%.\n- Verify that the orders database logs no longer contain errors related to WAL extension or transaction aborts due to storage full.\n- Perform a test POST /orders request to confirm that order requests are processed successfully without errors.\n- Monitor the orders database metrics and logs for a period after remediation to ensure stability and no recurrence of storage issues.\n\nThe diagnosis is highly confident based on multiple error logs indicating the storage volume is completely full, causing transaction failures. However, no information about recent deployments or other system metrics was provided, so other contributing factors cannot be fully ruled out.\n"
+            },
+            "thinking": null
+          }
+        ],
+        "identity": {
+          "max_records": 50,
+          "model": "openai/gpt-4.1-mini",
+          "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+          "provider": "openrouter",
+          "retrieval": "off",
+          "runner_hash": "d9890e9a8da7582da554fbd6a4b14db3bfaf51fc78b26eff5a930c23279f7838",
+          "show_thinking": true,
+          "window_minutes": 15
+        },
+        "key": "7705aa1d45322be038bcd6811ba61a7534238779db7c33ae096a761a52a9a11d",
+        "provenance": {
+          "commit": "2420fd9da1dcccfbc8b336ab157fe81f73073456",
+          "date": "2026-10-22T10:54:51.169255+00:00",
+          "dirty": true
+        },
+        "state": {
+          "evidence": [
+            {
+              "endpoint": "POST /orders",
+              "level": "ERROR",
+              "message": "transaction aborted because orders-db storage is full",
+              "request_id": "request-04",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-05T11:59:32+00:00"
+            },
+            {
+              "endpoint": "POST /orders",
+              "level": "ERROR",
+              "message": "orders-db cannot extend WAL: No space left on device",
+              "request_id": "request-04",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-05T11:59:31+00:00"
+            },
+            {
+              "endpoint": "POST /orders",
+              "level": "WARNING",
+              "message": "orders-db data volume utilization 100%, free bytes 0",
+              "request_id": "request-04",
+              "service": "dummycommerce",
+              "source": "dummycommerce",
+              "timestamp": "2026-10-05T11:59:30+00:00"
+            }
+          ],
+          "history": [],
+          "incident": {
+            "created_at": "2026-10-05T12:00:00Z",
+            "description": "Investigate POST /orders, request_id=request-04.",
+            "id": 4,
+            "severity": "CRITICAL",
+            "status": "OPEN",
+            "title": "Order requests failing or degraded"
+          },
+          "plan": {
+            "log_keyword": "request-04",
+            "rationale": "Focusing on the specific request_id 'request-04' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the critical incident.",
+            "steps": [
+              "Check the error logs for POST /orders requests with request_id=request-04 to identify specific error messages or stack traces.",
+              "Review recent deployments or configuration changes around the time the incident started to identify potential causes.",
+              "Monitor system metrics such as CPU, memory, and database connection pools to detect resource exhaustion or bottlenecks.",
+              "Verify the health and connectivity of dependent services like databases or external APIs involved in order processing.",
+              "Reproduce the issue in a staging environment using the same request parameters to understand failure conditions."
+            ]
+          },
+          "recommendations": {
+            "actions": [
+              "Free up disk space on the orders database storage volume by deleting unnecessary files or archiving old data.",
+              "Increase the storage capacity of the orders database volume to prevent immediate recurrence of full disk issues.",
+              "Restart the orders database service after freeing space to ensure it can resume normal write operations.",
+              "Monitor disk usage closely to detect and alert on high utilization before it reaches 100%.",
+              "Review database maintenance tasks such as vacuuming or log rotation to optimize storage usage."
+            ],
+            "notes": "The diagnosis is highly confident based on multiple error logs indicating the storage volume is completely full, causing transaction failures. However, no information about recent deployments or other system metrics was provided, so other contributing factors cannot be fully ruled out.",
+            "validation_steps": [
+              "Check the current disk usage of the orders database storage volume to confirm it is no longer at 100%.",
+              "Verify that the orders database logs no longer contain errors related to WAL extension or transaction aborts due to storage full.",
+              "Perform a test POST /orders request to confirm that order requests are processed successfully without errors.",
+              "Monitor the orders database metrics and logs for a period after remediation to ensure stability and no recurrence of storage issues."
+            ]
+          },
+          "report": "# Investigation report - incident #4\n\n**Order requests failing or degraded**\n\nSeverity CRITICAL - status OPEN - opened 2026-10-05T12:00:00Z\n\nInvestigate POST /orders, request_id=request-04.\n\n## Investigation plan\n\n- Check the error logs for POST /orders requests with request_id=request-04 to identify specific error messages or stack traces.\n- Review recent deployments or configuration changes around the time the incident started to identify potential causes.\n- Monitor system metrics such as CPU, memory, and database connection pools to detect resource exhaustion or bottlenecks.\n- Verify the health and connectivity of dependent services like databases or external APIs involved in order processing.\n- Reproduce the issue in a staging environment using the same request parameters to understand failure conditions.\n\nFocusing on the specific request_id 'request-04' will help isolate relevant error logs for the failing POST /orders requests, enabling targeted troubleshooting of the critical incident.\n\n## Evidence collected (facts)\n\n3 log record(s) from the incident window.\n\n- `2026-10-05T11:59:32+00:00` **ERROR** transaction aborted because orders-db storage is full - POST /orders (request request-04)\n- `2026-10-05T11:59:31+00:00` **ERROR** orders-db cannot extend WAL: No space left on device - POST /orders (request request-04)\n- `2026-10-05T11:59:30+00:00` **WARNING** orders-db data volume utilization 100%, free bytes 0 - POST /orders (request request-04)\n\n## Similar resolved incidents\n\n_no similar resolved incidents met the similarity threshold._\n\n## Observed facts\n\n- The POST /orders request with request_id=request-04 failed with errors indicating storage issues.\n- At 2026-10-05T11:59:30+00:00, a warning log states 'orders-db data volume utilization 100%, free bytes 0'.\n- At 2026-10-05T11:59:31+00:00, an error log states 'orders-db cannot extend WAL: No space left on device'.\n- At 2026-10-05T11:59:32+00:00, an error log states 'transaction aborted because orders-db storage is full'.\n\n## Likely root cause (model conclusion, needs validation)\n\nThe orders database storage volume is completely full, causing write-ahead log extension failures and transaction aborts for POST /orders requests.\n\n**Confidence: high**\n\n### Supporting evidence\n\n- 2026-10-05T11:59:30+00:00 WARNING: orders-db data volume utilization 100%, free bytes 0\n- 2026-10-05T11:59:31+00:00 ERROR: orders-db cannot extend WAL: No space left on device\n- 2026-10-05T11:59:32+00:00 ERROR: transaction aborted because orders-db storage is full\n\n### Missing or contradicting evidence\n\n- No evidence about recent deployments or configuration changes to rule out other causes.\n- No system metrics like CPU or memory usage provided to exclude resource exhaustion.\n- No information on dependent services' health or connectivity.\n\n## Recommended actions (for an engineer to review)\n\n- Free up disk space on the orders database storage volume by deleting unnecessary files or archiving old data.\n- Increase the storage capacity of the orders database volume to prevent immediate recurrence of full disk issues.\n- Restart the orders database service after freeing space to ensure it can resume normal write operations.\n- Monitor disk usage closely to detect and alert on high utilization before it reaches 100%.\n- Review database maintenance tasks such as vacuuming or log rotation to optimize storage usage.\n\n### How to validate\n\n- Check the current disk usage of the orders database storage volume to confirm it is no longer at 100%.\n- Verify that the orders database logs no longer contain errors related to WAL extension or transaction aborts due to storage full.\n- Perform a test POST /orders request to confirm that order requests are processed successfully without errors.\n- Monitor the orders database metrics and logs for a period after remediation to ensure stability and no recurrence of storage issues.\n\nThe diagnosis is highly confident based on multiple error logs indicating the storage volume is completely full, causing transaction failures. However, no information about recent deployments or other system metrics was provided, so other contributing factors cannot be fully ruled out.\n",
+          "root_cause": {
+            "confidence": "high",
+            "likely_cause": "The orders database storage volume is completely full, causing write-ahead log extension failures and transaction aborts for POST /orders requests.",
+            "missing_or_contradicting": [
+              "No evidence about recent deployments or configuration changes to rule out other causes.",
+              "No system metrics like CPU or memory usage provided to exclude resource exhaustion.",
+              "No information on dependent services' health or connectivity."
+            ],
+            "observed_facts": [
+              "The POST /orders request with request_id=request-04 failed with errors indicating storage issues.",
+              "At 2026-10-05T11:59:30+00:00, a warning log states 'orders-db data volume utilization 100%, free bytes 0'.",
+              "At 2026-10-05T11:59:31+00:00, an error log states 'orders-db cannot extend WAL: No space left on device'.",
+              "At 2026-10-05T11:59:32+00:00, an error log states 'transaction aborted because orders-db storage is full'."
+            ],
+            "supporting_evidence": [
+              "2026-10-05T11:59:30+00:00 WARNING: orders-db data volume utilization 100%, free bytes 0",
+              "2026-10-05T11:59:31+00:00 ERROR: orders-db cannot extend WAL: No space left on device",
+              "2026-10-05T11:59:32+00:00 ERROR: transaction aborted because orders-db storage is full"
+            ]
+          }
+        }
+      },
+      "pipeline_key": "7705aa1d45322be038bcd6811ba61a7534238779db7c33ae096a761a52a9a11d",
+      "scores": {
+        "agreement": true,
+        "category": true,
+        "service": false
+      },
+      "status": "completed",
+      "variant": "clean"
+    },
+    {
+      "id": "case-05",
+      "status": "pending"
+    },
+    {
+      "id": "case-06",
+      "status": "pending"
+    },
+    {
+      "id": "case-07",
+      "status": "pending"
+    },
+    {
+      "id": "case-08",
+      "status": "pending"
+    },
+    {
+      "id": "case-09",
+      "status": "pending"
+    },
+    {
+      "id": "case-10",
+      "status": "pending"
+    },
+    {
+      "id": "case-11",
+      "status": "pending"
+    },
+    {
+      "id": "case-12",
+      "status": "pending"
+    },
+    {
+      "id": "case-13",
+      "status": "pending"
+    },
+    {
+      "id": "case-14",
+      "status": "pending"
+    },
+    {
+      "id": "case-15",
+      "status": "pending"
+    },
+    {
+      "id": "case-16",
+      "status": "pending"
+    },
+    {
+      "id": "case-17",
+      "status": "pending"
+    },
+    {
+      "id": "case-18",
+      "status": "pending"
+    },
+    {
+      "id": "case-19",
+      "status": "pending"
+    },
+    {
+      "id": "case-20",
+      "status": "pending"
+    },
+    {
+      "id": "case-21",
+      "status": "pending"
+    },
+    {
+      "id": "case-22",
+      "status": "pending"
+    },
+    {
+      "id": "case-23",
+      "status": "pending"
+    },
+    {
+      "id": "case-24",
+      "status": "pending"
+    },
+    {
+      "id": "case-25",
+      "status": "pending"
+    },
+    {
+      "id": "case-26",
+      "status": "pending"
+    },
+    {
+      "id": "case-27",
+      "status": "pending"
+    },
+    {
+      "id": "case-28",
+      "status": "pending"
+    },
+    {
+      "id": "case-29",
+      "status": "pending"
+    },
+    {
+      "id": "case-30",
+      "status": "pending"
+    },
+    {
+      "id": "case-31",
+      "status": "pending"
+    },
+    {
+      "id": "case-32",
+      "status": "pending"
+    },
+    {
+      "id": "case-33",
+      "status": "pending"
+    },
+    {
+      "id": "case-34",
+      "status": "pending"
+    },
+    {
+      "id": "case-35",
+      "status": "pending"
+    },
+    {
+      "id": "case-36",
+      "status": "pending"
+    },
+    {
+      "id": "case-37",
+      "status": "pending"
+    },
+    {
+      "id": "case-38",
+      "status": "pending"
+    },
+    {
+      "id": "case-39",
+      "status": "pending"
+    },
+    {
+      "id": "case-40",
+      "status": "pending"
+    },
+    {
+      "id": "case-41",
+      "status": "pending"
+    },
+    {
+      "id": "case-42",
+      "status": "pending"
+    },
+    {
+      "id": "case-43",
+      "status": "pending"
+    },
+    {
+      "id": "case-44",
+      "status": "pending"
+    },
+    {
+      "id": "case-45",
+      "status": "pending"
+    },
+    {
+      "id": "case-46",
+      "status": "pending"
+    },
+    {
+      "id": "case-47",
+      "status": "pending"
+    },
+    {
+      "id": "case-48",
+      "status": "pending"
+    },
+    {
+      "id": "case-49",
+      "status": "pending"
+    },
+    {
+      "id": "case-50",
+      "status": "pending"
+    }
+  ],
+  "stopped": null,
+  "total": 50
+}

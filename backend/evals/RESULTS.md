@@ -1,20 +1,24 @@
 # Mango evaluation results
 
 Status: PARTIAL — not a full benchmark.
-Model: `gemini/gemini-3.5-flash`; retrieval: off.
-Report date (UTC): 2026-10-21T20:58:50.439196+00:00; commit: `ea750474a4a9f4516890636839cb0d5e2babdc4c`; working tree dirty: True.
-Pipeline source hash: `24e5672a2ce7f442c9a1c7bda9cde258f27473b4580f9a2f42c353e96c11e740`.
+Model: `openrouter/openai/gpt-4.1-mini`; retrieval: off.
+Report date (UTC): 2026-10-22T10:55:10.457656+00:00; commit: `2420fd9da1dcccfbc8b336ab157fe81f73073456`; working tree dirty: True.
+Pipeline source hash: `855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe`.
 
-Command (from backend): `python -m evals.run --report`.
+Command (from backend): `python -m evals.run --report --limit 4 --output evals/openrouter-2026-10-22 --cache evals/.cache/openrouter`.
 
-Coverage: **2/50 graded**, 1 failed, 47 pending.
-Stop reason: GoogleAPIError.
+Coverage: **4/50 graded**, 0 failed, 46 pending.
+Stop reason: none.
+
+Quota note: this partial run used the configured 20-request/day limit against a disposable
+evaluation database whose budget counter started at zero. It does not verify the production
+database's shared daily budget.
 
 | Measure | Completed scenarios only |
 |---|---|
-| category | 2/2 (100.0%) |
-| service | 1/2 (50.0%) |
-| agreement | 2/2 (100.0%) |
+| category | 4/4 (100.0%) |
+| service | 1/4 (25.0%) |
+| agreement | 4/4 (100.0%) |
 
 Category and service use exact matches after answer-blind LLM label extraction;
 they are not independent of extraction quality. Agreement uses a separate LLM judge.
@@ -28,7 +32,7 @@ Correctness here means root-cause agreement, not category or service accuracy.
 |---|---|
 | low | N/A (0 graded) |
 | medium | N/A (0 graded) |
-| high | 2/2 (100.0%) |
+| high | 4/4 (100.0%) |
 
 Not assessable: at least one confidence bin is empty.
 Small, correlated fault families limit calibration conclusions.
@@ -39,8 +43,8 @@ Small, correlated fault families limit calibration conclusions.
 |---|---|---|---|---|---|
 | case-01 | completed | high | True | True | True |
 | case-02 | completed | high | True | False | True |
-| case-03 | failed | — | — | — | — |
-| case-04 | pending | — | — | — | — |
+| case-03 | completed | high | True | False | True |
+| case-04 | completed | high | True | False | True |
 | case-05 | pending | — | — | — | — |
 | case-06 | pending | — | — | — | — |
 | case-07 | pending | — | — | — | — |
@@ -91,7 +95,7 @@ Small, correlated fault families limit calibration conclusions.
 ## Manual judge review
 
 Pending human review. No manual validation is claimed.
-Deterministic review sample (hash order, independent of score): case-01, case-02.
+Deterministic review sample (hash order, independent of score): case-01, case-03, case-02, case-04.
 Review the saved reports, keys and judge reasons in results.json; record independent
 agree/disagree decisions and explanations in REVIEW.md before claiming validation.
 
@@ -100,6 +104,6 @@ agree/disagree decisions and explanations in REVIEW.md before claiming validatio
 50 synthetic cases: 10 fault families × 5 evidence/noise variants, not 50 independent
 production outages. Fixtures come from DummyCommerce's fault table. No training or
 prompt tuning on these answers is represented as held-out accuracy.
-Retrieval lift: N/A until Phase 3; compare the same frozen cases and grading protocol.
+Retrieval lift: pending a complete paired baseline and retrieval run.
 Full node outputs, exact evidence, keys, grading reasons and original execution
 provenance are in results.json. Cached runs retain their original commit and date.

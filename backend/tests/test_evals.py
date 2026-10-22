@@ -10,7 +10,7 @@ from app.core.exceptions import LlmQuotaExhaustedError
 from evals import generate, grading, runner
 from evals.models import Judgment, Labels
 from evals.reporting import fraction, render, review_sample
-from evals.run import exclusive, main
+from evals.run import exclusive, main, validate_history_count
 from tests.fake_llm import FAKE_RESPONSES, FakeMessage
 
 
@@ -61,6 +61,24 @@ def test_dataset_contains_fifty_cases_balanced_across_categories():
     assert len(scenarios) == 50
     assert set(Counter(s.category for s, _ in scenarios).values()) == {10}
     assert len({s.family for s, _ in scenarios}) == 10
+
+
+def test_retrieval_mode_is_part_of_the_evaluation_identity():
+    assert runner.identity("off")["retrieval"] == "off"
+    assert runner.identity("on")["retrieval"] == "on"
+
+
+def test_retrieval_evaluation_requires_fifty_history_embeddings():
+    with pytest.raises(SystemExit, match="at least 50"):
+        validate_history_count(49)
+    validate_history_count(50)
+
+
+def test_evaluation_restores_history_setting_after_baseline(case, tmp_path, model, monkeypatch):
+    monkeypatch.setattr(settings, "incident_history_enabled", True)
+    record = runner.evaluate(*case, tmp_path, runner.identity("off"))
+    assert record["pipeline"]["state"]["history"] == []
+    assert settings.incident_history_enabled is True
 
 
 def test_committed_fixtures_are_reproducible_from_the_fault_table(tmp_path):

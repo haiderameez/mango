@@ -29,7 +29,7 @@ def render(run: dict) -> str:
         f"working tree dirty: {metadata['dirty']}.",
         f"Pipeline source hash: `{identity['pipeline_hash']}`.",
         "",
-        "Command (from backend): `python -m evals.run --report`.",
+        f"Command (from backend): `{run.get('command', 'python -m evals.run --report')}`.",
         "",
         f"Coverage: **{count}/{run['total']} graded**, {failed} failed, {pending} pending.",
         f"Stop reason: {run['stopped'] or 'none'}.",
@@ -98,7 +98,11 @@ def render(run: dict) -> str:
         "50 synthetic cases: 10 fault families × 5 evidence/noise variants, not 50 independent",
         "production outages. Fixtures come from DummyCommerce's fault table. No training or",
         "prompt tuning on these answers is represented as held-out accuracy.",
-        "Retrieval lift: N/A until Phase 3; compare the same frozen cases and grading protocol.",
+        (
+            "Retrieval lift: pending a complete paired baseline and retrieval run."
+            if identity["retrieval"] == "off"
+            else "Retrieval lift: pending a complete paired baseline with retrieval disabled."
+        ),
         "Full node outputs, exact evidence, keys, grading reasons and original execution",
         "provenance are in results.json. Cached runs retain their original commit and date.",
         "",

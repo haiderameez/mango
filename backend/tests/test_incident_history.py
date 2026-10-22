@@ -237,4 +237,3 @@ def test_resolving_an_incident_queues_history_indexing(client, incident, headers
 
     assert first.status_code == second.status_code == 200
     assert queued == [incident["id"]]
-

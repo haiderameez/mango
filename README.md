@@ -295,6 +295,12 @@ a provider, seed a disposable PostgreSQL database whose name ends in `_test`, po
 from `backend/`. The harness uses Celery with four worker threads and removes its synthetic
 incidents when the run completes.
 
+To verify prefork worker recovery, run `python -m scripts.measure_worker_recovery` from
+`backend/` with Docker available, a seeded `_test` PostgreSQL database, and
+`MANGO_TEST_POSTGRES_CONTAINER` set to its container name. The harness creates an isolated
+Redis broker, kills a child during root-cause analysis, then checks that Celery redelivers and
+resumes the saved graph state without calling a provider.
+
 The dedup replay creates a fixture with 10,000 records, including 400 failures across six
 fault fingerprints. It needs an ingest key scoped to `outage-test` and a running API backed by
 PostgreSQL:

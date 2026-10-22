@@ -123,9 +123,9 @@ investigations from `scripts/demo_fixtures.json`. The fixtures were produced by
 demo shows genuine agent output with no log file and no API call.
 
 **Deployment:** Dockerfiles for the API and DummyCommerce, a compose stack with PostgreSQL,
-Redis, Jaeger, API, worker, and DummyCommerce, a persistent log volume, migrations at container
-start, `$PORT` injection for managed platforms, and a boot-time validator that refuses a
-placeholder JWT signing key.
+Redis, Jaeger, API, investigation and ingestion workers, scheduler, and DummyCommerce, a
+persistent log volume, migrations at container start, `$PORT` injection for managed
+platforms, and a boot-time validator that refuses a placeholder JWT signing key.
 
 **Integrations and access control:** users have `admin`, `responder`, or `viewer` access.
 Registration always creates a responder; an administrator assigns roles at
@@ -156,10 +156,9 @@ provider calls, daily budget remaining, queue depth, ingested records, and detec
 first live ingestion k6 result is recorded in `load/RESULTS.md`; the register and investigation
 load runs remain pending.
 
-**Tests:** Backend tests run against in-memory SQLite with `StaticPool`; Ruff passes. The
-DummyCommerce suite was not runnable here because its environment has no pytest installed.
-The prior count of 214 (199 backend + 15 DummyCommerce) is stale. Backend tests also verify
-the new ingestion behavior. CI runs both suites.
+**Tests:** The backend suite has 249 tests and runs against in-memory SQLite with `StaticPool`;
+all pass, and Ruff passes. The DummyCommerce suite was not runnable here because its
+environment has no pytest installed. CI runs both suites.
 (E, F, I, UP, B; line length 100). Both run in CI on every push.
 
 ### Known limits of the current build
@@ -167,7 +166,9 @@ the new ingestion behavior. CI runs both suites.
 - Phase 4 is implemented. One full API investigation ran through Celery/Redis and PostgreSQL,
   including one ingested evidence record. A fake-model Celery run completed 8 investigations
   across 4 worker threads, with 24 fake calls matching a 24-call PostgreSQL budget increase
-  and peak concurrency 4/4. The worker-loss/resume acceptance remains unverified.
+  and peak concurrency 4/4. A prefork worker child was then killed during `root_cause` after
+  the planner checkpoint committed; Celery redelivered the task, the investigation completed,
+  the planner ran once, and all 4 fake calls matched the 4-call budget increase.
 - Log ingestion and rule-based detection are implemented in Phase 1, with batches handled by
   a dedicated Celery queue. The live 10k replay passed. The 10-VU 500-record k6 run accepted
   815 requests at 26.82 requests/s with zero HTTP failures, but p95 was 632.85 ms; the 50 ms
@@ -192,7 +193,7 @@ Summarised:
 | 1 | **Implemented; latency acceptance failed.** `POST /ingest/logs` authenticates and queues bounded batches to a dedicated Celery ingestion worker; indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The 10-VU k6 run accepted 815 500-record requests at 26.82 requests/s with zero HTTP failures; p95 was 632.85 ms against the 50 ms target. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented and measured.** The live API/PostgreSQL replay produced 400 failures → 6 incidents (66.7:1). The replay command tags each run and waits for all ingestion and detection work before measuring. | Measure how many repeated failures collapse into incidents. |
 | 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 23.63 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
-| 4 | **Concurrency and budget acceptance measured; worker-loss acceptance pending.** A fake-model Celery run completed 8 investigations across 4 worker threads; 24 fake calls matched a 24-call PostgreSQL budget increase, with peak concurrency 4/4. The measurement uses the Celery thread pool on Windows; worker-loss/resume remains unverified. | Removes the in-process queue and per-process budget limit. |
+| 4 | **Acceptance measured.** Eight fake-model investigations completed across four Celery worker threads; 24 fake calls matched the PostgreSQL budget increment, with peak concurrency 4/4. A separate prefork worker-loss test killed the child in `root_cause` after the planner checkpoint; Celery redelivered, resumed, and completed with the planner saved once and a 4-call budget increase matching 4 fake calls. The concurrency test uses the thread pool on Windows; the recovery test uses a Docker prefork worker. | Removes the in-process queue and per-process budget limit. |
 | 5 | **Complete the live baseline and human review.** The 50-scenario harness, grading, caching and calibration tooling are built (section 3). Run all cases under the existing quota, then independently check ten judge decisions. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Implemented; live load measurement pending.** OpenTelemetry request-to-Celery-to-agent traces, Prometheus metrics, and k6 scripts for ingestion, register reads, and investigation submission are built. Docker/k6 acceptance run remains pending. | p95 and throughput measured rather than asserted. |
 | 7 | **Implemented; live integration run pending.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Slack delivery requires `SLACK_WEBHOOK_URL`; the live Compose scheduler verification remains pending. | Reads as an on-call tool, not a ticket tracker. |

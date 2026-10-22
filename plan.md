@@ -154,6 +154,9 @@ python -m scripts.measure_distributed_investigations
 # Requires a seeded disposable PostgreSQL database ending in _test and a Redis broker.
 # The fake model makes no provider requests; the harness checks eight runs, four-way
 # concurrency, and equality between fake calls and the PostgreSQL budget increment.
+python -m scripts.measure_worker_recovery
+# Requires Docker, a seeded _test PostgreSQL container, and MANGO_TEST_POSTGRES_CONTAINER.
+# The harness kills a prefork child during a fake root-cause call and checks redelivery/resume.
 ```
 
 **Unlocks:** concurrency figures, and deletes two of the three caveats in the README.

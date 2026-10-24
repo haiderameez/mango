@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dfdedb">
+  <title>Night Window Coffee</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ground: #dfdedb;
+      --paper: #f0efeb;
+      --paper-side: #d3d2ce;
+      --ink: #26251e;
+      --muted: #55534c;
+      --blue: #2456d6;
+      --blue-soft: #dbe3f8;
+      --line: #aaa9a3;
+      --font: "General Sans", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font: 400 16px/1.45 var(--font);
+    }
+    button, select { font: inherit; }
+    button, a, select { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, select:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 4px;
+    }
+    .frame { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+    .header-action {
+      padding: 11px 15px; background: var(--blue); color: #fff; font-size: 14px;
+      text-decoration: none; transition: background-color .16s ease, transform .16s ease;
+    }
+    .header-action:hover { background: #1d48b6; transform: translateY(-1px); }
+    header {
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); }
+    .window-mark { display: block; width: 34px; height: 34px; color: var(--blue); }
+    .brand-name { font-size: 16px; font-weight: 700; letter-spacing: -.035em; }
+    nav { display: flex; gap: 30px; align-items: center; }
+    nav a, .text-link { color: var(--ink); font-size: 14px; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    nav a:hover, .text-link:hover { color: var(--blue); }
+    .head-note { color: var(--muted); font-size: 14px; }
+    main { padding: 8px 0 52px; }
+    .receipt {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      min-height: 570px;
+      background: var(--paper);
+      clip-path: polygon(0 0, 100% 0, 100% 99.15%, 98.8% 100%, 97.6% 99.15%, 96.4% 100%, 95.2% 99.15%, 94% 100%, 92.8% 99.15%, 91.6% 100%, 90.4% 99.15%, 89.2% 100%, 88% 99.15%, 86.8% 100%, 85.6% 99.15%, 84.4% 100%, 83.2% 99.15%, 82% 100%, 80.8% 99.15%, 79.6% 100%, 78.4% 99.15%, 77.2% 100%, 76% 99.15%, 74.8% 100%, 73.6% 99.15%, 72.4% 100%, 71.2% 99.15%, 70% 100%, 68.8% 99.15%, 67.6% 100%, 66.4% 99.15%, 65.2% 100%, 64% 99.15%, 62.8% 100%, 61.6% 99.15%, 60.4% 100%, 59.2% 99.15%, 58% 100%, 56.8% 99.15%, 55.6% 100%, 54.4% 99.15%, 53.2% 100%, 52% 99.15%, 50.8% 100%, 49.6% 99.15%, 48.4% 100%, 47.2% 99.15%, 46% 100%, 44.8% 99.15%, 43.6% 100%, 42.4% 99.15%, 41.2% 100%, 40% 99.15%, 38.8% 100%, 37.6% 99.15%, 36.4% 100%, 35.2% 99.15%, 34% 100%, 32.8% 99.15%, 31.6% 100%, 30.4% 99.15%, 29.2% 100%, 28% 99.15%, 26.8% 100%, 25.6% 99.15%, 24.4% 100%, 23.2% 99.15%, 22% 100%, 20.8% 99.15%, 19.6% 100%, 18.4% 99.15%, 17.2% 100%, 16% 99.15%, 14.8% 100%, 13.6% 99.15%, 12.4% 100%, 11.2% 99.15%, 10% 99.15%, 8.8% 100%, 7.6% 99.15%, 6.4% 100%, 5.2% 99.15%, 4% 100%, 2.8% 99.15%, 1.6% 100%, .4% 99.15%, 0 100%);
+    }
+    .product-side { padding: 56px 56px 64px; display: flex; flex-direction: column; justify-content: space-between; }
+    .product-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+    h1 { max-width: 510px; margin: 36px 0 18px; font-size: clamp(42px, 5vw, 68px); line-height: .98; letter-spacing: -.06em; font-weight: 700; }
+    .intro { max-width: 440px; margin: 0; font-size: 18px; color: var(--ink); }
+    .bag-wrap { display: grid; place-items: center; min-height: 240px; margin: 12px 0 4px; }
+    .bag-art { width: min(255px, 78%); height: auto; overflow: visible; }
+    .product-name { margin: 8px 0 5px; font-size: 18px; font-weight: 700; letter-spacing: -.03em; }
+    .product-note { margin: 0; color: var(--muted); font-size: 14px; }
+    .checkout { padding: 56px 52px 64px; background: var(--paper-side); display: flex; flex-direction: column; }
+    .checkout h2 { margin: 0 0 28px; font-size: 26px; letter-spacing: -.045em; line-height: 1.05; }
+    .field { display: grid; gap: 8px; margin-bottom: 23px; }
+    label { font-size: 14px; }
+    select {
+      width: 100%; min-height: 48px; padding: 10px 12px; color: var(--ink);
+      background: var(--paper); border: 1px solid var(--line); border-radius: 0;
+    }
+    .price-row { display: flex; justify-content: space-between; align-items: baseline; margin: 10px 0 24px; }
+    .price { font-size: 26px; font-weight: 700; letter-spacing: -.04em; }
+    .unit { color: var(--muted); font-size: 14px; }
+    .actions { display: grid; gap: 12px; }
+    .button {
+      width: 100%; min-height: 50px; padding: 12px 16px; border: 0; border-radius: 0;
+      cursor: pointer; transition: background-color .16s ease, transform .16s ease;
+    }
+    .button:active { transform: translateY(1px); }
+    .button-primary { background: var(--blue); color: white; }
+    .button-primary:hover { background: #1d48b6; }
+    .button-secondary { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+    .button-secondary:hover { color: var(--blue); }
+    .receipt-result { min-height: 52px; margin-top: 17px; padding: 12px; background: var(--paper); color: var(--muted); font-size: 14px; }
+    .receipt-result[data-kind="error"] { color: #7b342e; }
+    .receipt-result[data-kind="success"] { color: #24563b; }
+    .delivery { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin-top: auto; padding-top: 28px; }
+    .delivery-title { font-size: 14px; }
+    .delivery-state { color: var(--muted); font-size: 14px; text-align: right; }
+    .delivery-note { grid-column: 1 / -1; color: var(--muted); font-size: 14px; }
+    .trace { display: grid; grid-template-columns: .8fr 1.2fr; gap: 54px; padding: 52px 4px 30px; align-items: start; }
+    .trace h2, .field-media h2, .photo-strip h2 { margin: 0 0 12px; font-size: 26px; letter-spacing: -.045em; }
+    .trace p { margin: 0; max-width: 340px; color: var(--ink); }
+    .event-list { list-style: none; margin: 0; padding: 0; }
+    .event-list li { display: grid; grid-template-columns: 78px 1fr; gap: 14px; padding: 11px 0; font-size: 14px; }
+    .event-level { color: var(--muted); }
+    .event-level.error { color: #7b342e; }
+    .empty { color: var(--muted); font-size: 14px; padding: 10px 0; }
+    .field-media { display: grid; grid-template-columns: 1.15fr .85fr; gap: 22px; align-items: stretch; padding: 34px 0 12px; }
+    .field-media h2 { margin-bottom: 10px; }
+    .field-media p { max-width: 380px; margin: 0; color: var(--ink); }
+    .roast-video { display: block; width: 100%; height: 100%; min-height: 200px; object-fit: cover; background: var(--paper-side); }
+    .photo-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 0 26px; }
+    .photo-strip h2 { grid-column: 1 / -1; margin-bottom: 2px; }
+    .photo-strip figure { margin: 0; min-width: 0; }
+    .photo-strip img { display: block; width: 100%; aspect-ratio: 1.3; object-fit: cover; background: var(--paper-side); }
+    .photo-strip figcaption { padding-top: 7px; color: var(--muted); font-size: 14px; }
+    .credits { padding: 12px 2px 20px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .credits a { color: var(--ink); text-underline-offset: 3px; }
+    footer { display: flex; justify-content: space-between; gap: 16px; padding: 20px 2px 28px; color: var(--muted); font-size: 14px; }
+    footer a { color: var(--ink); }
+    @media (max-width: 760px) {
+      .frame { width: min(560px, calc(100% - 32px)); }
+      header { height: 72px; }
+      nav { display: none; }
+      .brand-name { font-size: 15px; }
+      .header-action { padding: 10px 12px; font-size: 13px; }
+      .head-note { display: none; }
+      main { padding-top: 2px; }
+      .receipt { grid-template-columns: 1fr; }
+      .product-side { padding: 34px 28px 36px; }
+      h1 { margin-top: 27px; font-size: clamp(43px, 12vw, 62px); }
+      .bag-wrap { min-height: 190px; }
+      .bag-art { width: 190px; }
+      .checkout { padding: 32px 28px 50px; }
+      .checkout h2 { margin-bottom: 20px; }
+      .trace { grid-template-columns: 1fr; gap: 23px; padding: 35px 4px 26px; }
+      .field-media { grid-template-columns: 1fr; gap: 15px; }
+      .roast-video { min-height: auto; aspect-ratio: 16 / 9; }
+      .photo-strip { grid-template-columns: repeat(2, 1fr); gap: 16px 10px; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .brand, .receipt, .trace, .field-media, .photo-strip figure, footer {
+        animation: arrive .55s cubic-bezier(.2,.7,.2,1) both;
+      }
+      .receipt { animation-delay: .06s; }
+      .trace { animation-delay: .12s; }
+      .field-media { animation-delay: .18s; }
+      .photo-strip figure:nth-child(2) { animation-delay: .04s; }
+      .photo-strip figure:nth-child(3) { animation-delay: .08s; }
+      .photo-strip figure:nth-child(4) { animation-delay: .12s; }
+      @keyframes arrive { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+      .bag-art { animation: bag-rest 5s ease-in-out 1s infinite; }
+      @keyframes bag-rest { 50% { transform: translateY(-4px); } }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <a class="brand" href="#top" aria-label="Night Window Coffee home">
+        <svg class="window-mark" viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M5 5h26v26H5zM18 5v26M5 18h26" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 8h7v7H8zM21 21h7v7h-7z" fill="currentColor"/>
+        </svg>
+        <span class="brand-name">Night Window Coffee</span>
+      </a>
+      <nav aria-label="Page navigation">
+        <a href="#roast">The roast</a>
+        <a href="#signal">App trail</a>
+      </nav>
+      <a class="header-action" href="#checkout">Order coffee</a>
+      <span class="head-note">Roasted for the late shift</span>
+    </header>
+
+    <main id="top">
+      <section class="receipt" aria-labelledby="title">
+        <div class="product-side" id="roast">
+          <div>
+            <div class="product-top">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-label="Two window panes">
+                <path d="M2 2h24v24H2zM14 2v24M2 14h24" fill="none" stroke="#2456d6" stroke-width="1.7"/>
+              </svg>
+            </div>
+            <h1 id="title">Coffee for the long watch.</h1>
+            <p class="intro">A steady, dark roast for the hours when the city goes quiet and the queue does not.</p>
+          </div>
+          <div>
+            <div class="bag-wrap">
+              <svg class="bag-art" viewBox="0 0 260 300" role="img" aria-label="Illustration of a Night Window coffee bag">
+                <path d="M58 33 75 13h110l17 20 17 245H41z" fill="#26251e"/>
+                <path d="M58 33h144l5 27H53z" fill="#3a3932"/>
+                <path d="M75 14h110l-8 18H83z" fill="#504e46"/>
+                <path d="M62 78h136v156H62z" fill="#dfdedb"/>
+                <path d="M82 96h96v96H82z" fill="#2456d6"/>
+                <path d="M130 96v96M82 144h96" stroke="#dfdedb" stroke-width="5"/>
+                <path d="M91 205h78" stroke="#26251e" stroke-width="2"/>
+                <text x="130" y="219" text-anchor="middle" fill="#26251e" font-size="10" font-family="sans-serif" letter-spacing="1.2">NIGHT WINDOW</text>
+                <text x="130" y="234" text-anchor="middle" fill="#26251e" font-size="8" font-family="sans-serif" letter-spacing="1">DARK ROAST · 250 G</text>
+              </svg>
+            </div>
+            <h2 class="product-name">Night Blend</h2>
+            <p class="product-note">Cocoa · toasted pecan · a clean finish</p>
+          </div>
+        </div>
+
+        <div class="checkout" id="checkout">
+          <h2>Your order slip</h2>
+          <div class="field">
+            <label for="product">Roast</label>
+            <select id="product" name="product">
+              <option value="night-blend">Night Blend · dark roast</option>
+              <option value="early-light">Early Light · medium roast</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="quantity">Bags</label>
+            <select id="quantity" name="quantity">
+              <option value="1">One bag</option>
+              <option value="2">Two bags</option>
+              <option value="3">Three bags</option>
+            </select>
+          </div>
+          <div class="price-row"><span class="price" id="price">$18</span><span class="unit">per 250 g bag</span></div>
+          <div class="actions">
+            <button class="button button-primary" id="place-order" type="button">Place a test order</button>
+            <button class="button button-secondary" id="simulate-outage" type="button">Simulate a payment outage</button>
+          </div>
+          <div class="receipt-result" id="result" aria-live="polite">A normal order writes one INFO event to the app log.</div>
+          <div class="delivery" aria-live="polite">
+            <span class="delivery-title">Mango log delivery</span>
+            <span class="delivery-state" id="delivery-state">Checking…</span>
+            <span class="delivery-note" id="delivery-note">App events are stored locally and sent as JSONL.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="field-media" aria-labelledby="field-heading">
+        <div>
+          <h2 id="field-heading">A little time at the roaster</h2>
+          <p>A short look at beans cooling after a roast, followed by a few scenes from harvest, drying, roasting, and brewing. These are reference images, not photos of this fictional shop.</p>
+        </div>
+        <video class="roast-video" controls preload="metadata" poster="/assets/kaffe-ystad-2024-poster.jpg" width="854" height="480" aria-label="Coffee beans cooling after roasting at a small roastery">
+          <source src="/assets/kaffe-ystad-2024.webm" type="video/webm">
+          Your browser does not support this video.
+        </video>
+      </section>
+
+    <section class="photo-strip" aria-labelledby="coffee-journey">
+        <h2 id="coffee-journey">From harvest to cup</h2>
+        <figure><img src="/assets/hands-that-are-picking-coffee-beans-from.jpg" width="1920" height="1280" alt="Hands picking ripe coffee cherries from a coffee tree" loading="lazy" decoding="async"><figcaption>At the harvest</figcaption></figure>
+        <figure><img src="/assets/drying-of-coffee-beans.jpg" width="1920" height="1434" alt="Coffee beans laid out to dry after harvest" loading="lazy" decoding="async"><figcaption>Drying the beans · 1955</figcaption></figure>
+        <figure><img src="/assets/coffee-roasting-machine-at-cucuta-colombia.jpg" width="1600" height="1200" alt="A coffee roaster at work in Cúcuta, Colombia" loading="lazy" decoding="async"><figcaption>At the roaster</figcaption></figure>
+        <figure><img src="/assets/coffee-pour-over-setup.jpg" width="1920" height="1226" alt="Pour-over coffee setup with kettle, grinder, and scale" loading="lazy" decoding="async"><figcaption>Into the cup</figcaption></figure>
+      </section>
+
+      <section class="trace" id="signal" aria-labelledby="signal-heading">
+        <div>
+          <h2 id="signal-heading">The app trail</h2>
+          <p>These are real checkout events from this service. Three matching payment failures produce one Mango incident with three occurrences.</p>
+        </div>
+        <ol class="event-list" id="events" aria-live="polite"><li class="empty">No orders yet. Try a checkout above.</li></ol>
+      </section>
+    </main>
+
+    <footer>
+      <span>Night Window Coffee · A local Mango integration example</span>
+      <a id="mango-link" href="http://localhost:8000/console" target="_blank" rel="noreferrer">Open the Mango console</a>
+    </footer>
+    <p class="credits">Pictures and footage: <a href="https://commons.wikimedia.org/wiki/File:Hands-that-are-picking-coffee-beans-from-coffee-tree.jpg">“Hands-that-are-picking-coffee-beans-from-coffee-tree”</a> by Saddymonster, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Photo_Drying_of_coffee_beans_1955_-_Touring_Club_Italiano_1.2765.jpg">“Drying of coffee beans”</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Coffee_roasting_machine_at_C%C3%BAcuta,_Colombia.jpg">roasting machine at Cúcuta</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a>; <a href="https://commons.wikimedia.org/wiki/File:Coffee_Pour_Over_Setup.jpg">“Coffee Pour Over Setup”</a> by Cerebral726, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; and <a href="https://commons.wikimedia.org/wiki/File:Kaffe_-_Ystad-2024.ogg">“Kaffe - Ystad-2024”</a> by Foto: Jonn Leffmann, <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. All via Wikimedia Commons.</p>
+  </div>
+  <script>
+    const result = document.querySelector('#result');
+    const product = document.querySelector('#product');
+    const quantity = document.querySelector('#quantity');
+    const roastVideo = document.querySelector('.roast-video');
+    const prices = { 'night-blend': '$18', 'early-light': '$17' };
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let roastVideoVisible = false;
+    roastVideo.muted = true;
+    roastVideo.loop = true;
+    const videoObserver = new IntersectionObserver(([entry]) => {
+      roastVideoVisible = entry.isIntersecting;
+      if (reducedMotion.matches || !roastVideoVisible) {
+        roastVideo.pause();
+      } else {
+        roastVideo.play().catch(() => {});
+      }
+    }, { threshold: 0.25 });
+    videoObserver.observe(roastVideo);
+    reducedMotion.addEventListener('change', () => {
+      if (reducedMotion.matches || !roastVideoVisible) {
+        roastVideo.pause();
+      } else {
+        roastVideo.play().catch(() => {});
+      }
+    });
+
+    product.addEventListener('change', () => {
+      document.querySelector('#price').textContent = prices[product.value];
+    });
+
+    async function submitOrder(simulateFailure = false) {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: product.value,
+          quantity: Number(quantity.value),
+          simulate_failure: simulateFailure,
+        }),
+      });
+      return { response, body: await response.json() };
+    }
+
+    document.querySelector('#place-order').addEventListener('click', async (event) => {
+      event.currentTarget.disabled = true;
+      result.dataset.kind = '';
+      result.textContent = 'Sending the order…';
+      try {
+        const { response, body } = await submitOrder(false);
+        result.dataset.kind = response.ok ? 'success' : 'error';
+        result.textContent = response.ok
+          ? `${body.quantity} × ${body.product} recorded. The app wrote an INFO event.`
+          : body.message;
+      } catch {
+        result.dataset.kind = 'error';
+        result.textContent = 'The local shop service could not be reached.';
+      } finally {
+        event.currentTarget.disabled = false;
+        refreshState();
+      }
+    });
+
+    document.querySelector('#simulate-outage').addEventListener('click', async (event) => {
+      event.currentTarget.disabled = true;
+      document.querySelector('#place-order').disabled = true;
+      result.dataset.kind = 'error';
+      result.textContent = 'Sending three failed checkout attempts…';
+      let sent = 0;
+      try {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          await submitOrder(true);
+          sent += 1;
+        }
+        result.textContent = `${sent} failures recorded. Mango will open an incident after the ingestion worker processes them.`;
+      } catch {
+        result.textContent = `${sent} of 3 attempts reached the shop service.`;
+      } finally {
+        event.currentTarget.disabled = false;
+        document.querySelector('#place-order').disabled = false;
+        refreshState();
+      }
+    });
+
+    async function refreshState() {
+      try {
+        const state = await (await fetch('/api/state')).json();
+        const delivery = state.delivery;
+        document.querySelector('#delivery-state').textContent = state.key_configured
+          ? delivery.last_status
+          : 'key not configured';
+        document.querySelector('#delivery-note').textContent = state.key_configured
+          ? `${delivery.accepted} accepted · ${delivery.failed} failed · service ${state.service}`
+          : `Set MANGO_INGEST_KEY to enable log shipping · service ${state.service}`;
+        document.querySelector('#mango-link').href = `${state.mango_url}/console`;
+        const list = document.querySelector('#events');
+        list.replaceChildren();
+        if (!state.events.length) {
+          const empty = document.createElement('li');
+          empty.className = 'empty';
+          empty.textContent = 'No orders yet. Try a checkout above.';
+          list.append(empty);
+          return;
+        }
+        for (const item of state.events) {
+          const row = document.createElement('li');
+          const level = document.createElement('span');
+          level.className = `event-level ${item.level.toLowerCase()}`;
+          level.textContent = item.level;
+          const message = document.createElement('span');
+          message.textContent = item.message;
+          row.append(level, message);
+          list.append(row);
+        }
+      } catch {
+        document.querySelector('#delivery-state').textContent = 'shop service unavailable';
+      }
+    }
+
+    refreshState();
+    window.setInterval(refreshState, 1500);
+  </script>
+</body>
+</html>

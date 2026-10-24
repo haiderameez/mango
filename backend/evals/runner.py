@@ -1,0 +1,251 @@
+"""Sequential graph execution with atomic, content-addressed checkpoints.
+
+Run in a dedicated process while the API's LLM worker is stopped: v1's quota guard
+is process-local. Neither an evaluation nor its model needs a database connection.
+"""
+
+import hashlib
+import json
+import subprocess
+from datetime import UTC, datetime
+from pathlib import Path
+
+import yaml
+
+from app.ai import graph
+from app.core.config import settings
+from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
+from evals import grading
+from evals.models import Judgment, Labels, Scenario
+
+BACKEND = Path(__file__).resolve().parents[1]
+
+
+def digest(value) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+
+
+def source_hash(paths: list[Path]) -> str:
+    return digest(
+        {p.relative_to(BACKEND).as_posix(): p.read_text(encoding="utf-8") for p in sorted(paths)}
+    )
+
+
+def identity(retrieval: str = "off") -> dict:
+    if retrieval not in {"off", "on"}:
+        raise ValueError("Retrieval mode must be 'off' or 'on'.")
+    return {
+        "provider": settings.llm_provider,
+        "model": {
+            "gemini": settings.gemini_model,
+            "anthropic": settings.anthropic_model,
+            "openrouter": settings.openrouter_model,
+        }[settings.llm_provider],
+        "pipeline_hash": source_hash(
+            list((BACKEND / "app" / "ai").glob("*.py"))
+            + [BACKEND / "app" / "services" / "evidence.py"]
+        ),
+        "runner_hash": source_hash([Path(__file__)]),
+        "window_minutes": settings.evidence_window_minutes,
+        "max_records": settings.evidence_max_records,
+        "show_thinking": settings.llm_show_thinking,
+        "retrieval": retrieval,
+    }
+
+
+def provenance() -> dict:
+    def git(*args):
+        return subprocess.check_output(
+            ["git", *args], cwd=BACKEND, text=True, encoding="utf-8"
+        ).strip()
+
+    return {
+        "commit": git("rev-parse", "HEAD"),
+        "dirty": bool(git("status", "--porcelain")),
+        "date": datetime.now(UTC).isoformat(),
+    }
+
+
+def load_scenarios(directory: Path) -> list[tuple[Scenario, Path]]:
+    result = []
+    for path in sorted(directory.glob("*.yaml")):
+        scenario = Scenario.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+        if scenario.id != path.stem:
+            raise ValueError(f"Scenario ID does not match filename: {path.name}")
+        log_path = path.with_suffix(".jsonl")
+        for line in log_path.read_text(encoding="utf-8").splitlines():
+            record = json.loads(line)
+            if not isinstance(record, dict) or "timestamp" not in record:
+                raise ValueError(f"Invalid log fixture: {log_path.name}")
+            if {"fault", "category", "root_cause", "fix"} & record.keys():
+                raise ValueError(f"Answer metadata in log fixture: {log_path.name}")
+        result.append((scenario, log_path))
+    if not result:
+        raise ValueError("No scenarios found")
+    if {p.stem for p in directory.glob("*.jsonl")} != {s.id for s, _ in result}:
+        raise ValueError("Every log fixture must have one answer key")
+    return result
+
+
+def save(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.replace(path)
+
+
+def read(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def _pipeline_identity(context: dict) -> dict:
+    return {key: value for key, value in context.items() if key != "runner_hash"}
+
+
+def _cached_pipeline(cache: Path, context: dict, incident: dict, logs: str):
+    key = digest(
+        {"identity": _pipeline_identity(context), "incident": incident, "logs": logs}
+    )
+    path = cache / "pipeline" / f"{key}.json"
+    record = read(path)
+    if record:
+        return key, path, record
+
+    # Older cache files included runner_hash in the key. Reuse one only when its
+    # recorded model, pipeline, evidence settings, retrieval mode and inputs match.
+    for candidate in sorted((cache / "pipeline").glob("*.json")):
+        previous = read(candidate)
+        previous_identity = previous.get("identity")
+        if not previous_identity or _pipeline_identity(previous_identity) != _pipeline_identity(
+            context
+        ):
+            continue
+        previous_key = digest(
+            {"identity": previous_identity, "incident": incident, "logs": logs}
+        )
+        if candidate.stem == previous_key:
+            return previous_key, candidate, previous
+    return key, path, {}
+
+
+def evaluate(scenario: Scenario, log_path: Path, cache: Path, context: dict) -> dict:
+    incident = scenario.incident.model_dump(mode="json")
+    pipeline_key, path, record = _cached_pipeline(
+        cache, context, incident, log_path.read_text(encoding="utf-8")
+    )
+    record = record or {
+        "state": {"incident": incident},
+        "completed": [],
+        "executions": [],
+        "provenance": provenance(),
+        "identity": context,
+        "key": pipeline_key,
+    }
+    completed = record["completed"]
+    if completed != graph.NODE_ORDER[: len(completed)]:
+        raise ValueError("Invalid graph checkpoint order")
+    previous_path = settings.dummycommerce_log_path
+    previous_history_setting = settings.incident_history_enabled
+    retrieval_enabled = context.get("retrieval", "off") == "on"
+    try:
+        settings.dummycommerce_log_path = str(log_path)
+        settings.incident_history_enabled = retrieval_enabled
+        if len(completed) < len(graph.NODE_ORDER):
+            history_db = None
+            history_service = None
+            if retrieval_enabled:
+                from app.database.session import SessionLocal
+                from app.repositories.incident_history_repository import IncidentHistoryRepository
+                from app.services.incident_history import IncidentHistoryService
+
+                history_db = SessionLocal()
+                history_service = IncidentHistoryService(IncidentHistoryRepository(history_db))
+            try:
+                workflow = graph.build_graph(
+                    start_at=graph.NODE_ORDER[len(completed)], history_service=history_service
+                )
+                for update in workflow.stream(record["state"], stream_mode="updates"):
+                    for name, delta in update.items():
+                        record["state"].update(delta)
+                        completed.append(name)
+                        record["executions"].append(
+                            {
+                                "node": name,
+                                "output": delta,
+                                "thinking": graph.take_thinking(),
+                                "finished_at": datetime.now(UTC).isoformat(),
+                            }
+                        )
+                        save(path, record)
+            finally:
+                if history_db is not None:
+                    history_db.close()
+    finally:
+        settings.dummycommerce_log_path = previous_path
+        settings.incident_history_enabled = previous_history_setting
+        graph.take_thinking()
+
+    # Label extraction does not depend on the answer key. Updating an answer must
+    # re-judge and re-score, not purchase another investigation or extraction.
+    grader_hash = source_hash([BACKEND / "evals" / "grading.py", BACKEND / "evals" / "models.py"])
+    labels_key = digest({"pipeline": pipeline_key, "grader": grader_hash})
+    labels_path = cache / "labels" / f"{labels_key}.json"
+    labels_record = read(labels_path)
+    if not labels_record:
+        labels = grading.extract_labels(record["state"]["root_cause"])
+        graph.take_thinking()
+        labels_record = {"labels": labels.model_dump(), "provenance": provenance()}
+        save(labels_path, labels_record)
+    labels = Labels.model_validate(labels_record["labels"])
+    judge_key = digest({"labels": labels_key, "answer": scenario.answer()})
+    judge_path = cache / "judgments" / f"{judge_key}.json"
+    judge_record = read(judge_path)
+    if not judge_record:
+        judgment = grading.judge_report(record["state"]["report"], scenario.answer())
+        graph.take_thinking()
+        judge_record = {"judgment": judgment.model_dump(), "provenance": provenance()}
+        save(judge_path, judge_record)
+    judgment = Judgment.model_validate(judge_record["judgment"])
+    return {
+        "id": scenario.id,
+        "family": scenario.family,
+        "variant": scenario.variant,
+        "status": "completed",
+        "confidence": record["state"]["root_cause"]["confidence"],
+        "scores": grading.score(labels, judgment, scenario.answer()),
+        "labels": labels.model_dump(),
+        "judgment": judgment.model_dump(),
+        "answer": scenario.answer(),
+        "pipeline_key": pipeline_key,
+        "judge_key": judge_key,
+        "pipeline": record,
+        "judge_provenance": judge_record["provenance"],
+    }
+
+
+def run(
+    scenarios: list, cache: Path, *, limit: int | None = None, retrieval: str = "off"
+) -> dict:
+    context = identity(retrieval)
+    results = []
+    stopped = None
+    for index, (scenario, log_path) in enumerate(scenarios):
+        if stopped or (limit is not None and index >= limit):
+            results.append({"id": scenario.id, "status": "pending"})
+            continue
+        try:
+            results.append(evaluate(scenario, log_path, cache, context))
+        except (LlmQuotaExhaustedError, LlmRateLimitedError) as error:
+            stopped = type(error).__name__
+            results.append({"id": scenario.id, "status": "pending", "error": stopped})
+        except Exception as error:
+            # Do not persist arbitrary provider errors: they may contain credentials.
+            stopped = type(error).__name__
+            results.append({"id": scenario.id, "status": "failed", "error": stopped})
+    return {
+        "identity": context,
+        "provenance": provenance(),
+        "results": results,
+        "stopped": stopped,
+        "total": len(scenarios),
+    }

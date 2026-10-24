@@ -1,5 +1,8 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
+from app.models.incident import Incident
 from tests.conftest import auth_headers
 
 
@@ -62,6 +65,19 @@ def test_list_incidents_is_newest_first(client, headers):
     body = client.get("/incidents", headers=headers).json()
 
     assert [i["id"] for i in body] == [second["id"], first["id"]]
+
+
+def test_list_incidents_orders_by_created_time_not_identifier(client, headers, db):
+    first = create_incident(client, headers, title="first inserted")
+    second = create_incident(client, headers, title="second inserted")
+    now = datetime.now(UTC)
+    db.get(Incident, first["id"]).created_at = now - timedelta(minutes=1)
+    db.get(Incident, second["id"]).created_at = now - timedelta(minutes=2)
+    db.commit()
+
+    body = client.get("/incidents", headers=headers).json()
+
+    assert [incident["id"] for incident in body[:2]] == [first["id"], second["id"]]
 
 
 def test_assign_incident_as_creator(client, headers, other_headers):

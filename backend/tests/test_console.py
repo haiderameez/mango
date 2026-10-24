@@ -27,6 +27,14 @@ def test_the_page_signs_in_through_the_ordinary_auth_endpoints(client):
     assert "/auth/me" in page
 
 
+def test_console_has_clearable_search_and_a_multiline_case_description(client):
+    page = client.get("/console").text
+
+    assert 'aria-label="Clear case title search"' in page
+    assert 'id="q-clear"' in page
+    assert '<textarea class="inp" id="n-desc"' in page
+
+
 def test_every_data_endpoint_the_console_uses_rejects_an_anonymous_caller(client, headers):
     created = client.post(
         "/incidents", json={"title": "x", "severity": "LOW"}, headers=headers

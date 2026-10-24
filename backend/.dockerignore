@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+.venv/
 .llm_quota.json
 tests/
 .pytest_cache/

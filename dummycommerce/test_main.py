@@ -95,3 +95,16 @@ def test_missing_mango_credentials_do_not_break_the_app(client):
 
     assert client.post("/orders", json={"product_id": 1}).status_code == 502
     assert any("credentials not configured" in r["message"] for r in log_records())
+
+
+@pytest.mark.parametrize("fault", [
+    "memory_pressure", "disk_full", "missing_field", "invalid_credentials",
+    "invalid_endpoint", "lock_contention",
+])
+def test_benchmark_faults_emit_their_diagnostic_sequence(client, fault):
+    assert client.post(f"/faults/{fault}").status_code == 200
+    response = client.post("/orders", json={"product_id": 1})
+    assert response.status_code == main.FAULTS[fault]["status"]
+    events = [r for r in log_records() if r.get("fault") == fault]
+    assert [r["message"] for r in events] == [e[1] for e in main.FAULTS[fault]["events"]]
+    assert len({r["request_id"] for r in events}) == 1

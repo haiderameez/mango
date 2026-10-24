@@ -1,0 +1,223 @@
+{
+  "command": "python -m evals.run --report --cache 'evals\\.cache\\qwen-2026-10-22' --output 'evals\\qwen-2026-10-22'",
+  "identity": {
+    "max_records": 50,
+    "model": "qwen/qwen3-30b-a3b-instruct-2507",
+    "pipeline_hash": "855a02cf1f0cd46a6f155864b44df8dd38dd9a7eed99281a40895c028970b5fe",
+    "provider": "openrouter",
+    "retrieval": "off",
+    "runner_hash": "bd6e0c40c5bb346515238375fbc8ec022d2eab4e2b25777f08e7008c01630fb5",
+    "show_thinking": true,
+    "window_minutes": 15
+  },
+  "provenance": {
+    "commit": "295d8e23c310cb765ec0ea6f1dfaf5c9c4bf9563",
+    "date": "2026-10-22T18:05:49.201932+00:00",
+    "dirty": true
+  },
+  "results": [
+    {
+      "error": "LlmQuotaExhaustedError",
+      "id": "case-01",
+      "status": "pending"
+    },
+    {
+      "id": "case-02",
+      "status": "pending"
+    },
+    {
+      "id": "case-03",
+      "status": "pending"
+    },
+    {
+      "id": "case-04",
+      "status": "pending"
+    },
+    {
+      "id": "case-05",
+      "status": "pending"
+    },
+    {
+      "id": "case-06",
+      "status": "pending"
+    },
+    {
+      "id": "case-07",
+      "status": "pending"
+    },
+    {
+      "id": "case-08",
+      "status": "pending"
+    },
+    {
+      "id": "case-09",
+      "status": "pending"
+    },
+    {
+      "id": "case-10",
+      "status": "pending"
+    },
+    {
+      "id": "case-11",
+      "status": "pending"
+    },
+    {
+      "id": "case-12",
+      "status": "pending"
+    },
+    {
+      "id": "case-13",
+      "status": "pending"
+    },
+    {
+      "id": "case-14",
+      "status": "pending"
+    },
+    {
+      "id": "case-15",
+      "status": "pending"
+    },
+    {
+      "id": "case-16",
+      "status": "pending"
+    },
+    {
+      "id": "case-17",
+      "status": "pending"
+    },
+    {
+      "id": "case-18",
+      "status": "pending"
+    },
+    {
+      "id": "case-19",
+      "status": "pending"
+    },
+    {
+      "id": "case-20",
+      "status": "pending"
+    },
+    {
+      "id": "case-21",
+      "status": "pending"
+    },
+    {
+      "id": "case-22",
+      "status": "pending"
+    },
+    {
+      "id": "case-23",
+      "status": "pending"
+    },
+    {
+      "id": "case-24",
+      "status": "pending"
+    },
+    {
+      "id": "case-25",
+      "status": "pending"
+    },
+    {
+      "id": "case-26",
+      "status": "pending"
+    },
+    {
+      "id": "case-27",
+      "status": "pending"
+    },
+    {
+      "id": "case-28",
+      "status": "pending"
+    },
+    {
+      "id": "case-29",
+      "status": "pending"
+    },
+    {
+      "id": "case-30",
+      "status": "pending"
+    },
+    {
+      "id": "case-31",
+      "status": "pending"
+    },
+    {
+      "id": "case-32",
+      "status": "pending"
+    },
+    {
+      "id": "case-33",
+      "status": "pending"
+    },
+    {
+      "id": "case-34",
+      "status": "pending"
+    },
+    {
+      "id": "case-35",
+      "status": "pending"
+    },
+    {
+      "id": "case-36",
+      "status": "pending"
+    },
+    {
+      "id": "case-37",
+      "status": "pending"
+    },
+    {
+      "id": "case-38",
+      "status": "pending"
+    },
+    {
+      "id": "case-39",
+      "status": "pending"
+    },
+    {
+      "id": "case-40",
+      "status": "pending"
+    },
+    {
+      "id": "case-41",
+      "status": "pending"
+    },
+    {
+      "id": "case-42",
+      "status": "pending"
+    },
+    {
+      "id": "case-43",
+      "status": "pending"
+    },
+    {
+      "id": "case-44",
+      "status": "pending"
+    },
+    {
+      "id": "case-45",
+      "status": "pending"
+    },
+    {
+      "id": "case-46",
+      "status": "pending"
+    },
+    {
+      "id": "case-47",
+      "status": "pending"
+    },
+    {
+      "id": "case-48",
+      "status": "pending"
+    },
+    {
+      "id": "case-49",
+      "status": "pending"
+    },
+    {
+      "id": "case-50",
+      "status": "pending"
+    }
+  ],
+  "stopped": "LlmQuotaExhaustedError",
+  "total": 50
+}

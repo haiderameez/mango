@@ -1,0 +1,1736 @@
+{
+ "url": "http://127.0.0.1:8002",
+ "at": "2026-10-22T15:37:53.962Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.68,
+    0.66,
+    0.63,
+    0.29
+   ],
+   "motion": {
+    "elements": 9,
+    "css": 9,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 1,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 3102,
+     "screens": 3.4,
+     "words": 261,
+     "img": 4,
+     "video": 1,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 1,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "hands-that-are-picking-coffee-beans-from.jpg",
+      "drying-of-coffee-beans.jpg",
+      "coffee-roasting-machine-at-cucuta-colombia.jpg",
+      "coffee-pour-over-setup.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 68,
+     "vw": 4.7,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 216,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 68,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 2,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.32,
+      "top": 152,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 68,
+      "vw": 4.7,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.35,
+      "top": 216,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 2,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      68
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 11.4
+     },
+     "measureChars": 48,
+     "max": {
+      "size": 68,
+      "vw": 4.7,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.04,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#26251e",
+       "share": 0.67
+      },
+      {
+       "color": "#55534c",
+       "share": 0.29
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      },
+      {
+       "color": "#7b342e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 42,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Order coffee",
+      "Place a test order"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 5,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 88,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 3102,
+    "margins": {
+     "left": 130,
+     "right": 130
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 96,
+      "height": 759,
+      "words": 73,
+      "media": 1,
+      "middle": 192,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 68,
+       "tag": "h1"
+      },
+      "left": 186,
+      "right": 182,
+      "textLeft": 186,
+      "textRight": 182,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section.field-media",
+      "tag": "section",
+      "top": 855,
+      "height": 323,
+      "words": 37,
+      "media": 1,
+      "middle": 318,
+      "heading": {
+       "text": "A little time at the roaster",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 130,
+      "right": 130,
+      "textLeft": 130,
+      "textRight": 940,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section.photo-strip",
+      "tag": "section",
+      "top": 1178,
+      "height": 1498,
+      "words": 14,
+      "media": 4,
+      "middle": 12,
+      "heading": null,
+      "left": 130,
+      "right": 130,
+      "textLeft": 130,
+      "textRight": 346,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 2676,
+      "height": 209,
+      "words": 47,
+      "media": 0,
+      "middle": 189,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 134,
+      "right": 357,
+      "textLeft": 134,
+      "textRight": 357,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 68,
+      "top": 216,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 130,
+      "n": 4
+     },
+     {
+      "x": 186,
+      "n": 3
+     },
+     {
+      "x": 802,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 8,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.1,
+    "voidBox": {
+     "x": 0,
+     "y": 120,
+     "w": 180,
+     "h": 720
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#dfdedb",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 130,
+     "right": 130
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 68,
+     "vw": 4.7,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 216,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 2,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 25
+    },
+    "rows": null,
+    "chartHues": 1,
+    "placeholders": [],
+    "type": {
+     "under13": 0.02,
+     "tiny": 2,
+     "tinySamples": [
+      "NIGHT WINDOW 10px",
+      "DARK ROAST · 250 G 8px"
+     ],
+     "sizes": [
+      8,
+      10,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      68
+     ]
+    },
+    "title": {
+     "text": "Coffee for the long watch.",
+     "size": 68,
+     "top": 216
+    },
+    "colourShare": 0.028
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.82,
+    0.88,
+    0.45,
+    0.47
+   ],
+   "motion": {
+    "elements": 9,
+    "css": 9,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 1,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 3078,
+     "screens": 3,
+     "words": 261,
+     "img": 4,
+     "video": 1,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 1,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "hands-that-are-picking-coffee-beans-from.jpg",
+      "drying-of-coffee-beans.jpg",
+      "coffee-roasting-machine-at-cucuta-colombia.jpg",
+      "coffee-pour-over-setup.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 42,
+     "vw": 5.5,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 216,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 42,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 3.8,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.31,
+      "top": 152,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 42,
+      "vw": 5.5,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.35,
+      "top": 216,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "A little time at the roaster",
+      "words": 6,
+      "chars": 28,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.52,
+      "top": 861,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "The app trail",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 2623,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 4,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      42
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 11.4
+     },
+     "measureChars": 48,
+     "max": {
+      "size": 42,
+      "vw": 5.5,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.04,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#26251e",
+       "share": 0.67
+      },
+      {
+       "color": "#55534c",
+       "share": 0.29
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      },
+      {
+       "color": "#7b342e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 0,
+     "height": 42,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Order coffee",
+      "Place a test order"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 4,
+     "fixed": false,
+     "height": 88,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 3078,
+    "margins": {
+     "left": 24,
+     "right": 24
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 96,
+      "height": 731,
+      "words": 73,
+      "media": 1,
+      "middle": 119,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 42,
+       "tag": "h1"
+      },
+      "left": 80,
+      "right": 76,
+      "textLeft": 80,
+      "textRight": 76,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section.field-media",
+      "tag": "section",
+      "top": 827,
+      "height": 246,
+      "words": 37,
+      "media": 1,
+      "middle": 54,
+      "heading": {
+       "text": "A little time at the roaster",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 24,
+      "right": 24,
+      "textLeft": 24,
+      "textRight": 374,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section.photo-strip",
+      "tag": "section",
+      "top": 1073,
+      "height": 1498,
+      "words": 14,
+      "media": 4,
+      "middle": 12,
+      "heading": null,
+      "left": 24,
+      "right": 24,
+      "textLeft": 24,
+      "textRight": 125,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 2571,
+      "height": 270,
+      "words": 47,
+      "media": 0,
+      "middle": 56,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 28,
+      "right": 48,
+      "textLeft": 28,
+      "textRight": 48,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 42,
+      "top": 216,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 24,
+      "n": 4
+     },
+     {
+      "x": 80,
+      "n": 3
+     },
+     {
+      "x": 454,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 8,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#dfdedb",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 24,
+     "right": 24
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 42,
+     "vw": 5.5,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 216,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 2,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 25
+    },
+    "rows": null,
+    "chartHues": 1,
+    "placeholders": [],
+    "type": {
+     "under13": 0.02,
+     "tiny": 2,
+     "tinySamples": [
+      "NIGHT WINDOW 10px",
+      "DARK ROAST · 250 G 8px"
+     ],
+     "sizes": [
+      8,
+      10,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      42
+     ]
+    },
+    "title": {
+     "text": "Coffee for the long watch.",
+     "size": 42,
+     "top": 216
+    },
+    "colourShare": 0.037
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    0.91,
+    0.84,
+    0.92,
+    0.78,
+    0.92,
+    0.42,
+    0.35
+   ],
+   "motion": {
+    "elements": 9,
+    "css": 9,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 1,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 5241,
+     "screens": 6.2,
+     "words": 252,
+     "img": 4,
+     "video": 1,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 1,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "hands-that-are-picking-coffee-beans-from.jpg",
+      "drying-of-coffee-beans.jpg",
+      "coffee-roasting-machine-at-cucuta-colombia.jpg",
+      "coffee-pour-over-setup.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 47,
+     "vw": 12,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 163,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 46.8,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 46.8,
+      "vw": 12,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 163,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 7.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 715,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "$18",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 25,
+      "vw": 6.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.09,
+      "top": 974,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "A little time at the roaster",
+      "words": 6,
+      "chars": 28,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 1383,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "The app trail",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4553,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 5,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      18,
+      21,
+      25,
+      26,
+      29,
+      47
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 11.4
+     },
+     "measureChars": 45,
+     "max": {
+      "size": 46.8,
+      "vw": 12,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.04,
+     "centerShare": 0.03,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Into the cup",
+      "above": "The app trail",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 13,
+      "top": 4466
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 74,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 683,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#26251e",
+       "share": 0.68
+      },
+      {
+       "color": "#55534c",
+       "share": 0.29
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      },
+      {
+       "color": "#7b342e",
+       "share": 0.01
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 1,
+     "radius": 0,
+     "height": 39,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Order coffee"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 1,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 2,
+     "fixed": false,
+     "height": 72,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 5241,
+    "margins": {
+     "left": 16,
+     "right": 16
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 74,
+      "height": 1275,
+      "words": 73,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 47,
+       "tag": "h1"
+      },
+      "left": 44,
+      "right": 44,
+      "textLeft": 44,
+      "textRight": 44,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.field-media",
+      "tag": "section",
+      "top": 1349,
+      "height": 403,
+      "words": 37,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "A little time at the roaster",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 16,
+      "right": 16,
+      "textLeft": 16,
+      "textRight": 44,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.photo-strip",
+      "tag": "section",
+      "top": 1752,
+      "height": 2766,
+      "words": 14,
+      "media": 4,
+      "middle": 10,
+      "heading": null,
+      "left": 16,
+      "right": 16,
+      "textLeft": 16,
+      "textRight": 58,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 4518,
+      "height": 391,
+      "words": 47,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 51,
+      "textLeft": 20,
+      "textRight": 51,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "p.credits",
+      "tag": "p",
+      "top": 5076,
+      "height": 153,
+      "words": 48,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 18,
+      "right": 21,
+      "textLeft": 18,
+      "textRight": 21,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 47,
+      "top": 163,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 16,
+      "n": 4
+     },
+     {
+      "x": 44,
+      "n": 4
+     }
+    ],
+    "leftBlocks": 8,
+    "bodySize": 16,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#dfdedb",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 16,
+     "right": 16
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 47,
+     "vw": 12,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "top": 163,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 1,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 25
+    },
+    "rows": null,
+    "chartHues": 1,
+    "placeholders": [],
+    "type": {
+     "under13": 0.02,
+     "tiny": 2,
+     "tinySamples": [
+      "NIGHT WINDOW 10px",
+      "DARK ROAST · 250 G 8px"
+     ],
+     "sizes": [
+      8,
+      10,
+      13,
+      14,
+      15,
+      16,
+      18,
+      21,
+      25,
+      26,
+      29,
+      47
+     ]
+    },
+    "title": {
+     "text": "Coffee for the long watch.",
+     "size": 47,
+     "top": 163
+    },
+    "colourShare": 0.027
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "app-title-size",
+   "width": 1440,
+   "message": "The h1 is 68px (\"Coffee for the long watch.\").",
+   "fix": "An app screen is not a landing page: the title is 18-32px (20-24px on a phone).",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "D:\\mango\\.taste-skill\\inspect-night-window\\desktop-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect-night-window\\desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "D:\\mango\\.taste-skill\\inspect-night-window\\tablet-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect-night-window\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "D:\\mango\\.taste-skill\\inspect-night-window\\mobile-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect-night-window\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

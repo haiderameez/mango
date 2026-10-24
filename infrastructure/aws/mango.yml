@@ -1,0 +1,610 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Mango production-ready starter stack on ECS Fargate, RDS PostgreSQL, ElastiCache Redis, and SNS.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: mango
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9-]{1,19}'
+  BackendImage:
+    Type: String
+    Description: Immutable ECR image URI, including tag.
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN in this region, covering the console hostname.
+  DomainName:
+    Type: String
+    Description: Hostname covered by the ACM certificate and pointed at this load balancer.
+  LLMProvider:
+    Type: String
+    AllowedValues: [gemini, openrouter, anthropic]
+    Default: openrouter
+  LLMApiKeySecretArn:
+    Type: String
+    Description: Secrets Manager ARN containing the selected provider API key as a plain string.
+  DatabaseInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+    AllowedValues: [db.t4g.micro, db.t4g.small, db.t4g.medium]
+  CacheNodeType:
+    Type: String
+    Default: cache.t4g.micro
+    AllowedValues: [cache.t4g.micro, cache.t4g.small, cache.t4g.medium]
+  DesiredApiCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 4
+  WorkerConcurrency:
+    Type: Number
+    Default: 2
+    MinValue: 1
+    MaxValue: 8
+  NotificationEmail:
+    Type: String
+    Default: ''
+    Description: Optional email subscription; AWS requires the recipient to confirm it.
+
+Conditions:
+  HasNotificationEmail: !Not [!Equals [!Ref NotificationEmail, '']]
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.40.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-vpc'}]
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.40.0.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-public-a'}]
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.40.1.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-public-b'}]
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.40.10.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-private-a'}]
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.40.11.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-private-b'}]
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnetARoute:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: {SubnetId: !Ref PublicSubnetA, RouteTableId: !Ref PublicRouteTable}
+  PublicSubnetBRoute:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: {SubnetId: !Ref PublicSubnetB, RouteTableId: !Ref PublicRouteTable}
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Public HTTPS ingress for Mango console and API
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0}
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Mango ECS tasks; ingress only from the load balancer
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 8000, ToPort: 8000, SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId}
+      SecurityGroupEgress:
+        - {IpProtocol: '-1', CidrIp: 0.0.0.0/0}
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PostgreSQL accessible only to Mango ECS tasks
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 5432, ToPort: 5432, SourceSecurityGroupId: !GetAtt ApplicationSecurityGroup.GroupId}
+  CacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Redis accessible only to Mango ECS tasks
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 6379, ToPort: 6379, SourceSecurityGroupId: !GetAtt ApplicationSecurityGroup.GroupId}
+
+  DatabaseSubnets:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private Mango database subnets
+      SubnetIds: [!Ref PrivateSubnetA, !Ref PrivateSubnetB]
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub '${EnvironmentName}-postgres'
+      Engine: postgres
+      EngineVersion: '16.4'
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      AllocatedStorage: 30
+      MaxAllocatedStorage: 100
+      StorageType: gp3
+      StorageEncrypted: true
+      DBName: mango
+      MasterUsername: mango_admin
+      ManageMasterUserPassword: true
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      AutoMinorVersionUpgrade: true
+      DeletionProtection: true
+      DBSubnetGroupName: !Ref DatabaseSubnets
+      VPCSecurityGroups: [!GetAtt DatabaseSecurityGroup.GroupId]
+      CopyTagsToSnapshot: true
+      Tags: [{Key: Name, Value: !Sub '${EnvironmentName}-postgres'}]
+  CacheSubnets:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Private Mango cache subnets
+      SubnetIds: [!Ref PrivateSubnetA, !Ref PrivateSubnetB]
+  Cache:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      ReplicationGroupId: !Sub '${EnvironmentName}-redis'
+      ReplicationGroupDescription: Mango Celery broker and result backend
+      Engine: redis
+      EngineVersion: '7.1'
+      CacheNodeType: !Ref CacheNodeType
+      NumCacheClusters: 1
+      Port: 6379
+      AutomaticFailoverEnabled: false
+      MultiAZEnabled: false
+      AtRestEncryptionEnabled: true
+      TransitEncryptionEnabled: true
+      CacheSubnetGroupName: !Ref CacheSubnets
+      SecurityGroupIds: [!GetAtt CacheSecurityGroup.GroupId]
+      SnapshotRetentionLimit: 1
+
+  NotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${EnvironmentName}-incidents'
+  NotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasNotificationEmail
+    Properties:
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+      TopicArn: !Ref NotificationsTopic
+  OperationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${EnvironmentName}-operations'
+  OperationsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasNotificationEmail
+    Properties:
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+      TopicArn: !Ref OperationsTopic
+  JwtSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub '${EnvironmentName}/jwt-secret'
+      Description: Mango JWT signing key, generated by CloudFormation.
+      GenerateSecretString:
+        PasswordLength: 48
+        ExcludePunctuation: true
+  BackendLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub '/ecs/${EnvironmentName}/backend'
+      RetentionInDays: 30
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: ReadMangoRuntimeSecrets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource:
+                  - !GetAtt Database.MasterUserSecret.SecretArn
+                  - !Ref JwtSecret
+                  - !Ref LLMApiKeySecretArn
+  ApplicationTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PublishIncidentNotifications
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref NotificationsTopic
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${EnvironmentName}-cluster'
+      ClusterSettings:
+        - {Name: containerInsights, Value: enabled}
+  ApiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${EnvironmentName}-api'
+      Port: 8000
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VPC
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher: {HttpCode: '200'}
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub '${EnvironmentName}-alb'
+      Scheme: internet-facing
+      Type: application
+      IpAddressType: ipv4
+      Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+      SecurityGroups: [!GetAtt LoadBalancerSecurityGroup.GroupId]
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates: [{CertificateArn: !Ref CertificateArn}]
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+      DefaultActions:
+        - {Type: forward, TargetGroupArn: !Ref ApiTargetGroup}
+
+  ApiTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${EnvironmentName}-api'
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ApplicationTaskRole.Arn
+      RuntimePlatform: {CpuArchitecture: X86_64, OperatingSystemFamily: LINUX}
+      ContainerDefinitions:
+        - Name: api
+          Image: !Ref BackendImage
+          Essential: true
+          EntryPoint: [python, scripts/ecs_entrypoint.py]
+          Command: [api]
+          PortMappings: [{ContainerPort: 8000, Protocol: tcp}]
+          Environment:
+            - {Name: PORT, Value: '8000'}
+            - {Name: AWS_REGION, Value: !Ref AWS::Region}
+            - {Name: AWS_SNS_TOPIC_ARN, Value: !Ref NotificationsTopic}
+            - {Name: LLM_PROVIDER, Value: !Ref LLMProvider}
+            - {Name: DATABASE_HOST, Value: !GetAtt Database.Endpoint.Address}
+            - {Name: DATABASE_PORT, Value: !GetAtt Database.Endpoint.Port}
+            - {Name: DATABASE_NAME, Value: mango}
+            - {Name: REDIS_HOST, Value: !GetAtt Cache.PrimaryEndPoint.Address}
+            - {Name: REDIS_PORT, Value: !GetAtt Cache.PrimaryEndPoint.Port}
+            - {Name: REDIS_TLS, Value: 'true'}
+            - {Name: LOG_LEVEL, Value: INFO}
+            - {Name: LLM_REQUESTS_PER_MINUTE, Value: '10'}
+            - {Name: LLM_REQUESTS_PER_DAY, Value: '20'}
+          Secrets:
+            - {Name: DATABASE_USER, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:username::'}
+            - {Name: DATABASE_PASSWORD, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:password::'}
+            - {Name: JWT_SECRET_KEY, ValueFrom: !Ref JwtSecret}
+            - {Name: LLM_API_KEY, ValueFrom: !Ref LLMApiKeySecretArn}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref BackendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: api
+          HealthCheck:
+            Command: [CMD-SHELL, python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 90
+  WorkerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${EnvironmentName}-worker'
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ApplicationTaskRole.Arn
+      RuntimePlatform: {CpuArchitecture: X86_64, OperatingSystemFamily: LINUX}
+      ContainerDefinitions:
+        - Name: worker
+          Image: !Ref BackendImage
+          Essential: true
+          EntryPoint: [python, scripts/ecs_entrypoint.py]
+          Command: [worker]
+          Environment:
+            - {Name: AWS_REGION, Value: !Ref AWS::Region}
+            - {Name: AWS_SNS_TOPIC_ARN, Value: !Ref NotificationsTopic}
+            - {Name: LLM_PROVIDER, Value: !Ref LLMProvider}
+            - {Name: DATABASE_HOST, Value: !GetAtt Database.Endpoint.Address}
+            - {Name: DATABASE_PORT, Value: !GetAtt Database.Endpoint.Port}
+            - {Name: DATABASE_NAME, Value: mango}
+            - {Name: REDIS_HOST, Value: !GetAtt Cache.PrimaryEndPoint.Address}
+            - {Name: REDIS_PORT, Value: !GetAtt Cache.PrimaryEndPoint.Port}
+            - {Name: REDIS_TLS, Value: 'true'}
+            - {Name: INVESTIGATION_WORKER_CONCURRENCY, Value: !Ref WorkerConcurrency}
+            - {Name: LOG_LEVEL, Value: INFO}
+            - {Name: LLM_REQUESTS_PER_MINUTE, Value: '10'}
+            - {Name: LLM_REQUESTS_PER_DAY, Value: '20'}
+          Secrets:
+            - {Name: DATABASE_USER, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:username::'}
+            - {Name: DATABASE_PASSWORD, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:password::'}
+            - {Name: JWT_SECRET_KEY, ValueFrom: !Ref JwtSecret}
+            - {Name: LLM_API_KEY, ValueFrom: !Ref LLMApiKeySecretArn}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref BackendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: worker
+  IngestTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${EnvironmentName}-ingest'
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ApplicationTaskRole.Arn
+      RuntimePlatform: {CpuArchitecture: X86_64, OperatingSystemFamily: LINUX}
+      ContainerDefinitions:
+        - Name: ingest-worker
+          Image: !Ref BackendImage
+          Essential: true
+          EntryPoint: [python, scripts/ecs_entrypoint.py]
+          Command: [ingest-worker]
+          Environment:
+            - {Name: AWS_REGION, Value: !Ref AWS::Region}
+            - {Name: AWS_SNS_TOPIC_ARN, Value: !Ref NotificationsTopic}
+            - {Name: LLM_PROVIDER, Value: !Ref LLMProvider}
+            - {Name: DATABASE_HOST, Value: !GetAtt Database.Endpoint.Address}
+            - {Name: DATABASE_PORT, Value: !GetAtt Database.Endpoint.Port}
+            - {Name: DATABASE_NAME, Value: mango}
+            - {Name: REDIS_HOST, Value: !GetAtt Cache.PrimaryEndPoint.Address}
+            - {Name: REDIS_PORT, Value: !GetAtt Cache.PrimaryEndPoint.Port}
+            - {Name: REDIS_TLS, Value: 'true'}
+            - {Name: INGEST_WORKER_CONCURRENCY, Value: !Ref WorkerConcurrency}
+            - {Name: LOG_LEVEL, Value: INFO}
+            - {Name: LLM_REQUESTS_PER_MINUTE, Value: '10'}
+            - {Name: LLM_REQUESTS_PER_DAY, Value: '20'}
+          Secrets:
+            - {Name: DATABASE_USER, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:username::'}
+            - {Name: DATABASE_PASSWORD, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:password::'}
+            - {Name: JWT_SECRET_KEY, ValueFrom: !Ref JwtSecret}
+            - {Name: LLM_API_KEY, ValueFrom: !Ref LLMApiKeySecretArn}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref BackendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ingestion
+  SchedulerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${EnvironmentName}-scheduler'
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ApplicationTaskRole.Arn
+      RuntimePlatform: {CpuArchitecture: X86_64, OperatingSystemFamily: LINUX}
+      ContainerDefinitions:
+        - Name: scheduler
+          Image: !Ref BackendImage
+          Essential: true
+          EntryPoint: [python, scripts/ecs_entrypoint.py]
+          Command: [scheduler]
+          Environment:
+            - {Name: AWS_REGION, Value: !Ref AWS::Region}
+            - {Name: AWS_SNS_TOPIC_ARN, Value: !Ref NotificationsTopic}
+            - {Name: LLM_PROVIDER, Value: !Ref LLMProvider}
+            - {Name: DATABASE_HOST, Value: !GetAtt Database.Endpoint.Address}
+            - {Name: DATABASE_PORT, Value: !GetAtt Database.Endpoint.Port}
+            - {Name: DATABASE_NAME, Value: mango}
+            - {Name: REDIS_HOST, Value: !GetAtt Cache.PrimaryEndPoint.Address}
+            - {Name: REDIS_PORT, Value: !GetAtt Cache.PrimaryEndPoint.Port}
+            - {Name: REDIS_TLS, Value: 'true'}
+            - {Name: LOG_LEVEL, Value: INFO}
+          Secrets:
+            - {Name: DATABASE_USER, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:username::'}
+            - {Name: DATABASE_PASSWORD, ValueFrom: !Sub '${Database.MasterUserSecret.SecretArn}:password::'}
+            - {Name: JWT_SECRET_KEY, ValueFrom: !Ref JwtSecret}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref BackendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: scheduler
+
+  ApiService:
+    Type: AWS::ECS::Service
+    DependsOn: HttpsListener
+    Properties:
+      ServiceName: !Sub '${EnvironmentName}-api'
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref ApiTaskDefinition
+      DesiredCount: !Ref DesiredApiCount
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+        DeploymentCircuitBreaker: {Enable: true, Rollback: true}
+      HealthCheckGracePeriodSeconds: 120
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: [!GetAtt ApplicationSecurityGroup.GroupId]
+          Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+      LoadBalancers:
+        - {ContainerName: api, ContainerPort: 8000, TargetGroupArn: !Ref ApiTargetGroup}
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
+  WorkerService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${EnvironmentName}-worker'
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref WorkerTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 0
+        DeploymentCircuitBreaker: {Enable: true, Rollback: true}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: [!GetAtt ApplicationSecurityGroup.GroupId]
+          Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+  IngestService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${EnvironmentName}-ingest'
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref IngestTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 0
+        DeploymentCircuitBreaker: {Enable: true, Rollback: true}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: [!GetAtt ApplicationSecurityGroup.GroupId]
+          Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+  SchedulerService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${EnvironmentName}-scheduler'
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref SchedulerTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 0
+        DeploymentCircuitBreaker: {Enable: true, Rollback: true}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: [!GetAtt ApplicationSecurityGroup.GroupId]
+          Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+
+  ApiCpuAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mango API ECS service CPU remains above 80 percent.
+      Namespace: AWS/ECS
+      MetricName: CPUUtilization
+      Dimensions:
+        - {Name: ClusterName, Value: !Ref Cluster}
+        - {Name: ServiceName, Value: !Sub '${EnvironmentName}-api'}
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OperationsTopic]
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mango application load balancer returned more than 10 5xx responses in five minutes.
+      Namespace: AWS/ApplicationELB
+      MetricName: HTTPCode_ELB_5XX_Count
+      Dimensions:
+        - {Name: LoadBalancer, Value: !GetAtt LoadBalancer.LoadBalancerFullName}
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OperationsTopic]
+
+Outputs:
+  ConsoleUrl:
+    Description: HTTPS Mango console URL; point your domain at the load balancer DNS name.
+    Value: !Sub 'https://${DomainName}/console'
+  LoadBalancerDnsName:
+    Value: !GetAtt LoadBalancer.DNSName
+  IncidentTopicArn:
+    Value: !Ref NotificationsTopic
+  OperationsTopicArn:
+    Value: !Ref OperationsTopic
+  DatabaseSecretArn:
+    Value: !GetAtt Database.MasterUserSecret.SecretArn
+  LogGroupName:
+    Value: !Ref BackendLogGroup

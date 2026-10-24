@@ -6,6 +6,7 @@ import pytest
 
 from app.ai import graph
 from app.ai.schemas import RootCause
+from app.api import investigation
 from app.core.config import settings
 from tests.conftest import start_investigation
 from tests.fake_llm import FakeLLM
@@ -42,6 +43,21 @@ def test_every_node_is_recorded_as_an_agent_execution(
     assert all(e["started_at"] and e["finished_at"] for e in body["executions"])
 
 
+def test_investigation_stream_sends_agent_updates_and_completion(
+    client, incident, headers, fake_llm, log_file
+):
+    start_investigation(client, incident["id"], headers)
+
+    response = client.get(
+        f"/incidents/{incident['id']}/investigation/stream", headers=headers
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert response.text.count("event: agent") == len(graph.NODE_ORDER)
+    assert 'event: done\ndata: {"status": "COMPLETED"' in response.text
+
+
 def test_the_evidence_actually_collected_is_persisted(
     client, incident, headers, fake_llm, log_file
 ):
@@ -62,7 +78,7 @@ def test_the_report_itself_is_not_duplicated_into_the_execution_row(
     body = client.get(f"/incidents/{incident['id']}/investigation", headers=headers).json()
     report_node = next(e for e in body["executions"] if e["agent_name"] == "report")
 
-    assert set(report_node["output"]) == {"report_characters"}
+    assert set(report_node["output"]) == {"report_characters", "report"}
     assert report_node["output"]["report_characters"] == len(body["report"])
 
 
@@ -124,6 +140,45 @@ def test_a_failed_run_can_be_retried(client, incident, headers, monkeypatch, fak
     runs = client.get(f"/incidents/{incident['id']}/investigations", headers=headers).json()
 
     assert [run["status"] for run in runs] == ["COMPLETED", "FAILED"]
+
+
+def test_a_worker_retry_resumes_after_the_last_completed_node(
+    client, incident, headers, db, monkeypatch, log_file
+):
+    original = FakeLLM()
+    failed = False
+
+    class FailRootOnce:
+        def with_structured_output(self, schema, include_raw=False):
+            nonlocal failed
+            model = original.with_structured_output(schema, include_raw)
+            if schema is not RootCause:
+                return model
+
+            class RootModel:
+                def invoke(self, prompt):
+                    nonlocal failed
+                    if not failed:
+                        failed = True
+                        raise RuntimeError("temporary root-cause failure")
+                    return model.invoke(prompt)
+
+            return RootModel()
+
+    monkeypatch.setattr(graph, "get_llm", FailRootOnce)
+    first = start_investigation(client, incident["id"], headers)
+    run_id = first.json()["id"]
+    assert client.get(f"/investigations/{run_id}", headers=headers).json()["status"] == "FAILED"
+
+    monkeypatch.setattr(graph, "get_llm", FakeLLM)
+    investigation.build_investigation_service(db).run(run_id, raise_on_failure=True)
+    result = client.get(f"/investigations/{run_id}", headers=headers).json()
+
+    assert result["status"] == "COMPLETED"
+    names = [execution["agent_name"] for execution in result["executions"]]
+    assert names.count("planner") == 1
+    assert names.count("evidence_collector") == 1
+    assert names.count("root_cause") == 2
 
 
 def test_a_second_investigation_is_rejected_while_one_is_pending(
@@ -191,6 +246,7 @@ def test_the_graph_is_the_documented_pipeline():
     assert graph.NODE_ORDER == [
         "planner",
         "evidence_collector",
+        "history",
         "root_cause",
         "fix_recommendation",
         "report",
@@ -202,6 +258,7 @@ def test_the_graph_is_the_documented_pipeline():
     [
         ("gemini", "google_api_key", "GOOGLE_API_KEY"),
         ("anthropic", "anthropic_api_key", "ANTHROPIC_API_KEY"),
+        ("openrouter", "openrouter_api_key", "OPENROUTER_API_KEY"),
     ],
 )
 def test_get_llm_refuses_to_run_without_a_key(monkeypatch, provider, key_setting, expected):
@@ -284,12 +341,14 @@ def test_the_run_is_observable_while_it_is_still_going(
 ):
     """An engineer polling mid-run sees RUNNING, and the agents that have finished so far."""
     gate = threading.Event()
+    root_entered = threading.Event()
 
     class SlowLLM(FakeLLM):
         """Blocks on the root_cause call, after the planner has already reported."""
 
         def with_structured_output(self, schema, include_raw=False):
             if schema is RootCause:
+                root_entered.set()
                 gate.wait(20)
             return super().with_structured_output(schema, include_raw)
 
@@ -297,12 +356,14 @@ def test_the_run_is_observable_while_it_is_still_going(
 
     try:
         client.post(f"/incidents/{incident['id']}/investigate", headers=headers)
+        assert root_entered.wait(5), "root cause node did not begin"
 
         for _ in range(100):
             mid = client.get(
                 f"/incidents/{incident['id']}/investigation", headers=headers
             ).json()
-            if any(e["agent_name"] == "evidence_collector" for e in mid["executions"]):
+            recorded = {e["agent_name"] for e in mid["executions"]}
+            if root_entered.is_set() and {"evidence_collector", "history"} <= recorded:
                 break
             time.sleep(0.05)
     finally:
@@ -310,4 +371,6 @@ def test_the_run_is_observable_while_it_is_still_going(
 
     assert mid["status"] == "RUNNING"
     assert mid["report"] is None
-    assert [e["agent_name"] for e in mid["executions"]] == ["planner", "evidence_collector"]
+    assert [e["agent_name"] for e in mid["executions"]] == [
+        "planner", "evidence_collector", "history"
+    ]

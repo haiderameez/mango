@@ -1,0 +1,3 @@
+{"timestamp": "2026-10-11T11:59:30+00:00", "level": "WARNING", "message": "orders-db UPDATE orders waiting 5000ms on row lock", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-10"}
+{"timestamp": "2026-10-11T11:59:31+00:00", "level": "WARNING", "message": "orders-db blocking transaction idle in transaction for 120s", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-10"}
+{"timestamp": "2026-10-11T11:59:32+00:00", "level": "ERROR", "message": "orders-db lock timeout: order update blocked by uncommitted transaction", "service": "dummycommerce", "endpoint": "POST /orders", "request_id": "request-10"}

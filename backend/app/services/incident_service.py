@@ -1,3 +1,7 @@
+import logging
+from datetime import UTC, datetime
+
+from app.core.config import settings
 from app.core.exceptions import (
     IncidentAssignmentError,
     IncidentNotFoundError,
@@ -12,6 +16,8 @@ from app.repositories.incident_repository import IncidentRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.activity import ActivityResponse
 from app.schemas.incident import IncidentCreate, IncidentFilters, IncidentResponse
+
+logger = logging.getLogger(__name__)
 
 # Allowed status transitions. Anything not listed here is rejected.
 NEXT_STATUS = {
@@ -66,7 +72,7 @@ class IncidentService:
         return [IncidentResponse.model_validate(incident) for incident in incidents]
 
     def assign(
-        self, incident_id: int, assigned_to: int, current_user_id: int
+        self, incident_id: int, assigned_to: int, current_user_id: int, is_admin: bool = False
     ) -> IncidentResponse:
         incident = self._require_incident(incident_id)
 
@@ -78,7 +84,7 @@ class IncidentService:
         if incident.status == StatusLevel.RESOLVED:
             raise IncidentAssignmentError("Resolved incident cannot be assigned.")
 
-        if incident.created_by != current_user_id:
+        if incident.created_by != current_user_id and not is_admin:
             raise IncidentAssignmentError("Only incident creator can assign.")
 
         # Staged before the update so the change and its history entry commit together.
@@ -96,11 +102,15 @@ class IncidentService:
         return IncidentResponse.model_validate(updated_incident)
 
     def update_status(
-        self, incident_id: int, new_status: StatusLevel, current_user_id: int
+        self,
+        incident_id: int,
+        new_status: StatusLevel,
+        current_user_id: int,
+        is_admin: bool = False,
     ) -> IncidentResponse:
         incident = self._require_incident(incident_id)
 
-        if current_user_id not in (incident.created_by, incident.assigned_to):
+        if current_user_id not in (incident.created_by, incident.assigned_to) and not is_admin:
             raise IncidentStatusUpdateError("User not allowed to change status.")
 
         if incident.status == StatusLevel.RESOLVED:
@@ -122,7 +132,33 @@ class IncidentService:
 
         updated_incident = self.incident_repository.update_status(incident, new_status)
 
+        if new_status == StatusLevel.RESOLVED and settings.incident_history_enabled:
+            # Indexing runs in the worker; resolving an incident must not wait for a provider.
+            try:
+                from app.tasks import index_resolved_incident
+
+                index_resolved_incident.delay(incident.id)
+            except Exception:
+                logger.exception(
+                    "Could not queue resolved incident %s for history indexing", incident.id
+                )
+
         return IncidentResponse.model_validate(updated_incident)
+
+    def acknowledge(self, incident_id: int, current_user_id: int):
+        incident = self._require_incident(incident_id)
+        if incident.status == StatusLevel.RESOLVED:
+            raise IncidentStatusUpdateError("Resolved incident cannot be acknowledged.")
+        if incident.acknowledged_at is not None:
+            return IncidentResponse.model_validate(incident)
+        self.activity_repository.record(
+            incident_id=incident.id,
+            activity_type=ActivityType.INCIDENT_ACKNOWLEDGED,
+            user_id=current_user_id,
+            detail="Incident acknowledged",
+        )
+        updated = self.incident_repository.acknowledge(incident, datetime.now(UTC))
+        return IncidentResponse.model_validate(updated)
 
     def get_activity(self, incident_id: int) -> list[ActivityResponse]:
         self._require_incident(incident_id)

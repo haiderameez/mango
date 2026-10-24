@@ -92,7 +92,9 @@ Real, working, already verified end to end — nothing here needs inventing:
 - Real agent reasoning text captured per execution.
 - Real activity timelines, comments, severity and status transitions.
 - Real quota figures (`requests_used_today`, `requests_remaining_today`, `queue_depth`).
-- 177 passing tests across backend and DummyCommerce.
+- 214 passing tests across backend and DummyCommerce (199 + 15).
+- A 50-scenario synthetic evaluation harness; full live accuracy and manual judge validation
+  remain pending and must not be represented as measured product claims.
 
 ## Accessibility
 

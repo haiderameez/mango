@@ -1,4 +1,4 @@
-from app.core.exceptions import InvalidCredentialsError, UserAlreadyExistsError
+from app.core.exceptions import InvalidCredentialsError, UserAlreadyExistsError, UserNotFoundError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
@@ -33,3 +33,11 @@ class UserService:
             raise InvalidCredentialsError("Invalid email or password.")
 
         return create_access_token({"sub": str(existing_user.id)})
+
+    def set_role(self, user_id: int, role: str) -> User:
+        user = self.repository.get_by_id(user_id)
+        if user is None:
+            raise UserNotFoundError("User not found.")
+        if user.role == "admin" and role != "admin" and self.repository.count_by_role("admin") <= 1:
+            raise ValueError("The last administrator cannot be demoted.")
+        return self.repository.update_role(user, role)

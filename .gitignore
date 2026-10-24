@@ -29,3 +29,6 @@ backend/scripts/.capture/
 
 # Playwright MCP scratch output
 .playwright-mcp/
+backend/evals/.cache/
+.tmp-load/
+backend/celerybeat-schedule*

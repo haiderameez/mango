@@ -1,0 +1,14 @@
+id: case-07
+family: invalid_credentials
+variant: clean
+incident:
+  id: 7
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-07.
+  severity: HIGH
+  status: OPEN
+  created_at: '2026-10-08T12:00:00+00:00'
+category: config
+service: dummycommerce
+root_cause: application uses stale database credentials
+fix: Deploy the current database credential and verify authentication.

@@ -1,0 +1,14 @@
+id: case-46
+family: missing_field
+variant: outside_window
+incident:
+  id: 46
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-46.
+  severity: HIGH
+  status: OPEN
+  created_at: '2026-11-16T12:00:00+00:00'
+category: code_defect
+service: dummycommerce
+root_cause: serializer indexes an absent optional field
+fix: Handle absent shipping_address in the order serializer.

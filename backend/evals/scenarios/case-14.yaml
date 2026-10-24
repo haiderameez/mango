@@ -1,0 +1,14 @@
+id: case-14
+family: disk_full
+variant: noise
+incident:
+  id: 14
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-14.
+  severity: CRITICAL
+  status: OPEN
+  created_at: '2026-10-15T12:00:00+00:00'
+category: resource_exhaustion
+service: orders-db
+root_cause: database data volume is full
+fix: Free or expand database storage and verify WAL writes.

@@ -8,17 +8,22 @@ from app.core.exceptions import (
     InvestigationAlreadyRunningError,
     InvestigationNotFoundError,
 )
+from app.core.notifications import notify_investigation_completed
 from app.models.activity import ActivityType
 from app.models.incident import Incident
 from app.models.workflow import AgentExecution, RunStatus, WorkflowRun
+from app.observability import INVESTIGATIONS
 from app.repositories.activity_repository import ActivityRepository
+from app.repositories.incident_history_repository import IncidentHistoryRepository
 from app.repositories.incident_repository import IncidentRepository
+from app.repositories.ingest_repository import IngestRepository
 from app.repositories.workflow_repository import WorkflowRepository
 from app.schemas.workflow import (
     AgentExecutionResponse,
     InvestigationResponse,
     WorkflowRunResponse,
 )
+from app.services.incident_history import IncidentHistoryService
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,10 @@ class InvestigationService:
         self.workflow_repository = workflow_repository
         self.incident_repository = incident_repository
         self.activity_repository = activity_repository
+        self.ingest_repository = IngestRepository(incident_repository.db)
+        self.history_service = IncidentHistoryService(
+            IncidentHistoryRepository(incident_repository.db)
+        )
 
     def start(
         self, incident_id: int, triggered_by: str, user_id: int | None = None
@@ -89,16 +98,18 @@ class InvestigationService:
 
         return WorkflowRunResponse.model_validate(run)
 
-    def run(self, run_id: int) -> None:
+    def run(self, run_id: int, *, raise_on_failure: bool = False) -> None:
         """Execute the investigation graph, persisting progress as it goes.
 
-        Never raises: a failed investigation is recorded as a FAILED run, because the caller
-        is a background task with nobody left to report to.
+        A background worker may request errors be re-raised so its task queue can retry.
         """
         run = self.workflow_repository.get_run(run_id)
 
         if run is None:
             raise InvestigationNotFoundError("Investigation not found.")
+
+        if run.status == RunStatus.COMPLETED:
+            return
 
         incident = self.incident_repository.get_by_id(run.incident_id)
 
@@ -107,24 +118,51 @@ class InvestigationService:
 
         started_at = datetime.now(UTC)
         run.status = RunStatus.RUNNING
+        run.error = None
         run.started_at = started_at
         self.workflow_repository.save(run)
 
         state: dict = {"incident": _incident_payload(incident)}
+        completed_by_node = {
+            execution.agent_name: execution
+            for execution in self.workflow_repository.get_executions(run.id)
+            if execution.status == RunStatus.COMPLETED
+        }
+        completed_nodes = 0
+        for node_name in NODE_ORDER:
+            execution = completed_by_node.get(node_name)
+            if execution is None:
+                break
+            output = execution.output or {}
+            if node_name == "report":
+                state["report"] = output.get("report")
+            else:
+                state.update({key: value for key, value in output.items() if key != "thinking"})
+            completed_nodes += 1
+
         # Deliberately the local value: a refresh hands back whatever the database stores,
         # which is naive on SQLite and would not subtract against an aware timestamp.
         node_started_at = started_at
-        completed_nodes = 0
+        failure: Exception | None = None
 
         try:
             logger.info(
-                "Investigation %s: incident #%s, running %s",
+                "Investigation %s: incident #%s, resuming at %s",
                 run.id,
                 incident.id,
-                " -> ".join(NODE_ORDER),
+                NODE_ORDER[completed_nodes] if completed_nodes < len(NODE_ORDER) else "completion",
             )
 
-            for update in build_graph().stream(state, stream_mode="updates"):
+            graph = build_graph(
+                start_at=(NODE_ORDER[completed_nodes]
+                          if completed_nodes < len(NODE_ORDER) else None),
+                evidence_repository=self.ingest_repository,
+                history_service=self.history_service,
+            )
+            updates = graph.stream(state, stream_mode="updates") if completed_nodes < len(
+                NODE_ORDER
+            ) else ()
+            for update in updates:
                 for node_name, delta in update.items():
                     finished_at = datetime.now(UTC)
                     state.update(delta)
@@ -167,6 +205,7 @@ class InvestigationService:
             )
 
         except Exception as error:  # noqa: BLE001 - any node failure must land in the record
+            failure = error
             logger.exception("Investigation %s failed", run.id)
 
             message = str(error)[:MAX_ERROR_LENGTH] or error.__class__.__name__
@@ -199,6 +238,13 @@ class InvestigationService:
             )
 
         self.workflow_repository.save(run)
+        INVESTIGATIONS.labels(run.status.value).observe(
+            (datetime.now(UTC) - started_at).total_seconds()
+        )
+        if failure is not None and raise_on_failure:
+            raise failure
+        if failure is None and run.status == RunStatus.COMPLETED:
+            notify_investigation_completed(incident, run.report)
 
     def get(self, run_id: int) -> InvestigationResponse:
         run = self.workflow_repository.get_run(run_id)
@@ -248,6 +294,9 @@ class InvestigationService:
         if "evidence" in delta:
             return f"{len(delta['evidence'])} log record(s) collected"
 
+        if "history" in delta:
+            return f"{len(delta['history'])} similar resolved incident(s) found"
+
         if "root_cause" in delta:
             cause = delta["root_cause"].get("likely_cause", "")
             return f"[{delta['root_cause'].get('confidence')}] {cause[:90]}"
@@ -275,6 +324,9 @@ class InvestigationService:
     def _execution_output(delta: dict) -> dict:
         """What a node produced. The full report lives on the run, not duplicated here."""
         if "report" in delta:
-            return {"report_characters": len(delta["report"] or "")}
+            return {
+                "report_characters": len(delta["report"] or ""),
+                "report": delta["report"],
+            }
 
         return delta

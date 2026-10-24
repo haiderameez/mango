@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -14,14 +15,22 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine, event  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 
-from app.ai import graph  # noqa: E402
-from app.api import investigation  # noqa: E402
+from app import tasks  # noqa: E402
+from app.ai import graph, quota  # noqa: E402
+from app.api import ingest, investigation  # noqa: E402
 from app.core.config import settings  # noqa: E402
 from app.database.base import Base  # noqa: E402
 from app.database.session import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import *  # noqa: E402, F403  (registers every table on Base.metadata)
+from app.models.ingest import LogRecord  # noqa: E402
+from app.services.investigation_queue import InvestigationQueue  # noqa: E402
 from tests.fake_llm import FakeLLM  # noqa: E402
+
+
+class LocalRateSlotStub:
+    def eval(self, *_args):
+        return 0
 
 
 @pytest.fixture
@@ -57,10 +66,13 @@ def db(session_factory):
 
 
 @pytest.fixture(autouse=True)
-def isolated_llm_budget(tmp_path, monkeypatch):
+def isolated_llm_budget(monkeypatch, session_factory):
     """Never let a test spend the real daily budget, or see another test's spending."""
-    monkeypatch.setattr(settings, "llm_quota_file", str(tmp_path / "llm_quota.json"))
+    monkeypatch.setattr(quota, "SessionLocal", session_factory)
+    monkeypatch.setattr(quota, "_redis", LocalRateSlotStub())
+    monkeypatch.setattr(tasks, "SessionLocal", session_factory)
     monkeypatch.setattr(settings, "llm_requests_per_day", 1000)
+    monkeypatch.setattr(settings, "incident_history_enabled", False)
 
 
 @pytest.fixture
@@ -73,7 +85,19 @@ def client(session_factory, monkeypatch):
             session.close()
 
     # The investigation worker opens its own session; point it at the test database too.
-    monkeypatch.setattr(investigation, "SessionLocal", session_factory)
+    monkeypatch.setattr(investigation, "SessionLocal", session_factory, raising=False)
+    monkeypatch.setattr(
+        investigation,
+        "investigation_queue",
+        InvestigationQueue(tasks.run_investigation_local),
+    )
+    monkeypatch.setattr(
+        ingest,
+        "enqueue_ingest_batch",
+        lambda key_id, payload, compressed: tasks.process_ingest_batch_local(
+            key_id, base64.b64encode(payload).decode("ascii"), compressed
+        ),
+    )
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
@@ -137,7 +161,7 @@ def fake_llm(monkeypatch):
 
 
 @pytest.fixture
-def log_file(tmp_path, monkeypatch):
+def log_file(tmp_path, monkeypatch, session_factory):
     now = datetime.now(UTC)
     records = [
         {
@@ -161,5 +185,20 @@ def log_file(tmp_path, monkeypatch):
     path = tmp_path / "app.jsonl"
     path.write_text("\n".join(json.dumps(r) for r in records), encoding="utf-8")
     monkeypatch.setattr(settings, "dummycommerce_log_path", str(path))
+    with session_factory() as db:
+        db.add_all([
+            LogRecord(
+                ts=datetime.fromisoformat(record["timestamp"]),
+                service=record["service"],
+                level=record["level"],
+                message=record["message"],
+                request_id=record.get("request_id"),
+                context={
+                    "endpoint": record.get("endpoint"), "error_type": record.get("error_type")
+                },
+            )
+            for record in records
+        ])
+        db.commit()
 
     return path

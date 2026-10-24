@@ -73,13 +73,14 @@ class CommentService:
         comment_id: int,
         comment: CommentUpdate,
         current_user_id: int,
+        is_admin: bool = False,
     ) -> CommentResponse:
         existing_comment = self.comment_repository.get_by_id(comment_id)
 
         if existing_comment is None:
             raise CommentNotFoundError("Comment not found.")
 
-        if existing_comment.user_id != current_user_id:
+        if existing_comment.user_id != current_user_id and not is_admin:
             raise CommentNotAllowedError(
                 "User not allowed to update comment."
             )
@@ -91,13 +92,15 @@ class CommentService:
 
         return CommentResponse.model_validate(updated_comment)
 
-    def delete_comment(self, comment_id: int, current_user_id: int) -> None:
+    def delete_comment(
+        self, comment_id: int, current_user_id: int, is_admin: bool = False
+    ) -> None:
         existing_comment = self.comment_repository.get_by_id(comment_id)
 
         if existing_comment is None:
             raise CommentNotFoundError("Comment not found.")
 
-        if existing_comment.user_id != current_user_id:
+        if existing_comment.user_id != current_user_id and not is_admin:
             raise CommentNotAllowedError("User not allowed to delete comment.")
 
         self.comment_repository.delete_comment(existing_comment)

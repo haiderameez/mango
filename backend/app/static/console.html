@@ -11,22 +11,22 @@
 <style>
 :root{
   /* the cabinet */
-  --cab:#232825; --cab-2:#2a2f2c; --cab-3:#313733; --cab-4:#434a46;
-  --rule:#39403c; --rule-soft:#303633;
-  --cab-ink:#c9cfc9; --cab-ink-2:#aab2ac; --cab-ink-3:#9ba39d;
+  --cab:#1d1e22; --cab-2:#23242a; --cab-3:#2c2d34; --cab-4:#41424b;
+  --rule:#373840; --rule-soft:#303138;
+  --cab-ink:#d7d7dc; --cab-ink-2:#b9b9c1; --cab-ink-3:#a2a3ad;
 
   /* the card stock */
-  --card:#dedbd0; --card-2:#d9d5c9; --card-3:#c8c3b4; --card-edge:#bdb8a7;
-  --panel:#e7e4da;
-  --ink:#3b3626; --ink-2:#55503b; --ink-3:#5a5540;
+  --card:#26272d; --card-2:#2c2d34; --card-3:#3d3e47; --card-edge:#4a4b55;
+  --panel:#202127;
+  --ink:#e0e0e5; --ink-2:#c5c5ce; --ink-3:#a8a8b1;
 
   /* stamp ink — the only accent; never amber, never red, those are data */
-  --stamp:#5e3f9c; --stamp-lit:#a899d9; --stamp-wash:rgba(94,63,156,.10);
-  --seal:#15652f;
+  --stamp:#705c82; --stamp-lit:#c7b5d7; --stamp-wash:rgba(199,181,215,.16);
+  --seal:#9caf9f;
 
   /* severity — data colour, reserved */
-  --sev-low:#3d4b56; --sev-medium:#7a5007;
-  --sev-high:#9a360b; --sev-critical:#871313;
+  --sev-low:#9ab0c1; --sev-medium:#d7b369;
+  --sev-high:#e49577; --sev-critical:#e1858e;
 
   --hair:1px;
   --t:170ms cubic-bezier(.16,1,.3,1);
@@ -50,7 +50,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 
 /* ── legends ─────────────────────────────────────────────────────────── */
 .legend{
-  font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
   color:var(--cab-ink-3);
 }
 .plate .legend{color:var(--ink-3)}
@@ -86,9 +86,9 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
   font-weight:600; letter-spacing:.17em; font-size:13px; text-transform:uppercase;
 }
 .maker b{color:var(--stamp-lit); font-weight:700}
-.rail .sub{font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--cab-ink-3)}
+.rail .sub{font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--cab-ink-3)}
 
-.filters{display:flex; align-items:stretch; flex:1 1 auto; min-width:0}
+.filters{display:flex; align-items:stretch; flex:1 1 auto; min-width:0; padding-block:4px}
 .field{
   display:flex; align-items:center; gap:7px; padding:0 12px;
   border-right:var(--hair) solid var(--rule); min-width:0;
@@ -99,7 +99,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 }
 .field input[type=search]::placeholder{color:var(--cab-ink-3)}
 .field select{
-  background:none; border:0; padding:6px 18px 6px 0; font-size:11.5px; letter-spacing:.1em;
+  background:none; border:0; padding:6px 18px 6px 0; font-size:12px; letter-spacing:.1em;
   text-transform:uppercase; font-weight:600; color:var(--cab-ink-2);
   appearance:none; cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2399a39f' stroke-width='1.5'/%3E%3C/svg%3E");
@@ -121,7 +121,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 .ticks i.warn{background:var(--sev-medium)}
 
 /* ── cabinet body ────────────────────────────────────────────────────── */
-.cabinet{display:flex; height:calc(100vh - 52px); overflow:hidden}
+.cabinet{display:flex; height:calc(100vh - 84px); height:calc(100dvh - 84px); overflow:hidden}
 
 /* ── the drawer ──────────────────────────────────────────────────────── */
 .drawer{
@@ -142,7 +142,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 .guide .tabface{
   width:4px; align-self:stretch; min-height:13px; background:var(--sev-low);
 }
-.guide .count{margin-left:auto; color:var(--cab-ink-3); font-size:10px; letter-spacing:.1em}
+.guide .count{margin-left:auto; color:var(--cab-ink-3); font-size:11px; letter-spacing:.1em}
 
 /* cards packed on edge: no gaps, no radius, hairline between */
 .cardrow{
@@ -173,7 +173,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 }
 
 .sev{
-  font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
   padding:2px 6px; white-space:nowrap;
   color:var(--sev-low); background:color-mix(in srgb,var(--sev-low) 13%,transparent);
   border:var(--hair) solid color-mix(in srgb,var(--sev-low) 34%,transparent);
@@ -189,11 +189,11 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
   border-color:color-mix(in srgb,var(--sev-critical) 38%,transparent)}
 
 .st{
-  font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
   padding:2px 6px; border:var(--hair) solid currentColor; white-space:nowrap;
   color:var(--cab-ink-3);
 }
-.st.INVESTIGATING{color:var(--stamp-lit)} .st.RESOLVED{color:#86c9a1}
+.st.INVESTIGATING{color:var(--stamp-lit)} .st.RESOLVED{color:var(--seal)}
 
 /* ── the plate: the lifted card ──────────────────────────────────────── */
 .plate{
@@ -214,7 +214,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
   padding:18px 20px 16px; border-bottom:var(--hair) solid var(--card-3);
 }
 .caseno{line-height:.8}
-.caseno .k{font-size:10px; letter-spacing:.18em; font-weight:700; color:var(--ink-3)}
+.caseno .k{font-size:11px; letter-spacing:.18em; font-weight:700; color:var(--ink-3)}
 .caseno .n{
   font-family:"Courier Prime",monospace; font-weight:700; font-size:44px;
   letter-spacing:-.03em; display:block; margin-top:7px; color:var(--ink-2);
@@ -226,11 +226,11 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 .sheet-head .tags{display:flex; gap:7px; align-items:center; flex-wrap:wrap}
 
 .stamp{
-  font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
   border:var(--hair) solid currentColor; padding:5px 10px; color:var(--ink-2);
   transform:rotate(-1.5deg); white-space:nowrap; margin-top:12px; opacity:.92;
 }
-.stamp.INVESTIGATING{color:var(--stamp)} .stamp.RESOLVED{color:var(--seal)}
+.stamp.INVESTIGATING{color:var(--stamp-lit)} .stamp.RESOLVED{color:var(--seal)}
 .stamp.FAILED,.stamp.VOID{color:var(--sev-critical)}
 
 /* ruled label/value rows */
@@ -238,7 +238,7 @@ input,textarea,select,button{font:inherit; color:inherit; caret-color:var(--stam
 .rows dt,.rows dd{
   margin:0; padding:7px 10px; border-bottom:var(--hair) solid var(--card-3); min-width:0;
 }
-.rows dt{font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+.rows dt{font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
   color:var(--ink-3); border-right:var(--hair) solid var(--card-3)}
 .rows dd{font-family:"Courier Prime",monospace; font-size:12.5px; word-break:break-word}
 
@@ -247,15 +247,16 @@ section.block{border-top:var(--hair) solid var(--card-3)}
   display:flex; align-items:center; gap:10px; padding:11px 14px;
   background:var(--card-2); border-bottom:var(--hair) solid var(--card-3);
 }
-.block-head h2{margin:0; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase}
-.block-head .n{margin-left:auto; font-family:"Courier Prime",monospace; font-size:11px; color:var(--ink-3)}
+.block-head h2{margin:0; font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase}
+.block-head .n{margin-left:auto; font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3)}
 .block-body{padding:14px}
 
 /* ── controls ────────────────────────────────────────────────────────── */
 .btn{
   display:inline-flex; align-items:center; gap:7px; border:var(--hair) solid var(--card-edge);
   background:transparent; color:var(--ink); padding:7px 12px; cursor:pointer;
-  font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  min-height:36px; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  border-radius:3px;
   transition:background var(--t),color var(--t),border-color var(--t);
 }
 .btn:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 9%,transparent);
@@ -272,7 +273,7 @@ section.block{border-top:var(--hair) solid var(--card-3)}
   padding:7px 9px; font-family:"Courier Prime",monospace; font-size:12.5px; width:100%;
 }
 .inp::placeholder{color:var(--ink-3)}
-.inp:focus{border-color:var(--stamp); outline:none; box-shadow:0 0 0 2px var(--stamp-wash)}
+.inp:focus{border-color:var(--stamp-lit); outline:none; box-shadow:0 0 0 2px var(--stamp-wash)}
 
 /* ── investigation: the record ───────────────────────────────────────── */
 .route{display:flex; align-items:stretch; padding:16px 14px 6px; overflow-x:auto}
@@ -287,13 +288,13 @@ section.block{border-top:var(--hair) solid var(--card-3)}
   border:2px solid var(--card-edge); background:var(--card); border-radius:50%;
 }
 .stop.done .node{border-color:var(--ink-2); background:var(--ink-2)}
-.stop.run .node{border-color:var(--stamp); background:var(--card); animation:pulse 1.1s infinite}
+.stop.run .node{border-color:var(--stamp-lit); background:var(--card); animation:pulse 1.1s infinite}
 .stop.fail .node{border-color:var(--sev-critical); background:var(--sev-critical)}
 @keyframes pulse{50%{box-shadow:0 0 0 4px var(--stamp-wash)}}
 @media (prefers-reduced-motion:reduce){ .stop.run .node{animation:none} }
-.stop .nm{font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2)}
+.stop .nm{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2)}
 .stop.done .nm,.stop.run .nm{color:var(--ink)}
-.stop .ms{display:block; font-family:"Courier Prime",monospace; font-size:11px; color:var(--ink-3); margin-top:2px}
+.stop .ms{display:block; font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3); margin-top:2px}
 
 details.entry{border-bottom:var(--hair) solid var(--card-3)}
 details.entry > summary{
@@ -305,7 +306,7 @@ details.entry > summary:hover{background:var(--card-2)}
 details.entry .chev{transition:rotate var(--t); color:var(--ink-3); flex:0 0 auto}
 details.entry[open] .chev{rotate:90deg}
 details.entry .agent{font-family:"Courier Prime",monospace; font-size:12.5px; font-weight:700}
-details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font-size:11px; color:var(--ink-3)}
+details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3)}
 .thought{
   margin:0; padding:12px 14px 14px 36px; background:var(--panel);
   border-top:var(--hair) solid var(--card-3);
@@ -318,7 +319,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 .finding{display:flex; gap:11px; padding:7px 0; border-bottom:var(--hair) dotted var(--card-3)}
 .finding:last-child{border-bottom:0}
 .finding .ix{
-  font-family:"Courier Prime",monospace; font-size:11px; font-weight:700; color:var(--ink-3);
+  font-family:"Courier Prime",monospace; font-size:12px; font-weight:700; color:var(--ink-3);
   flex:0 0 26px; padding-top:2px;
 }
 .finding p{margin:0; font-size:13.5px; line-height:1.5; max-width:72ch}
@@ -333,24 +334,24 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 }
 .conf .cells i.f::after{content:""; position:absolute; inset:0}
 .conf .cells i.on{border-color:var(--ink)}
-.conf .lbl{font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase}
+.conf .lbl{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase}
 
 .cite{
-  font-family:"Courier Prime",monospace; font-size:11px; font-weight:700;
-  border:var(--hair) solid var(--stamp); color:var(--stamp); background:transparent;
+  font-family:"Courier Prime",monospace; font-size:12px; font-weight:700;
+  border:var(--hair) solid var(--stamp-lit); color:var(--stamp-lit); background:transparent;
   padding:1px 5px; cursor:pointer; margin-right:6px;
 }
 .cite:hover{background:var(--stamp); color:#fff}
 
 .exhibit{border:var(--hair) solid var(--card-3); margin-bottom:9px; background:var(--panel)}
-.exhibit.lit{border-color:var(--stamp); box-shadow:0 0 0 2px var(--stamp-wash)}
+.exhibit.lit{border-color:var(--stamp-lit); box-shadow:0 0 0 2px var(--stamp-wash)}
 .exhibit-head{
   display:flex; gap:9px; align-items:center; padding:6px 10px;
   border-bottom:var(--hair) solid var(--card-3); background:var(--card-2);
 }
-.exhibit-head .ex{font-family:"Courier Prime",monospace; font-size:11px; font-weight:700}
-.exhibit-head time{font-family:"Courier Prime",monospace; font-size:10.5px; color:var(--ink-3); margin-left:auto}
-.lvl{font-size:10px; font-weight:700; letter-spacing:.09em; padding:1px 5px;
+.exhibit-head .ex{font-family:"Courier Prime",monospace; font-size:12px; font-weight:700}
+.exhibit-head time{font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3); margin-left:auto}
+.lvl{font-size:11px; font-weight:700; letter-spacing:.09em; padding:1px 5px;
   color:var(--ink-2); background:color-mix(in srgb,var(--ink-2) 11%,transparent);
   border:var(--hair) solid color-mix(in srgb,var(--ink-2) 28%,transparent)}
 .lvl.ERROR{color:var(--sev-high); background:color-mix(in srgb,var(--sev-high) 12%,transparent);
@@ -366,7 +367,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 .exhibit p{margin:0; padding:8px 10px; font-family:"Courier Prime",monospace; font-size:12px;
   line-height:1.55; word-break:break-word}
 .ctx{display:flex; flex-wrap:wrap; gap:5px; padding:0 10px 9px}
-.ctx span{font-family:"Courier Prime",monospace; font-size:10.5px; color:var(--ink-2);
+.ctx span{font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-2);
   border:var(--hair) solid var(--card-3); padding:1px 5px; background:var(--card)}
 
 .tl{position:relative; padding-left:20px}
@@ -376,18 +377,18 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
   content:""; position:absolute; left:-18px; top:12px; width:7px; height:7px;
   background:var(--card); border:var(--hair) solid var(--ink-2);
 }
-.tl .ev.sys::before{background:var(--stamp); border-color:var(--stamp)}
-.tl time{font-family:"Courier Prime",monospace; font-size:11px; color:var(--ink-3)}
+.tl .ev.sys::before{background:var(--stamp-lit); border-color:var(--stamp-lit)}
+.tl time{font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3)}
 .tl .what{font-size:13px}
-.tl .what b{font-weight:700; letter-spacing:.04em; font-size:10.5px; text-transform:uppercase;
+.tl .what b{font-weight:700; letter-spacing:.04em; font-size:12px; text-transform:uppercase;
   border:var(--hair) solid var(--card-edge); padding:1px 5px; margin-right:7px; white-space:nowrap}
 .tl .what i{font-style:normal; font-family:"Courier Prime",monospace; color:var(--ink-2)}
 
 .note{border-bottom:var(--hair) solid var(--card-3); padding:10px 0}
 .note:last-of-type{border-bottom:0}
 .note .by{display:flex; gap:9px; align-items:baseline; margin-bottom:3px}
-.note .by strong{font-size:11px; letter-spacing:.08em; text-transform:uppercase}
-.note .by time{font-family:"Courier Prime",monospace; font-size:10.5px; color:var(--ink-3)}
+.note .by strong{font-size:12px; letter-spacing:.08em; text-transform:uppercase}
+.note .by time{font-family:"Courier Prime",monospace; font-size:12px; color:var(--ink-3)}
 .note p{margin:0; font-size:13.5px; line-height:1.5; max-width:72ch; white-space:pre-wrap}
 
 .report{
@@ -396,7 +397,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 }
 .report h1{font-size:17px; margin:0 0 10px} .report h2{font-size:12px; letter-spacing:.14em;
   text-transform:uppercase; margin:18px 0 7px; padding-bottom:4px; border-bottom:var(--hair) solid var(--card-3)}
-.report h3{font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin:14px 0 5px; color:var(--ink-2)}
+.report h3{font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin:14px 0 5px; color:var(--ink-2)}
 .report ul{margin:0 0 10px; padding-left:18px} .report li{margin:3px 0}
 .report code{font-family:"Courier Prime",monospace; font-size:12px; background:var(--card-2); padding:1px 4px}
 .report p{margin:0 0 9px}
@@ -414,7 +415,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
   font-family:"Courier Prime",monospace; font-weight:700; color:var(--cab-ink);
   border:var(--hair) solid var(--cab-4); padding:0 5px;
 }
-.sb-lead{margin:10px 0 0; font-size:19px; font-weight:600; letter-spacing:-.01em; color:var(--cab-ink)}
+.sb-lead{margin:10px 0 0; line-height:1.35; font-size:19px; font-weight:600; letter-spacing:-.01em; color:var(--cab-ink)}
 .empty{padding:40px 24px; text-align:center; color:var(--cab-ink-3); max-width:46ch; margin:0 auto}
 .empty h2{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--cab-ink-2); margin:0 0 8px}
 .empty p{margin:0 0 6px; font-size:13px; line-height:1.55}
@@ -451,13 +452,13 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
   border-bottom:var(--hair) solid var(--card-3);
 }
 .ticket-head .maker{color:var(--ink)}
-.ticket-head .maker b{color:var(--stamp)}
+.ticket-head .maker b{color:var(--stamp-lit)}
 .ticket-head .legend{color:var(--ink-3)}
 .tfield{display:grid; grid-template-columns:92px 1fr; align-items:center;
   border-bottom:var(--hair) solid var(--card-3)}
 .tfield[hidden]{display:none}
 .tfield > span{
-  padding:0 10px; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
   color:var(--ink-3); border-right:var(--hair) solid var(--card-3); align-self:stretch;
   display:flex; align-items:center;
 }
@@ -475,15 +476,15 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 .gate .err{margin:12px 16px 0}
 
 .foot{
-  position:fixed; left:0; right:0; bottom:0; height:28px; z-index:20;
+  position:fixed; left:0; right:0; bottom:0; height:32px; z-index:20;
   display:flex; align-items:center; gap:16px; padding:0 14px;
   background:var(--cab-2); border-top:var(--hair) solid var(--rule);
 }
 .foot kbd{
-  font-family:"Courier Prime",monospace; font-size:11px; border:var(--hair) solid var(--cab-4);
+  font-family:"Courier Prime",monospace; font-size:12px; border:var(--hair) solid var(--cab-4);
   padding:0 4px; margin-right:4px; color:var(--cab-ink-2);
 }
-.foot span{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--cab-ink-3);
+.foot span{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--cab-ink-3);
   white-space:nowrap}
 @media (max-width:900px){
   .foot{gap:0; justify-content:flex-end}
@@ -491,12 +492,12 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 }
 
 @media (max-width:900px){
-  .cabinet{display:block; height:auto; overflow:visible}
+  .cabinet{display:block; height:auto; min-height:calc(100dvh - 116px); overflow:visible; padding-bottom:36px}
   .drawer{flex:none; width:100%; border-right:0; border-bottom:var(--hair) solid var(--rule)}
   .drawer-scroll{max-height:46vh}
   .plate{padding:14px 12px 60px}
   .rail{height:auto; flex-wrap:wrap}
-  .filters{order:3; width:100%; border-top:var(--hair) solid var(--rule)}
+  .filters{order:3; width:100%; border-top:var(--hair) solid var(--rule); padding-top:6px}
   .budget{border-left:0; margin-left:auto}
   .sheet-head{grid-template-columns:1fr; gap:8px}
   .sheet-head .stamp{justify-self:start; margin-top:4px}
@@ -505,6 +506,99 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
   .caseno .n{font-size:40px}
   .rows{grid-template-columns:104px 1fr}
   .tl .ev{grid-template-columns:1fr; gap:2px}
+}
+
+/* Small refinements keep the drawer vocabulary while making the night console calmer. */
+.rail{height:56px; background:var(--cab-2)}
+.cabinet{height:calc(100vh - 88px); height:calc(100dvh - 88px)}
+.plate{padding:24px 24px 56px; background:var(--cab)}
+.sheet{max-width:1040px; border-radius:4px; box-shadow:0 10px 26px -18px rgba(0,0,0,.72)}
+.sheet-head{padding:22px 24px 18px; gap:20px}
+.sheet-head h1{font-size:21px; line-height:1.35}
+.caseno .n{font-size:46px; color:var(--ink-2)}
+.block-head{padding:12px 16px}
+.block-body{padding:17px 18px}
+.cause{border-left:2px solid var(--stamp-lit)}
+.drawer-head{min-height:45px; padding-inline:16px}
+.cardrow{min-height:76px}
+.cardrow[aria-current=true]{box-shadow:inset 2px 0 var(--stamp-lit)}
+.guide{min-height:34px}
+.field input[type=search]{min-height:36px}
+.field select{min-height:36px}
+.field:focus-within{box-shadow:inset 0 -2px var(--stamp-lit)}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0}
+.search-clear{
+  display:inline-grid; place-items:center; flex:0 0 36px; width:36px; height:36px;
+  padding:0; border:0; border-radius:3px; background:transparent; color:var(--cab-ink-2);
+  cursor:pointer;
+}
+.search-clear:hover{background:var(--cab-3); color:var(--cab-ink)}
+.search-clear[hidden]{display:none}
+.inp{min-height:38px; border-radius:3px; line-height:1.45}
+textarea.inp{min-height:92px; resize:vertical}
+.gate .ticket{border-radius:4px; background:var(--card); border-color:var(--card-edge)}
+.ticket-head{padding:19px 18px 15px}
+.empty h2{letter-spacing:.1em}
+.sev,.st,.lvl,.stop .nm,.conf .lbl,.guide .count,.caseno .k{font-size:12px}
+.err{border-radius:3px}
+button:active:not(:disabled), .cardrow:active{transform:translateY(1px)}
+button[aria-busy=true]{cursor:progress}
+details.entry > summary{min-height:42px}
+.cite{min-height:26px; border-radius:2px}
+@media(max-width:1100px) and (min-width:901px){
+  .rail{height:auto; min-height:56px; flex-wrap:wrap}
+  .filters{order:3; flex:1 0 100%; width:100%; border-top:1px solid var(--rule); padding-top:6px}
+  .cabinet{height:calc(100vh - 132px); height:calc(100dvh - 132px)}
+  .drawer{flex-basis:340px}
+  .budget{gap:12px; padding-inline:12px}
+  .plate{padding-inline:16px}
+  .sheet-head{gap:14px; padding-inline:18px}
+}
+@media(max-width:900px){
+  .rail{height:auto; min-height:56px}
+  .cabinet{height:auto; min-height:calc(100dvh - 116px); padding-bottom:40px}
+  .plate{padding:16px 12px 24px}
+  .budget{gap:10px; padding:8px 12px}
+  .filters{display:grid; grid-template-columns:minmax(90px,1fr) auto auto}
+  .filters .field{min-width:0; padding-inline:9px}
+  .filters .field:nth-child(2),.filters .field:nth-child(3){gap:5px}
+  .filters .field .legend{font-size:12px; letter-spacing:.04em}
+  .field select{max-width:112px; font-size:12px}
+  .search-clear{flex-basis:36px; width:36px}
+  .sheet-head{padding:18px 16px 15px}
+  .block-body{padding:14px}
+  .route{gap:4px}
+  .stop{min-width:92px}
+  .foot{height:32px}
+}
+@media(max-width:520px){
+  .plateplate{padding-inline:12px}
+  .plateplate .sub{font-size:12px; letter-spacing:.08em}
+  .budget{width:100%; justify-content:space-between; border-top:1px solid var(--rule); margin:0}
+  .budget .gauge .legend{font-size:12px}
+  .budget .ticks{width:72px}
+  .filters{grid-template-columns:minmax(0,1fr) auto auto}
+  .filters .field:nth-child(2),.filters .field:nth-child(3){flex-direction:column; align-items:flex-start; justify-content:center; gap:0}
+  .field select{max-width:100%; min-width:70px; padding-block:2px}
+  .sheet-head{grid-template-columns:1fr; gap:8px}
+  .sheet-head h1{margin-top:7px; font-size:19px}
+  .caseno{display:flex; align-items:baseline; gap:8px}
+  .caseno .n{font-size:28px; margin-top:0}
+  .rows{grid-template-columns:92px minmax(0,1fr)}
+  .rows dt,.rows dd{padding:7px 8px}
+  .rows dt{font-size:12px; letter-spacing:.04em}
+  .rows dd{font-size:12px}
+  .bar{gap:6px; padding:10px}
+  .bar .inp{width:100%!important; flex-basis:100%}
+  .bar .btn{flex:1}
+  .conf{flex-wrap:wrap}
+  .tl .ev{padding:9px 0}
+}
+@media(forced-colors:active){
+  :focus-visible{outline:2px solid Highlight}
+  .cardrow[aria-current=true]{outline:1px solid Highlight; outline-offset:-2px}
+  .sev,.st,.stamp,.cite{border:1px solid currentColor}
 }
 </style>
 </head>
@@ -535,7 +629,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
       <span>Password</span>
       <input id="gate-password" type="password" autocomplete="current-password" placeholder="••••••••">
     </label>
-    <div id="gate-err"></div>
+    <div id="gate-err" role="alert" aria-live="assertive"></div>
     <div class="ticket-foot">
       <button class="btn primary" type="submit" id="gate-submit">Sign in</button>
       <button class="btn" type="button" id="gate-toggle">Register instead</button>
@@ -551,10 +645,13 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
     <span class="sub">Case register</span>
   </div>
   <div class="filters">
-    <label class="field" style="flex:1 1 200px">
+    <div class="field" style="flex:1 1 200px">
       <svg width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
       <input type="search" id="q" placeholder="Search case titles" aria-label="Search case titles">
-    </label>
+      <button class="search-clear" id="q-clear" type="button" aria-label="Clear case title search" hidden>
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
     <label class="field"><span class="legend">Status</span>
       <select id="f-status" aria-label="Filter by status">
         <option value="">Any</option><option>OPEN</option><option>INVESTIGATING</option><option>RESOLVED</option>
@@ -584,7 +681,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 <main class="cabinet">
   <section class="drawer" aria-label="Case register">
     <div class="drawer-head">
-      <span class="legend" id="reg-count">Loading</span>
+      <span class="legend" id="reg-count" role="status" aria-live="polite">Loading</span>
       <button class="btn onCab" id="new-case" style="padding:4px 8px">
         <svg width="12" height="12" aria-hidden="true"><use href="#i-plus"/></svg>New case
       </button>
@@ -600,7 +697,7 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
     <div class="standby">
       <div class="standby-plate">
         <span class="legend">Mango case register</span>
-        <p class="sb-lead">No case open.</p>
+        <h1 class="sb-lead">No case open.</h1>
         <dl class="rows">
           <dt>Open a case</dt><dd>click the drawer, or press <b>j</b></dd>
           <dt>Search</dt><dd>press <b>/</b></dd>
@@ -619,8 +716,8 @@ details.entry .dur{margin-left:auto; font-family:"Courier Prime",monospace; font
 </footer>
 
 <script>
-const S = { token:null, incidents:[], sel:null, detail:null, poll:null,
-            known:{}, changed:new Set(), err:null };
+const S = { token:null, incidents:[], sel:null, detail:null, poll:null, stream:null, streamRun:null,
+            known:{}, changed:new Set(), err:null, registerRequest:0, openRequest:0 };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(3,"0");
@@ -662,7 +759,9 @@ function showGate(message){
 
 function signOut(message){
   S.token = null; S.detail = null; S.sel = null; S.incidents = [];
+  S.registerRequest += 1; S.openRequest += 1;
   clearTimeout(S.poll);
+  S.stream?.abort(); S.stream = null; S.streamRun = null;
   try{ localStorage.removeItem("mango.token"); }catch{}
   $("#gate-password").value = "";
   showGate(message);
@@ -736,13 +835,16 @@ $("#signout").onclick = () => signOut();
 const ORDER = ["CRITICAL","HIGH","MEDIUM","LOW"];
 
 async function loadRegister(){
+  const request = ++S.registerRequest;
   const p = new URLSearchParams({limit:"100"});
   const q = $("#q").value.trim(), st = $("#f-status").value, sv = $("#f-sev").value;
   if(q) p.set("search", q); if(st) p.set("status", st); if(sv) p.set("severity", sv);
   try{
-    S.incidents = await api("/incidents?"+p);
+    const incidents = await api("/incidents?"+p);
+    if(request !== S.registerRequest) return;
+    S.incidents = incidents;
     S.err = null;
-  }catch(e){ S.err = e.message; S.incidents = []; }
+  }catch(e){ if(request !== S.registerRequest) return; S.err = e.message; S.incidents = []; }
   renderDrawer();
 }
 
@@ -754,8 +856,18 @@ function renderDrawer(){
     return;
   }
   if(!S.incidents.length){
-    d.innerHTML = `<div class="empty"><h2>Drawer empty</h2><p>No case matches the current filters. Trigger a failure in DummyCommerce, or open a case by hand with <strong>New case</strong>.</p></div>`;
-    $("#reg-count").textContent = "0 cases";
+    const filtered = Boolean($("#q").value.trim() || $("#f-status").value || $("#f-sev").value);
+    d.innerHTML = `<div class="empty"><h2>${filtered ? "No matching cases" : "No cases yet"}</h2>
+      <p>${filtered ? "Try a different search or clear the filters." : "Trigger a failure in DummyCommerce, or open a case by hand with New case."}</p>
+      ${filtered ? '<button class="btn onCab" id="clear-filters" type="button">Clear filters</button>' : ""}</div>`;
+    $("#reg-count").textContent = filtered ? "0 matching cases" : "0 cases";
+    $("#clear-filters")?.addEventListener("click", () => {
+      $("#q").value = "";
+      $("#q-clear").hidden = true;
+      $("#f-status").value = "";
+      $("#f-sev").value = "";
+      loadRegister();
+    });
     return;
   }
   $("#reg-count").textContent = S.incidents.length + (S.incidents.length===1?" case":" cases");
@@ -794,6 +906,8 @@ function renderDrawer(){
 
 /* ── the open case ───────────────────────────────────────────────────── */
 async function openCase(id){
+  const request = ++S.openRequest;
+  if(S.sel !== id){ S.stream?.abort(); S.stream = null; S.streamRun = null; }
   S.sel = id;
   S.changed.delete(id);
   renderDrawer();
@@ -807,18 +921,69 @@ async function openCase(id){
     ]);
     let investigation = null;
     try{ investigation = await api(`/incidents/${id}/investigation`); }catch{}
+    if(request !== S.openRequest || S.sel !== id) return;
     S.detail = {incident, activity, comments, investigation};
     renderSheet();
     schedulePoll();
   }catch(e){
+    if(request !== S.openRequest || S.sel !== id) return;
     $("#plate").innerHTML = `<div class="sheet"><div class="err">${esc(e.message)}</div></div>`;
   }
 }
 
 function schedulePoll(){
   clearTimeout(S.poll);
-  const st = S.detail?.investigation?.status;
-  if(st === "PENDING" || st === "RUNNING") S.poll = setTimeout(() => openCase(S.sel), 2500);
+  const inv = S.detail?.investigation;
+  if(inv && (inv.status === "PENDING" || inv.status === "RUNNING")){
+    streamInvestigation(S.sel, inv.id);
+  }else{
+    S.stream?.abort(); S.stream = null; S.streamRun = null;
+  }
+}
+
+async function streamInvestigation(incidentId, runId){
+  if(S.streamRun === runId) return;
+  S.stream?.abort();
+  const controller = new AbortController();
+  S.stream = controller; S.streamRun = runId;
+  try{
+    const response = await fetch(`/incidents/${incidentId}/investigation/stream`, {
+      headers:{authorization:"Bearer "+S.token}, signal:controller.signal
+    });
+    if(!response.ok) throw new Error(`Stream returned ${response.status}`);
+    const reader = response.body.getReader(), decoder = new TextDecoder();
+    let pending = "";
+    while(true){
+      const {value, done} = await reader.read();
+      if(done) break;
+      pending += decoder.decode(value, {stream:true});
+      const messages = pending.split("\n\n"); pending = messages.pop() || "";
+      for(const message of messages){
+        const kind = message.match(/^event: (.+)$/m)?.[1];
+        const data = message.match(/^data: (.+)$/m)?.[1];
+        if(!kind || !data || S.sel !== incidentId || S.detail?.investigation?.id !== runId) continue;
+        const update = JSON.parse(data), inv = S.detail.investigation;
+        if(kind === "agent"){
+          const index = inv.executions.findIndex(e => e.id === update.id);
+          if(index < 0) inv.executions.push(update); else inv.executions[index] = update;
+          inv.executions.sort((a,b) => PIPELINE.indexOf(a.agent_name)-PIPELINE.indexOf(b.agent_name));
+        }else if(kind === "done"){
+          inv.status = update.status; inv.error = update.error; inv.finished_at = update.finished_at;
+        }
+        renderSheet();
+        if(kind === "done"){
+          await Promise.all([loadRegister(), loadQuota()]);
+          S.stream = null; S.streamRun = null;
+          return;
+        }
+      }
+    }
+  }catch(error){
+    if(error.name !== "AbortError" && S.sel === incidentId && S.detail?.investigation?.id === runId){
+      S.stream = null; S.streamRun = null;
+      S.poll = setTimeout(() => openCase(incidentId), 2500);
+    }
+  }
 }
 
 const NEXT = {OPEN:"INVESTIGATING", INVESTIGATING:"RESOLVED", RESOLVED:null};
@@ -854,7 +1019,7 @@ function renderSheet(){
         ${inv ? "Run again" : "Run investigation"}
       </button>
     </div>
-    <div id="act-err"></div>
+    <div id="act-err" role="alert" aria-live="assertive"></div>
 
     ${renderInvestigation(inv)}
 
@@ -898,6 +1063,7 @@ function renderSheet(){
     act(() => api(`/incidents/${i.id}/comments`, {method:"POST", body:JSON.stringify({content:v})}));
   });
   document.querySelectorAll(".cite").forEach(b => b.onclick = () => {
+    if(b.dataset.historyId){ openCase(+b.dataset.historyId); return; }
     const t = $("#ex-"+b.dataset.ex);
     if(!t) return;
     document.querySelectorAll(".exhibit.lit").forEach(e => e.classList.remove("lit"));
@@ -906,14 +1072,22 @@ function renderSheet(){
   });
 }
 
-function fail(m){ $("#act-err").innerHTML = `<div class="err">${esc(m)}</div>`; }
+function fail(m){
+  const target = $("#act-err");
+  if(target) target.innerHTML = `<div class="err">${esc(m)}</div>`;
+  else if(!$("#gate").hidden) $("#gate-err").innerHTML = `<div class="err">${esc(m)}</div>`;
+}
 async function act(fn){
   $("#act-err").innerHTML = "";
+  const button = document.activeElement instanceof HTMLButtonElement ? document.activeElement : null;
+  if(button?.disabled) return;
+  if(button){ button.disabled = true; button.setAttribute("aria-busy","true"); }
   try{ await fn(); await loadRegister(); await openCase(S.sel); await loadQuota(); }
   catch(e){ fail(e.message); }
+  finally{ if(button?.isConnected){ button.disabled = false; button.removeAttribute("aria-busy"); } }
 }
 
-const PIPELINE = ["planner","evidence_collector","root_cause","fix_recommendation","report"];
+const PIPELINE = ["planner","evidence_collector","history","root_cause","fix_recommendation","report"];
 const CONF = {low:1, medium:2, high:3};
 
 function renderInvestigation(inv){
@@ -921,7 +1095,7 @@ function renderInvestigation(inv){
     <div class="block-head"><h2>Investigation</h2></div>
     <div class="block-body"><div class="empty" style="padding:22px 0">
       <h2>Not investigated</h2>
-      <p>No agent has looked at this case. Running one costs three model requests and takes about a minute.</p>
+      <p>No agent has looked at this case. Running one costs four model requests and takes about a minute.</p>
     </div></div></section>`;
 
   const done = Object.fromEntries(inv.executions.map(e => [e.agent_name, e]));
@@ -929,6 +1103,7 @@ function renderInvestigation(inv){
   const rc = inv.executions.find(e => e.agent_name==="root_cause")?.output?.root_cause || {};
   const rec = inv.executions.find(e => e.agent_name==="fix_recommendation")?.output?.recommendations || {};
   const ev = out("evidence_collector").evidence || [];
+  const history = out("history").history || [];
   const conf = CONF[rc.confidence] || 0;
 
   const stops = PIPELINE.map(n => {
@@ -942,7 +1117,7 @@ function renderInvestigation(inv){
 
   return `<section class="block">
     <div class="block-head"><h2>Investigation</h2>
-      <span class="stamp ${inv.status}" style="transform:none;margin:0;padding:3px 8px;font-size:10px">${inv.status}</span>
+      <span class="stamp ${inv.status}" style="transform:none;margin:0;padding:3px 8px;font-size:12px">${inv.status}</span>
       <span class="n">run ${pad(inv.id)} · ${esc(inv.triggered_by)}${inv.finished_at?" · "+secs(inv.started_at,inv.finished_at):""}</span>
     </div>
 
@@ -995,6 +1170,14 @@ function renderInvestigation(inv){
       ${list("Recommended actions — for an engineer to review", rec.actions)}
       ${list("How to validate", rec.validation_steps)}
     </div>` : ""}
+
+    ${history.length ? `<div class="block-head" style="border-top:var(--hair) solid var(--card-3)">
+        <h2>${history.length} similar resolved incident${history.length===1?"":"s"}</h2>
+        <span class="n">last resolved ${Math.min(...history.map(x=>x.days_since_resolution ?? 0))} days ago</span></div>
+      <div class="block-body">${history.map(match=>`<div class="finding">
+        <button class="cite history-link" data-history-id="${match.incident_id}">INC ${pad(match.incident_id)}</button>
+        <p><strong>${esc(match.title)}</strong> · ${esc(match.likely_cause)}
+          <span class="legend">${Math.round(match.similarity*100)}% similar</span></p></div>`).join("")}</div>` : ""}
 
     ${ev.length ? `<div class="block-head" style="border-top:var(--hair) solid var(--card-3)">
         <h2>Exhibits</h2><span class="n">${ev.length} log record${ev.length===1?"":"s"}</span></div>
@@ -1066,20 +1249,24 @@ $("#new-case").onclick = () => {
       <label><span class="legend" style="display:block;margin-bottom:5px">Title</span>
         <input class="inp" id="n-title" placeholder="What is failing"></label>
       <label><span class="legend" style="display:block;margin-bottom:5px">Description</span>
-        <input class="inp" id="n-desc" placeholder="Endpoint, error, anything already known"></label>
+        <textarea class="inp" id="n-desc" rows="3" placeholder="Endpoint, error, anything already known"></textarea></label>
       <label><span class="legend" style="display:block;margin-bottom:5px">Severity</span>
         <select class="inp" id="n-sev"><option>LOW</option><option>MEDIUM</option><option selected>HIGH</option><option>CRITICAL</option></select></label>
-      <div id="act-err"></div>
+      <div id="act-err" role="alert" aria-live="assertive"></div>
       <div><button class="btn primary" id="n-save">File case</button></div>
     </div></article>`;
   $("#n-save").onclick = async () => {
     const title = $("#n-title").value.trim();
     if(!title) return fail("A case needs a title.");
+    const button = $("#n-save");
+    button.disabled = true;
+    button.setAttribute("aria-busy","true");
     try{
       const made = await api("/incidents", {method:"POST", body:JSON.stringify({
         title, description:$("#n-desc").value.trim() || null, severity:$("#n-sev").value})});
       await loadRegister(); openCase(made.id);
     }catch(e){ fail(e.message); }
+    finally{ if(button.isConnected){ button.disabled = false; button.removeAttribute("aria-busy"); } }
   };
   $("#n-title").focus();
 };
@@ -1103,7 +1290,16 @@ addEventListener("keydown", e => {
 });
 
 let t; const debounce = fn => { clearTimeout(t); t = setTimeout(fn, 220); };
-$("#q").oninput = () => debounce(loadRegister);
+$("#q").oninput = () => {
+  $("#q-clear").hidden = !$("#q").value;
+  debounce(loadRegister);
+};
+$("#q-clear").onclick = () => {
+  $("#q").value = "";
+  $("#q-clear").hidden = true;
+  loadRegister();
+  $("#q").focus();
+};
 $("#f-status").onchange = loadRegister;
 $("#f-sev").onchange = loadRegister;
 

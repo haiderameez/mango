@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_admin
 from app.core.exceptions import InvalidCredentialsError, UserAlreadyExistsError
 from app.database.session import get_db
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
+from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse, UserRoleUpdate
 from app.services.user_service import UserService
 
 router = APIRouter(
@@ -54,3 +54,16 @@ def login_user(user_data: UserLogin, service: UserService = Depends(get_user_ser
 
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+def update_user_role(
+    user_id: int,
+    update: UserRoleUpdate,
+    _admin: User = Depends(require_admin),
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        return service.set_role(user_id, update.role)
+    except ValueError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

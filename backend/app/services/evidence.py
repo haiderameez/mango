@@ -1,7 +1,7 @@
 """Evidence collection: the only path between an investigation and raw diagnostic data.
 
-The single source for v1 is the JSONL application log DummyCommerce writes. Results are
-bounded and scrubbed before they can reach a prompt.
+Evidence comes from bounded database queries or the legacy JSONL source used by tests.
+Results are bounded and scrubbed before they can reach a prompt.
 """
 import json
 import logging
@@ -93,6 +93,7 @@ def collect(
     incident_created_at: datetime,
     keyword: str | None = None,
     log_path: str | None = None,
+    repository=None,
 ) -> list[dict]:
     """Log records around the incident, newest first, capped. Errors and warnings only,
     unless the filter leaves nothing, in which case the raw window is returned."""
@@ -102,8 +103,15 @@ def collect(
     window_start = incident_created_at - timedelta(minutes=settings.evidence_window_minutes)
     window_end = incident_created_at + timedelta(minutes=1)
 
+    if repository is None:
+        source_records = read_log_records(log_path)
+    else:
+        source_records = _read_repository_records(
+            repository, window_start, window_end, keyword
+        )
+
     in_window = []
-    for record in read_log_records(log_path):
+    for record in source_records:
         timestamp = _parse_timestamp(record.get("timestamp"))
         if timestamp is None or not (window_start <= timestamp <= window_end):
             continue
@@ -121,3 +129,30 @@ def collect(
         selected = matched or selected
 
     return [_normalize(record) for record in selected[: settings.evidence_max_records]]
+
+
+def _read_repository_records(repository, start: datetime, end: datetime, keyword: str | None):
+    """Fetch a bounded error window first, falling back to any-level evidence."""
+    limit = settings.evidence_max_records
+    records = repository.get_window(
+        start, end, limit=limit, levels={"ERROR", "CRITICAL", "WARNING"}, keyword=keyword
+    )
+    if not records:
+        records = repository.get_window(start, end, limit=limit, keyword=keyword)
+    if not records and keyword:
+        records = repository.get_window(
+            start, end, limit=limit, levels={"ERROR", "CRITICAL", "WARNING"}
+        )
+        if not records:
+            records = repository.get_window(start, end, limit=limit)
+
+    normalized = []
+    for record in records:
+        raw = dict(record.context or {})
+        raw.update({
+            "timestamp": record.ts.isoformat(), "service": record.service,
+            "level": record.level, "message": record.message,
+            "request_id": record.request_id, "error_type": record.context.get("error_type"),
+        })
+        normalized.append(raw)
+    return normalized

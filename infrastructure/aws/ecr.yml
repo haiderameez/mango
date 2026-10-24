@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Mango backend image repository (bootstrap before deploying the ECS stack).
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: mango-backend
+
+Resources:
+  BackendRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      ImageTagMutability: IMMUTABLE
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: '{"rules":[{"rulePriority":1,"description":"Keep the latest 20 tagged releases","selection":{"tagStatus":"tagged","tagPrefixList":["release-"],"countType":"imageCountMoreThan","countNumber":20},"action":{"type":"expire"}},{"rulePriority":2,"description":"Expire untagged build layers after 7 days","selection":{"tagStatus":"untagged","countType":"sinceImagePushed","countUnit":"days","countNumber":7},"action":{"type":"expire"}}]}'
+
+Outputs:
+  RepositoryUri:
+    Value: !GetAtt BackendRepository.RepositoryUri
+  RepositoryName:
+    Value: !Ref BackendRepository

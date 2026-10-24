@@ -15,11 +15,10 @@ class Settings(BaseSettings):
     aws_sns_topic_arn: str | None = None
     aws_region: str = "us-east-1"
 
-    # AI investigation. "gemini" is the free-tier default; "anthropic" is also supported.
     log_level: str = "INFO"
 
-
-    llm_provider: Literal["gemini", "anthropic"] = "gemini"
+    # Provider is explicit and model identifiers stay pinned, never aliases.
+    llm_provider: Literal["gemini", "anthropic", "openrouter"] = "gemini"
 
     google_api_key: str | None = None
     # Pinned deliberately, not an alias: "gemini-flash-latest" moved to gemini-3.8-flash,
@@ -30,6 +29,15 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-5-5"
+
+    openrouter_api_key: str | None = None
+    # Pinned non-thinking model: strong structured SRE analysis at a fraction of GPT-4.1
+    # Mini's current listed token price, without extra reasoning tokens.
+    openrouter_model: str = "qwen/qwen3-30b-a3b-instruct-2507"
+    openrouter_embedding_model: str = "openai/text-embedding-3-small"
+    incident_history_similarity_floor: float = 0.75
+    incident_history_limit: int = 3
+    incident_history_enabled: bool = True
 
     # Provider budget. Defaults are the conservative end of Gemini's free tier; check your
     # own limits in Google AI Studio and raise them here. Mango never sends a request that
@@ -44,8 +52,11 @@ class Settings(BaseSettings):
     # Log each agent's reasoning as it runs, and store a summary with its execution.
     llm_show_thinking: bool = True
     llm_thinking_max_chars: int = 4000
-    llm_quota_file: str = ".llm_quota.json"
     llm_quota_timezone: str = "America/Los_Angeles"
+    redis_url: str = "redis://localhost:6379/0"
+    investigation_worker_concurrency: int = 4
+    otel_endpoint: str | None = None
+    slack_webhook_url: str | None = None
 
     # A PENDING or RUNNING investigation older than this is treated as abandoned (the
     # process died mid-run) and no longer blocks a retry.

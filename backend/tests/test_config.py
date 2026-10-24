@@ -14,3 +14,9 @@ def test_a_placeholder_signing_key_is_refused(value):
 
 def test_a_real_signing_key_is_accepted():
     assert Settings(jwt_secret_key="s3cret", _env_file=None).jwt_secret_key == "s3cret"
+
+
+def test_openrouter_defaults_to_the_pinned_low_cost_instruction_model():
+    settings = Settings(jwt_secret_key="s3cret", _env_file=None)
+
+    assert settings.openrouter_model == "qwen/qwen3-30b-a3b-instruct-2507"

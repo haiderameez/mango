@@ -1,0 +1,14 @@
+id: case-45
+family: internal_error
+variant: outside_window
+incident:
+  id: 45
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-45.
+  severity: HIGH
+  status: OPEN
+  created_at: '2026-11-15T12:00:00+00:00'
+category: code_defect
+service: dummycommerce
+root_cause: pricing multiplies a missing discount rate
+fix: Handle missing promotion results before performing pricing arithmetic.

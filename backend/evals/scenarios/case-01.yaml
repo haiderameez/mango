@@ -1,0 +1,14 @@
+id: case-01
+family: db_connection
+variant: clean
+incident:
+  id: 1
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-01.
+  severity: CRITICAL
+  status: OPEN
+  created_at: '2026-10-02T12:00:00+00:00'
+category: dependency
+service: orders-db
+root_cause: orders-db refuses connections
+fix: Restore database connectivity and verify the listener and health check.

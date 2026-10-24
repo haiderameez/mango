@@ -218,7 +218,15 @@ def seed(db, reset: bool) -> None:
     now = datetime.now(UTC)
     password_hash = hash_password(DEMO_PASSWORD)
 
-    users = [User(name=name, email=email, password_hash=password_hash) for name, email in USERS]
+    users = [
+        User(
+            name=name,
+            email=email,
+            password_hash=password_hash,
+            role="admin" if email == "demo@mango.dev" else "responder",
+        )
+        for name, email in USERS
+    ]
     db.add_all(users)
     db.flush()
 

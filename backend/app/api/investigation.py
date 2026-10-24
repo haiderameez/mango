@@ -1,21 +1,88 @@
+import asyncio
+import json
+import time
+
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.ai import quota
 from app.ai.graph import LLM_CALLS_PER_RUN
 from app.core.config import settings
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_responder
 from app.database.session import SessionLocal, get_db
 from app.models.user import User
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.incident_repository import IncidentRepository
 from app.repositories.workflow_repository import WorkflowRepository
 from app.schemas.workflow import InvestigationResponse, WorkflowRunResponse
-from app.services.investigation_queue import InvestigationQueue
+from app.services.celery_queue import CeleryInvestigationQueue
 from app.services.investigation_service import InvestigationService
+from app.tasks import run_investigation
 
 incident_investigation_router = APIRouter(prefix="/incidents", tags=["investigations"])
 investigation_router = APIRouter(prefix="/investigations", tags=["investigations"])
+
+
+def get_investigation_service(db: Session = Depends(get_db)) -> InvestigationService:
+    return build_investigation_service(db)
+
+
+@incident_investigation_router.get("/{incident_id}/investigation/stream")
+def stream_investigation(
+    incident_id: int,
+    current_user: User = Depends(get_current_user),
+    service: InvestigationService = Depends(get_investigation_service),
+):
+    """Stream finished agent steps and stored reasoning as server-sent events."""
+    run_id = service.get_latest_for_incident(incident_id).id
+
+    async def events():
+        sent_ids = set()
+        last_ping = time.monotonic()
+        while True:
+            with SessionLocal() as db:
+                run = WorkflowRepository(db).get_run(run_id)
+                executions = WorkflowRepository(db).get_executions(run_id)
+                status_value = run.status.value
+                error = run.error
+                finished_at = run.finished_at.isoformat() if run.finished_at else None
+
+            for execution in executions:
+                if execution.id in sent_ids:
+                    continue
+                sent_ids.add(execution.id)
+                event = {
+                    "id": execution.id,
+                    "agent_name": execution.agent_name,
+                    "status": execution.status.value,
+                    "output": execution.output,
+                    "error": execution.error,
+                    "started_at": (
+                        execution.started_at.isoformat() if execution.started_at else None
+                    ),
+                    "finished_at": (
+                        execution.finished_at.isoformat() if execution.finished_at else None
+                    ),
+                }
+                yield f"event: agent\ndata: {json.dumps(event)}\n\n"
+
+            if status_value in {"COMPLETED", "FAILED"}:
+                done_event = {
+                    "status": status_value, "error": error, "finished_at": finished_at
+                }
+                yield f"event: done\ndata: {json.dumps(done_event)}\n\n"
+                return
+            if time.monotonic() - last_ping >= 15:
+                yield ": keep-alive\n\n"
+                last_ping = time.monotonic()
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 def build_investigation_service(db: Session) -> InvestigationService:
@@ -26,25 +93,7 @@ def build_investigation_service(db: Session) -> InvestigationService:
     )
 
 
-def get_investigation_service(db: Session = Depends(get_db)) -> InvestigationService:
-    return build_investigation_service(db)
-
-
-def run_investigation(run_id: int) -> None:
-    """Worker entry point. Owns its own session: the request's is already closed.
-
-    ponytail: the queue lives in this process, so a restart loses what was still queued.
-    Those runs stay PENDING in the database and can be re-triggered once they go stale.
-    Move to a shared broker when investigations must survive a deploy.
-    """
-    db = SessionLocal()
-    try:
-        build_investigation_service(db).run(run_id)
-    finally:
-        db.close()
-
-
-investigation_queue = InvestigationQueue(run_investigation)
+investigation_queue = CeleryInvestigationQueue(run_investigation)
 
 
 @incident_investigation_router.post(
@@ -54,7 +103,7 @@ investigation_queue = InvestigationQueue(run_investigation)
 )
 def start_investigation(
     incident_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_responder),
     service: InvestigationService = Depends(get_investigation_service),
 ):
     """Queue an investigation. Returns immediately; one runs at a time."""

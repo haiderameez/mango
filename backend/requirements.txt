@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 alembic
 psycopg[binary]
+pgvector
 pydantic
 pydantic-settings
 python-dotenv
@@ -14,3 +15,11 @@ httpx
 langgraph
 langchain-anthropic
 langchain-google-genai
+langchain-openai
+celery[redis]
+prometheus-client
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-http
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-celery

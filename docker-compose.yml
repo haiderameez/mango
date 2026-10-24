@@ -6,7 +6,7 @@
 # Console: http://localhost:8000/console   DummyCommerce: http://localhost:8001/docs
 services:
   postgres:
-    image: postgres:17
+    image: pgvector/pgvector:pg17
     container_name: mango-db
     environment:
       POSTGRES_USER: postgres
@@ -23,25 +23,105 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: mango-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  jaeger:
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.22.0
+    container_name: mango-jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+
   api:
     build: ./backend
     container_name: mango-api
     env_file: ./backend/.env
     environment:
       # Override the host-machine values in .env: inside the network these are service names
-      # and container paths. The daily LLM budget lives on a volume so a restart does not
-      # hand the process a fresh allowance.
+      # and container paths. The daily LLM budget is stored in Postgres.
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
       DUMMYCOMMERCE_LOG_PATH: /logs/app.jsonl
-      LLM_QUOTA_FILE: /state/llm_quota.json
     ports:
       - "8000:8000"
     volumes:
       - mango_logs:/logs
-      - mango_state:/state
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+
+  worker:
+    build: ./backend
+    container_name: mango-worker
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
+      INVESTIGATION_WORKER_CONCURRENCY: ${INVESTIGATION_WORKER_CONCURRENCY:-4}
+    command:
+      - sh
+      - -c
+      - celery -A app.celery_app:celery_app worker --loglevel=INFO --concurrency=$${INVESTIGATION_WORKER_CONCURRENCY:-4} -Q investigations
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+
+  ingest-worker:
+    build: ./backend
+    container_name: mango-ingest-worker
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
+      INGEST_WORKER_CONCURRENCY: ${INGEST_WORKER_CONCURRENCY:-4}
+    command:
+      - sh
+      - -c
+      - celery -A app.celery_app:celery_app worker --loglevel=INFO --concurrency=$${INGEST_WORKER_CONCURRENCY:-4} -Q ingestion
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+
+  scheduler:
+    build: ./backend
+    container_name: mango-scheduler
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mango
+      REDIS_URL: redis://redis:6379/0
+      OTEL_ENDPOINT: http://jaeger:4318/v1/traces
+    command: celery -A app.celery_app:celery_app beat --loglevel=INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
 
   dummycommerce:
     build: ./dummycommerce
@@ -61,4 +141,3 @@ services:
 volumes:
   mango_postgres_data:
   mango_logs:
-  mango_state:

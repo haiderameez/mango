@@ -1,0 +1,1421 @@
+{
+ "url": "http://127.0.0.1:8002",
+ "at": "2026-10-22T15:27:54.805Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.68,
+    0.62
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 1175,
+     "screens": 1.3,
+     "words": 159,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 68,
+     "vw": 4.7,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.35,
+     "top": 216,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 68,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 2,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.32,
+      "top": 152,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 68,
+      "vw": 4.7,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.35,
+      "top": 216,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 2,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      68
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 4.9
+     },
+     "measureChars": 43,
+     "max": {
+      "size": 68,
+      "vw": 4.7,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.06,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Fresh batch · North window roastery",
+      "above": "Coffee for the long watch.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 152
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#5f5d55",
+       "share": 0.74
+      },
+      {
+       "color": "#26251e",
+       "share": 0.24
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "per 250 g bag",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "key not configured",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "Set MANGO_INGEST_KEY to enable log shipp",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 13,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 1,
+     "inHero": 1,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Place a test order"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 88,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 1175,
+    "margins": {
+     "left": 134,
+     "right": 132
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 96,
+      "height": 759,
+      "words": 85,
+      "media": 1,
+      "middle": 192,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 68,
+       "tag": "h1"
+      },
+      "left": 186,
+      "right": 182,
+      "textLeft": 186,
+      "textRight": 182,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 855,
+      "height": 201,
+      "words": 30,
+      "media": 0,
+      "middle": 189,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 134,
+      "right": 742,
+      "textLeft": 134,
+      "textRight": 742,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 68,
+      "top": 216,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 186,
+      "n": 3
+     },
+     {
+      "x": 134,
+      "n": 2
+     },
+     {
+      "x": 802,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 6,
+    "bodySize": 13,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.11,
+    "voidBox": {
+     "x": 0,
+     "y": 120,
+     "w": 180,
+     "h": 780
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.76,
+    0.71
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1190,
+     "screens": 1.2,
+     "words": 159,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 42,
+     "vw": 5.5,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.35,
+     "top": 229,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 42,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 3.8,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.31,
+      "top": 152,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 42,
+      "vw": 5.5,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.35,
+      "top": 229,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "The app trail",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 26,
+      "vw": 3.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 899,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 3,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      42
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 4.9
+     },
+     "measureChars": 33,
+     "max": {
+      "size": 42,
+      "vw": 5.5,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.06,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Fresh batch · North window roastery",
+      "above": "Coffee for the long watch.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 152
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 96,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#5f5d55",
+       "share": 0.74
+      },
+      {
+       "color": "#26251e",
+       "share": 0.24
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "per 250 g bag",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "key not configured",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "Set MANGO_INGEST_KEY to enable log shipp",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 13,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 1,
+     "inHero": 1,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Place a test order"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 88,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1190,
+    "margins": {
+     "left": 28,
+     "right": 26
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 96,
+      "height": 751,
+      "words": 85,
+      "media": 1,
+      "middle": 119,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 42,
+       "tag": "h1"
+      },
+      "left": 80,
+      "right": 76,
+      "textLeft": 80,
+      "textRight": 76,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 847,
+      "height": 224,
+      "words": 30,
+      "media": 0,
+      "middle": 56,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 28,
+      "right": 360,
+      "textLeft": 28,
+      "textRight": 360,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 42,
+      "top": 229,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 80,
+      "n": 3
+     },
+     {
+      "x": 28,
+      "n": 2
+     },
+     {
+      "x": 454,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 6,
+    "bodySize": 13,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.91,
+    0.64,
+    0.59
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 1828,
+     "screens": 2.2,
+     "words": 154,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 3,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "chars": 26,
+     "lines": 2,
+     "size": 46.8,
+     "vw": 12,
+     "font": "General Sans",
+     "weight": 700,
+     "tracking": -0.06,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.79,
+     "top": 163,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Coffee for the long watch.",
+     "words": 5,
+     "lines": 2,
+     "size": 46.8,
+     "font": "General Sans"
+    },
+    "headings": [
+     {
+      "text": "Coffee for the long watch.",
+      "words": 5,
+      "chars": 26,
+      "lines": 2,
+      "size": 46.8,
+      "vw": 12,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.06,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 163,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Your order slip",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 29,
+      "vw": 7.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 715,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "$18",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 25,
+      "vw": 6.4,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.09,
+      "top": 974,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "The app trail",
+      "words": 3,
+      "chars": 13,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "General Sans",
+      "weight": 700,
+      "tracking": -0.045,
+      "leading": 1.45,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 1403,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 4,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "General Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      21,
+      25,
+      26,
+      29,
+      47
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "General Sans",
+      "size": 16,
+      "leading": 1.45,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 4.9
+     },
+     "measureChars": 43,
+     "max": {
+      "size": 46.8,
+      "vw": 12,
+      "font": "General Sans",
+      "text": "Coffee for the long watch."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.06,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Fresh batch · North window roastery",
+      "above": "Coffee for the long watch.",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 108
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#dfdedb",
+     "bodyBgHsl": {
+      "h": 45,
+      "s": 0.06,
+      "l": 0.87
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f0efeb",
+       "top": 74,
+       "hsl": {
+        "h": 48,
+        "s": 0.14,
+        "l": 0.93
+       }
+      },
+      {
+       "color": "#d3d2ce",
+       "top": 683,
+       "hsl": {
+        "h": 48,
+        "s": 0.05,
+        "l": 0.82
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#5f5d55",
+       "share": 0.73
+      },
+      {
+       "color": "#26251e",
+       "share": 0.25
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#2456d6",
+      "hsl": {
+       "h": 223,
+       "s": 0.71,
+       "l": 0.49
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "per 250 g bag",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "key not configured",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 14,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      },
+      {
+       "text": "Set MANGO_INGEST_KEY to enable log shipp",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 13,
+       "fg": "#5f5d55",
+       "bg": "#d3d2ce"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 1,
+     "inHero": 0,
+     "radius": 0,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": []
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 72,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "general sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 1828,
+    "margins": {
+     "left": 14,
+     "right": 40
+    },
+    "sections": [
+     {
+      "sel": "section.receipt",
+      "tag": "section",
+      "top": 74,
+      "height": 1294,
+      "words": 85,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Coffee for the long watch.",
+       "size": 47,
+       "tag": "h1"
+      },
+      "left": 40,
+      "right": 40,
+      "textLeft": 40,
+      "textRight": 40,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "section#signal.trace",
+      "tag": "section",
+      "top": 1368,
+      "height": 306,
+      "words": 30,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "The app trail",
+       "size": 26,
+       "tag": "h2"
+      },
+      "left": 16,
+      "right": 62,
+      "textLeft": 16,
+      "textRight": 62,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Coffee for the long watch.",
+      "size": 47,
+      "top": 163,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [
+     {
+      "text": "App trail",
+      "side": "right",
+      "px": 12
+     },
+     {
+      "text": "Night Window Coffee · A local Mango integration ex",
+      "side": "left",
+      "px": 14
+     },
+     {
+      "text": "Open the Mango console",
+      "side": "left",
+      "px": 14
+     }
+    ],
+    "edges": [
+     {
+      "x": 40,
+      "n": 4
+     },
+     {
+      "x": 16,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 6,
+    "bodySize": 13,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 1440,
+   "message": "1 eyebrow/kicker label(s) above headings: \"Fresh batch · North window roastery\" above \"Coffee for the long watch.\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "contrast",
+   "width": 1440,
+   "message": "Low-contrast text: \"per 250 g bag\" 4.4:1 needs 4.5:1; \"key not configured\" 4.4:1 needs 4.5:1; \"Set MANGO_INGEST_KEY to enable log shipp\" 4.4:1 needs 4.5:1",
+   "fix": "Darken or lighten the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "11 different font sizes (13, 14, 15, 16, 17, 18, 21, 25, 26, 29, 68).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "grey-body",
+   "width": 1440,
+   "message": "The running text is a soft grey on its ground (4.9:1).",
+   "fix": "Set body copy in the full ink (7:1 or more). Keep the muted ink for secondary notes; pages read thin and unfinished when everything is grey.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "few-pictures",
+   "width": 1440,
+   "message": "Only 0 picture(s) on the page (0 photographs, footage or raster images, 0 interface fragments). Drawings in SVG do not count.",
+   "fix": "Find real pictures of the subject's world with scripts/assets.mjs (photographs, archival images, maps, engravings, footage), download them to assets/ and give them room: a hero picture, one per section that has a subject, a full-width band. At least four, usually six to twelve."
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "FAIL",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Only 0 element(s) moved while the page loaded and scrolled.",
+   "fix": "Build the motion layer (SKILL.md step 9, references/motion.md): the signature move, an entrance for the parts of every section, feedback on every control, and one moving picture. Transform and opacity only, with a reduced-motion fallback."
+  },
+  {
+   "level": "WARN",
+   "id": "first-action",
+   "width": 390,
+   "message": "No visible button in the first phone screen.",
+   "fix": "On a phone the first screen still holds the headline, the supporting sentence and the action; move navigation into one row or a menu so it does not push them down."
+  },
+  {
+   "level": "FAIL",
+   "id": "off-centre",
+   "width": 390,
+   "message": "The page sits off-centre: its content comes to 14px from the left edge but only to 40px from the right, at 390px.",
+   "fix": "Give the page one pair of equal margins. Check the wrapper for a max-width without margin-inline: auto, a grid with an empty last column, or padding on one side only. If one side is meant to hold air, it must still be closed by something that reaches the margin (a picture, the navigation's last item, a figure)."
+  },
+  {
+   "level": "WARN",
+   "id": "edge-text",
+   "width": 390,
+   "message": "3 text block(s) sit 12–15px from the phone's edge: \"App trail\" (12px); \"Night Window Coffee · A local \" (14px); \"Open the Mango console\" (14px)",
+   "fix": "The page margin is 16–20px on a phone; the header and the corner labels sit on it too."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "D:\\mango\\.taste-skill\\inspect\\desktop-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect\\desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "D:\\mango\\.taste-skill\\inspect\\tablet-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "D:\\mango\\.taste-skill\\inspect\\mobile-fold.jpg",
+   "pages": [
+    "D:\\mango\\.taste-skill\\inspect\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

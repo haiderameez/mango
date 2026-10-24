@@ -1,0 +1,14 @@
+id: case-13
+family: memory_pressure
+variant: noise
+incident:
+  id: 13
+  title: Order requests failing or degraded
+  description: Investigate POST /orders, request_id=request-13.
+  severity: CRITICAL
+  status: OPEN
+  created_at: '2026-10-14T12:00:00+00:00'
+category: resource_exhaustion
+service: dummycommerce
+root_cause: order worker exceeds memory limit
+fix: Reduce worker memory use or increase its memory limit; verify no OOMs.

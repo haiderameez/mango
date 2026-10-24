@@ -9,25 +9,33 @@ import json
 import logging
 import re
 from datetime import datetime
-from functools import lru_cache
+from functools import partial
 from typing import TypedDict
 
-from langchain_core.rate_limiters import InMemoryRateLimiter
 from langgraph.graph import END, StateGraph
+from langgraph.types import RetryPolicy, default_retry_on
 
 from app.ai import quota
 from app.ai.schemas import Plan, Recommendations, RootCause
 from app.core.config import settings
 from app.core.exceptions import LlmQuotaExhaustedError, LlmRateLimitedError
+from app.observability import PROVIDER_CALLS, span
 from app.services import evidence
 
 logger = logging.getLogger("mango.investigation")
 
-NODE_ORDER = ["planner", "evidence_collector", "root_cause", "fix_recommendation", "report"]
+NODE_ORDER = [
+    "planner", "evidence_collector", "history", "root_cause", "fix_recommendation", "report"
+]
 
-# How many provider requests one investigation needs. evidence_collector and report are
-# plain Python and cost nothing.
-LLM_CALLS_PER_RUN = 3
+# The embedding request, planner, root cause and recommendations each use the shared guard.
+LLM_CALLS_PER_RUN = 4
+
+
+def _retry_agent_error(error: Exception) -> bool:
+    if isinstance(error, (LlmQuotaExhaustedError, LlmRateLimitedError)):
+        return False
+    return default_retry_on(error)
 
 GROUNDING_RULES = (
     "Use only the evidence supplied in this message. Never invent log lines, timestamps or "
@@ -40,29 +48,14 @@ class InvestigationState(TypedDict, total=False):
     incident: dict
     plan: dict
     evidence: list[dict]
+    history: list[dict]
     root_cause: dict
     recommendations: dict
     report: str
 
 
-@lru_cache(maxsize=4)
-def _rate_limiter(requests_per_minute: int) -> InMemoryRateLimiter:
-    """One limiter shared by every agent and every investigation, so the whole application
-    stays under the provider's per-minute limit. A call waits for its turn instead of being
-    sent and rejected.
-
-    max_bucket_size=1 means no bursting: a free tier counts a burst like any other traffic.
-    """
-    return InMemoryRateLimiter(
-        requests_per_second=requests_per_minute / 60,
-        check_every_n_seconds=0.5,
-        max_bucket_size=1,
-    )
-
-
 def get_llm():
     """The chat model used by every agent node. Patched out in tests."""
-    limiter = _rate_limiter(settings.llm_requests_per_minute)
 
     if settings.llm_provider == "gemini":
         if not settings.google_api_key:
@@ -78,8 +71,32 @@ def get_llm():
             temperature=0,
             timeout=120,
             max_retries=settings.llm_max_retries,
-            rate_limiter=limiter,
             include_thoughts=settings.llm_show_thinking,
+        )
+
+    if settings.llm_provider == "openrouter":
+        if not settings.openrouter_api_key:
+            raise RuntimeError(
+                "OPENROUTER_API_KEY is not configured, so an AI investigation cannot run."
+            )
+
+        from langchain_openai import ChatOpenAI
+
+        extra_body = None
+        if settings.openrouter_model == "nvidia/nemotron-3.5-super-vl:free":
+            # This free endpoint reasons by default; disable hidden reasoning tokens so
+            # the bounded completion budget is available for the required JSON result.
+            extra_body = {"reasoning": {"enabled": False}}
+
+        return ChatOpenAI(
+            model=settings.openrouter_model,
+            api_key=settings.openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1",
+            temperature=0,
+            max_tokens=2048,
+            timeout=120,
+            max_retries=settings.llm_max_retries,
+            extra_body=extra_body,
         )
 
     if not settings.anthropic_api_key:
@@ -95,7 +112,6 @@ def get_llm():
         temperature=0,
         timeout=120,
         max_retries=settings.llm_max_retries,
-        rate_limiter=limiter,
     )
 
 
@@ -119,6 +135,17 @@ def _ask(schema, prompt: str):
             f"The provider asked us to back off; {quota.cooldown_remaining():.0f}s left."
         )
 
+    if not quota.has_capacity():
+        raise LlmQuotaExhaustedError(
+            f"The daily LLM request budget ({settings.llm_requests_per_day}) is spent. "
+            f"It resets in {quota.seconds_until_reset() / 3600:.1f} hours."
+        )
+
+    quota.wait_for_rate_slot()
+    if quota.is_cooling_down():
+        raise LlmRateLimitedError(
+            f"The provider asked us to back off; {quota.cooldown_remaining():.0f}s left."
+        )
     if not quota.consume():
         raise LlmQuotaExhaustedError(
             f"The daily LLM request budget ({settings.llm_requests_per_day}) is spent. "
@@ -126,8 +153,11 @@ def _ask(schema, prompt: str):
         )
 
     try:
-        return _invoke(schema, prompt)
+        result = _invoke(schema, prompt)
+        PROVIDER_CALLS.labels(settings.llm_provider, "success").inc()
+        return result
     except Exception as error:
+        PROVIDER_CALLS.labels(settings.llm_provider, "error").inc()
         if not is_rate_limited(error):
             raise
 
@@ -195,10 +225,16 @@ def planner(state: InvestigationState) -> InvestigationState:
     return {"plan": plan.model_dump()}
 
 
-def evidence_collector(state: InvestigationState) -> InvestigationState:
+def evidence_collector(state: InvestigationState, repository=None) -> InvestigationState:
     created_at = datetime.fromisoformat(state["incident"]["created_at"])
     keyword = (state.get("plan") or {}).get("log_keyword")
-    return {"evidence": evidence.collect(created_at, keyword=keyword)}
+    return {"evidence": evidence.collect(created_at, keyword=keyword, repository=repository)}
+
+
+def history(state: InvestigationState, service=None) -> InvestigationState:
+    if service is None or not settings.incident_history_enabled:
+        return {"history": []}
+    return {"history": service.find_similar(state["incident"], state.get("evidence") or [])}
 
 
 def root_cause(state: InvestigationState) -> InvestigationState:
@@ -208,6 +244,10 @@ def root_cause(state: InvestigationState) -> InvestigationState:
         f"Incident: {json.dumps(state['incident'])}\n"
         f"Investigation plan: {json.dumps(state.get('plan') or {})}\n"
         f"Evidence (application log records): {json.dumps(state.get('evidence') or [])}\n\n"
+        f"Resolved incident history (similarity-qualified prior art): "
+        f"{json.dumps(state.get('history') or [])}\n\n"
+        "Use prior incidents only as context. Diagnose this incident from its own supplied "
+        "evidence, and say when the historical cases do not apply.\n"
         f"{GROUNDING_RULES}",
     )
     return {"root_cause": analysis.model_dump()}
@@ -253,6 +293,7 @@ def report(state: InvestigationState) -> InvestigationState:
     analysis = state.get("root_cause") or {}
     recommendations = state.get("recommendations") or {}
     records = state.get("evidence") or []
+    history_matches = state.get("history") or []
 
     text = f"""# Investigation report - incident #{incident["id"]}
 
@@ -273,6 +314,12 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
 {len(records)} log record(s) from the incident window.
 
 {_bullets([_evidence_line(r) for r in records], "_no log records matched the incident window._")}
+
+## Similar resolved incidents
+
+{_bullets([f"Incident #{item['incident_id']} — {item['title']} (similarity "
+           f"{item['similarity']:.2f}): {item['likely_cause']}" for item in history_matches],
+          "_no similar resolved incidents met the similarity threshold._")}
 
 ## Observed facts
 
@@ -305,13 +352,34 @@ Severity {incident["severity"]} - status {incident["status"]} - opened {incident
     return {"report": text}
 
 
-def build_graph():
+def build_graph(*, start_at: str | None = None, evidence_repository=None, history_service=None):
+    if start_at is not None and start_at not in NODE_ORDER:
+        raise ValueError(f"Unknown investigation node: {start_at}")
     graph = StateGraph(InvestigationState)
 
     for name in NODE_ORDER:
-        graph.add_node(name, globals()[name])
+        node = globals()[name]
+        if name == "evidence_collector" and evidence_repository is not None:
+            node = partial(node, repository=evidence_repository)
+        if name == "history" and history_service is not None:
+            node = partial(node, service=history_service)
 
-    graph.set_entry_point(NODE_ORDER[0])
+        def traced_node(state, *, _node=node, _name=name):
+            with span(f"mango.agent.{_name}"):
+                return _node(state)
+
+        graph.add_node(
+            name,
+            traced_node,
+            retry_policy=RetryPolicy(
+                max_attempts=3,
+                initial_interval=1,
+                backoff_factor=2,
+                retry_on=_retry_agent_error,
+            ),
+        )
+
+    graph.set_entry_point(start_at or NODE_ORDER[0])
     for current, following in zip(NODE_ORDER, NODE_ORDER[1:], strict=False):
         graph.add_edge(current, following)
     graph.add_edge(NODE_ORDER[-1], END)

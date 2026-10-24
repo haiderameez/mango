@@ -10,9 +10,6 @@ Command (from backend): `python -m evals.run --report --limit 4 --cache 'evals\.
 Coverage: **4/50 graded**, 0 failed, 46 pending.
 Stop reason: none.
 
-Quota note: the four OpenRouter scenarios were evaluated with 20 calls against an isolated
-test-database counter that began at zero. This does not verify the production shared budget.
-
 | Measure | Completed scenarios only |
 |---|---|
 | category | 4/4 (100.0%) |

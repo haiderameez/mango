@@ -28,6 +28,12 @@ class IngestRepository:
         self.db.refresh(key)
         return key
 
+    def add_rule(self, rule: DetectionRule) -> DetectionRule:
+        self.db.add(rule)
+        self.db.commit()
+        self.db.refresh(rule)
+        return rule
+
     def add_records(self, records: list[LogRecord]) -> None:
         self.db.add_all(records)
         self.db.commit()

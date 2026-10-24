@@ -43,6 +43,47 @@ They are synthetic fixtures from ten executable DummyCommerce faults, each with 
 background-noise, sparse, distracting-error and outside-window variants. The existing four
 faults are included. Category distribution is balanced (10 cases each). Variants within a
 family are correlated; this is not evidence of generalization to 50 independent outages.
+
+For a disposable PostgreSQL database with pgvector installed, migrate it first and then seed
+the independent synthetic prior cases:
+
+```powershell
+$env:DATABASE_URL = 'postgresql://postgres:postgres@localhost:5433/mango_history_eval_test'
+python -m alembic upgrade head
+python -m scripts.seed_eval_history
+python -m scripts.index_resolved_history --limit 50
+```
+
+The seeder refuses database names that do not end in `_test` and refuses a non-empty database.
+It creates 50 resolved incidents across the same broad fault families, phrased independently
+from the benchmark answer files. A fresh database also starts a fresh local quota counter: carry
+forward provider calls already made today before indexing or evaluating. Never use a fresh test
+database to reset the daily provider budget.
+
+### Resuming the free OpenRouter baseline
+
+The 2026-10-22 partial run uses `nvidia/nemotron-3.5-super-vl:free` and the separate
+`nvidia/nemotron-3.5-embed-1b:free` embedding endpoint. These free endpoints may collect inputs
+for model improvement; keep this configuration limited to the synthetic evaluation fixtures.
+OpenRouter currently caps free models at 50 requests per day and 20 per minute. The evaluator
+sets its daily guard to 50 for this configuration and retains Mango's 10 RPM pacing. The local
+counter reached 50/50, so resume after its daily reset. In PowerShell, from `backend/`:
+
+```powershell
+$env:DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:5433/mango_history_eval_test'
+$env:OPENROUTER_MODEL = 'nvidia/nemotron-3.5-super-vl:free'
+$env:OPENROUTER_EMBEDDING_MODEL = 'nvidia/nemotron-3.5-embed-1b:free'
+$env:LLM_REQUESTS_PER_DAY = '50'
+$env:LLM_REQUESTS_PER_MINUTE = '10'
+$env:LLM_SHOW_THINKING = 'false'
+$env:LLM_MAX_RETRIES = '0'
+python -m evals.run --report `
+  --cache evals/.cache/openrouter-free-2026-10-22 `
+  --output evals/openrouter-free-2026-10-22
+```
+
+The command resumes saved work and continues the baseline. Do not change the model, prompt,
+grading keys or evidence settings between the baseline and retrieval-on run.
 Incident titles are neutral. Injection labels, answers, expected categories and fixes are
 never passed to the investigation. No production data or credentials are in the fixtures.
 

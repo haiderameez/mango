@@ -1,8 +1,17 @@
+import ssl
+
 from celery import Celery
 from celery.signals import worker_process_init
 
 from app.core.config import settings
 from app.observability import configure_celery_tracing
+
+
+def redis_ssl_options(redis_url: str) -> dict[str, ssl.VerifyMode] | None:
+    if redis_url.startswith("rediss://"):
+        return {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    return None
+
 
 celery_app = Celery(
     "mango",
@@ -33,5 +42,12 @@ celery_app.conf.update(
         }
     },
 )
+
+redis_tls = redis_ssl_options(settings.redis_url)
+if redis_tls:
+    celery_app.conf.update(
+        broker_use_ssl=redis_tls,
+        redis_backend_use_ssl=redis_tls,
+    )
 
 worker_process_init.connect(lambda **_kwargs: configure_celery_tracing(), weak=False)

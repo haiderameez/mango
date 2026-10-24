@@ -10,6 +10,9 @@ from app.observability import PROVIDER_CALLS
 
 logger = logging.getLogger(__name__)
 EMBEDDINGS_URL = "https://openrouter.ai/api/v1/embeddings"
+VECTOR_DIMENSIONS = 768
+TRUNCATABLE_EMBEDDING_MODEL = "nvidia/nemotron-3.5-embed-1b:free"
+TRUNCATABLE_EMBEDDING_DIMENSIONS = 2048
 
 
 class IncidentEmbeddingClient:
@@ -39,14 +42,17 @@ class IncidentEmbeddingClient:
             raise LlmQuotaExhaustedError("The daily LLM request budget is spent.")
 
         try:
+            payload = {
+                "model": settings.openrouter_embedding_model,
+                "input": texts,
+            }
+            if settings.openrouter_embedding_model != TRUNCATABLE_EMBEDDING_MODEL:
+                payload["dimensions"] = VECTOR_DIMENSIONS
+
             response = self.http_client.post(
                 EMBEDDINGS_URL,
                 headers={"Authorization": f"Bearer {settings.openrouter_api_key}"},
-                json={
-                    "model": settings.openrouter_embedding_model,
-                    "input": texts,
-                    "dimensions": 768,
-                },
+                json=payload,
                 timeout=30,
             )
             if response.status_code == 429:
@@ -55,7 +61,13 @@ class IncidentEmbeddingClient:
             response.raise_for_status()
             indexed = sorted(response.json()["data"], key=lambda row: row["index"])
             embeddings = [row["embedding"] for row in indexed]
-            if len(embeddings) != len(texts) or any(len(vector) != 768 for vector in embeddings):
+            if settings.openrouter_embedding_model == TRUNCATABLE_EMBEDDING_MODEL:
+                if any(len(vector) != TRUNCATABLE_EMBEDDING_DIMENSIONS for vector in embeddings):
+                    raise ValueError("The embedding provider returned an unexpected vector size.")
+                embeddings = [vector[:VECTOR_DIMENSIONS] for vector in embeddings]
+            if len(embeddings) != len(texts) or any(
+                len(vector) != VECTOR_DIMENSIONS for vector in embeddings
+            ):
                 raise ValueError("The embedding provider returned an unexpected vector size.")
             PROVIDER_CALLS.labels("openrouter", "success").inc()
             return embeddings

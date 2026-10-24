@@ -127,6 +127,11 @@ Redis, Jaeger, API, investigation and ingestion workers, scheduler, and DummyCom
 persistent log volume, migrations at container start, `$PORT` injection for managed
 platforms, and a boot-time validator that refuses a placeholder JWT signing key.
 
+An AWS CloudFormation stack and PowerShell deploy script are in `infrastructure/aws/`; they
+define ECS Fargate, RDS PostgreSQL/pgvector, ElastiCache Redis, SNS, Secrets Manager injection,
+HTTPS, and CloudWatch logs and alarms. The stack still requires an AWS account, certificate,
+domain, and provider key secret before it can be deployed and live-verified.
+
 **Integrations and access control:** users have `admin`, `responder`, or `viewer` access.
 Registration always creates a responder; an administrator assigns roles at
 `PATCH /auth/users/{id}/role`. The demo seed makes `demo@mango.dev` an administrator, and
@@ -147,7 +152,17 @@ baseline is preserved separately in `backend/evals/openrouter-baseline/RESULTS.m
 graded the same 2/50 cases at category 2/2, service 1/2, and agreement 2/2. Both subsets
 are correlated and too small to claim benchmark accuracy. The OpenRouter run's probe budget
 recorded 19/20 requests used, including two provider-rejected calls; 48 cases and the
-ten-case human review remain pending.
+ten-case human review remain pending. The later GPT-4.1 Mini probe reached 4/50 only in an
+isolated quota database; it is not a production-budget measurement. The currently pinned
+Qwen run was safely blocked at 0/50 by the migrated test database's 20/20 guard before any
+provider call. The configured OpenRouter account reported zero total credits at preflight.
+To continue without paid credit, a separate run used the exact free model
+`nvidia/nemotron-3.5-super-vl:free` on synthetic fixtures only. It completed 4/50 cases:
+category 4/4, service 3/4, and judge agreement 4/4. The app's evaluation-only budget was set
+to OpenRouter's documented 50-request daily free cap, with Mango's 10 RPM pacing retained;
+the counter is now 50/50. This is still a partial subset, not an accuracy or retrieval-lift
+claim. Provider embeddings for all 50 synthetic prior cases are now indexed at 768 dimensions;
+the retrieval-on benchmark and ten-case review remain pending.
 
 **Observability:** FastAPI request traces propagate through Celery into worker spans for each
 agent node and export to Jaeger. `/metrics` exposes request and investigation duration,
@@ -157,10 +172,10 @@ first live k6 results are recorded in `load/RESULTS.md`: log intake, incident-re
 and four queued investigation submissions. All three failed their p95 targets; no 450 rps or
 95 ms p95 claim is supported by these measurements.
 
-**Tests:** The backend suite has 249 tests and runs against in-memory SQLite with `StaticPool`;
-all pass, and Ruff passes. The DummyCommerce suite was not runnable here because its
-environment has no pytest installed. CI runs both suites.
-(E, F, I, UP, B; line length 100). Both run in CI on every push.
+**Tests:** The backend suite has 259 tests and runs against in-memory SQLite with `StaticPool`;
+all pass. Ruff passes (E, F, I, UP, B; line length 100). DummyCommerce has 15 passing tests;
+they run with the backend development environment because the companion app has no separate
+pytest installation. CI runs both suites on every push.
 
 ### Known limits of the current build
 
@@ -175,18 +190,22 @@ environment has no pytest installed. CI runs both suites.
   accepted 824 requests at 27.05 requests/s with zero HTTP failures, but p95 was 792.36 ms;
   the 50 ms acceptance target remains unmet.
 - Phase 5 now has a retrieval on/off switch and a resumable OpenRouter partial baseline:
-  4/50 scenarios completed, with category 4/4, service 1/4, and judge agreement 4/4 on
-  that four-case subset. This is not a full-benchmark accuracy result. The run used 20 calls
-  with an isolated test database quota counter, so it does not verify the production shared
-  budget. Finish the 50-case baseline, paired retrieval run, and ten-case human review before
-  making accuracy or lift claims.
+  the pinned free NVIDIA model completed 4/50 scenarios, with category 4/4, service 3/4,
+  and judge agreement 4/4 on that subset. Earlier GPT-4.1 Mini results used an isolated quota
+  counter and are not comparable. The 50 provider-generated history vectors are indexed in
+  the migrated test database. Finish the same-model baseline, retrieval-on run, paired
+  comparison and independent ten-case review before making accuracy or lift claims.
 - Phase 7 behavior is implemented. A live Celery Beat + worker check on PostgreSQL/Redis
   escalated a due incident and delivered the expected payload to a local webhook receiver.
-  A real Slack webhook and full Compose verification remain pending.
-- Phase 3 retrieval, indexing, pgvector migration, and console links are implemented. A
-  disposable pgvector check returned the known top match from 50 synthetic vectors in
-  49.28 ms. Provider-generated semantic retrieval and the paired benchmark lift remain
-  unmeasured.
+  An isolated full Compose stack also built and started: migrations reached `f31a9b4c7d2e`,
+  API health and console returned 200, DummyCommerce docs returned 200, and demo login listed
+  all six seeded incidents. Real Slack delivery remains pending a configured webhook.
+- Phase 3 retrieval, indexing, pgvector migration, and console links are implemented. A fresh
+  migrated PostgreSQL 17/pgvector test database now holds 50 synthetic resolved history cases,
+  kept separate from benchmark answer files. The free NVIDIA embedding endpoint indexed all 50
+  as 768-dimensional vectors in one guarded batch request. A self-match query returned the
+  correct stored row at similarity 1.0; this checks storage and query wiring, not semantic
+  retrieval quality. The same-model retrieval-on benchmark and paired lift remain unmeasured.
 
 ## 4. What is left
 
@@ -197,11 +216,11 @@ Summarised:
 |---|---|---|
 | 1 | **Implemented; latency acceptance failed.** `POST /ingest/logs` authenticates and queues bounded batches to a dedicated Celery ingestion worker; indexed `log_records`, scoped service keys, rule-based incident detection, and database-backed evidence retrieval are built and tested. The latest 10-VU 500-record k6 run accepted 824 requests (412,000 records) at 27.05 requests/s with zero HTTP failures; p95 was 792.36 ms against the 50 ms target. This measured enqueue acceptance, not worker persistence. | Mango *finds* failures instead of being told about them. |
 | 2 | **Implemented and measured.** The live API/PostgreSQL replay produced 400 failures → 6 incidents (66.7:1). The replay command tags each run and waits for all ingestion and detection work before measuring. | Measure how many repeated failures collapse into incidents. |
-| 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Synthetic 50-vector retrieval returned the known top match in 49.28 ms; provider-generated retrieval and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
+| 3 | **Implemented; semantic acceptance pending.** pgvector/HNSW, quota-guarded OpenRouter embeddings, async indexing on resolution, batched backfill, similarity-filtered history node, report and console links. Fifty independent synthetic prior cases are now indexed with provider-generated free NVIDIA embeddings in the migrated test database. A self-match returned similarity 1.0; semantic retrieval quality and benchmark lift remain unmeasured. | The agents reason from everything already learned, not one incident's logs. |
 | 4 | **Acceptance measured.** Eight fake-model investigations completed across four Celery worker threads; 24 fake calls matched the PostgreSQL budget increment, with peak concurrency 4/4. A separate prefork worker-loss test killed the child in `root_cause` after the planner checkpoint; Celery redelivered, resumed, and completed with the planner saved once and a 4-call budget increase matching 4 fake calls. The concurrency test uses the thread pool on Windows; the recovery test uses a Docker prefork worker. | Removes the in-process queue and per-process budget limit. |
-| 5 | **Partial live baseline; completion pending.** The harness now supports retrieval off/on and requires at least 50 history embeddings for an on run. OpenRouter completed 4/50: category 4/4, service 1/4, judge agreement 4/4 on that subset. The partial run spent 20 calls against an isolated test database counter, so it did not verify the production shared budget. Finish the baseline, paired retrieval run and ten-case human review before claiming accuracy or lift. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
+| 5 | **Partial free-model baseline measured; acceptance pending.** `nvidia/nemotron-3.5-super-vl:free` completed 4/50 cases: category 4/4, service 3/4, judge agreement 4/4. The daily guard reached 50/50. Fifty synthetic history records are now embedded with the free NVIDIA embedding model. Complete the baseline across budget resets, run retrieval-on with the same chat and embedding models, compare paired cases, and finish the independent ten-case review before claiming accuracy or lift. | Record real accuracy and calibration before changing retrieval. Partial runs are labelled, not extrapolated. |
 | 6 | **Load measured; p95 targets failed.** The filtered 10k-row register query used the new composite index (0.156 ms database plan time), but the 20-VU endpoint run reached 37.88 requests/s at p95 379.66 ms; 100 VUs reached 99.02 requests/s at p95 2.38 s. Ingestion accepted 27.05 batches/s at p95 792.36 ms, and four investigation submissions had p95 408.24 ms. HTTP failures were zero. Results and test limits are in `load/RESULTS.md`; the data does not support 450 requests/s or 95 ms p95. | p95 and throughput measured rather than asserted. |
-| 7 | **Implemented; local scheduled integration passed.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Celery Beat scheduled an escalation; a Celery worker updated a due critical incident and posted the expected payload to a local webhook receiver. Real Slack delivery and full Compose verification still require `SLACK_WEBHOOK_URL`. | Reads as an on-call tool, not a ticket tracker. |
+| 7 | **Implemented; local scheduled integration and Compose startup passed.** Slack incoming webhooks, minute-based escalation policies, incident acknowledgement, and `admin` / `responder` / `viewer` RBAC are implemented. Celery Beat scheduled an escalation; a Celery worker updated a due critical incident and posted the expected payload to a local webhook receiver. An isolated Compose stack migrated to head and passed API health, console, DummyCommerce docs, and demo-login checks. Real Slack delivery still requires `SLACK_WEBHOOK_URL`. | Reads as an on-call tool, not a ticket tracker. |
 
 **Build order:** 5 (baseline) → 1 → 2 → 3 → re-run 5 for the lift → 4 → 6 → 7.
 

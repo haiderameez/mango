@@ -76,6 +76,18 @@ def test_openrouter_uses_the_pinned_model_and_api_endpoint(monkeypatch):
     assert llm.max_retries == settings.llm_max_retries
 
 
+def test_free_nemotron_disables_reasoning_tokens(monkeypatch):
+    monkeypatch.setattr(settings, "llm_provider", "openrouter")
+    monkeypatch.setattr(settings, "openrouter_api_key", "test-openrouter-key")
+    monkeypatch.setattr(
+        settings, "openrouter_model", "nvidia/nemotron-3.5-super-vl:free"
+    )
+
+    llm = graph.get_llm()
+
+    assert llm.extra_body == {"reasoning": {"enabled": False}}
+
+
 # --- daily budget ---------------------------------------------------------------------
 
 

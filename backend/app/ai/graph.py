@@ -82,6 +82,12 @@ def get_llm():
 
         from langchain_openai import ChatOpenAI
 
+        extra_body = None
+        if settings.openrouter_model == "nvidia/nemotron-3.5-super-vl:free":
+            # This free endpoint reasons by default; disable hidden reasoning tokens so
+            # the bounded completion budget is available for the required JSON result.
+            extra_body = {"reasoning": {"enabled": False}}
+
         return ChatOpenAI(
             model=settings.openrouter_model,
             api_key=settings.openrouter_api_key,
@@ -90,6 +96,7 @@ def get_llm():
             max_tokens=2048,
             timeout=120,
             max_retries=settings.llm_max_retries,
+            extra_body=extra_body,
         )
 
     if not settings.anthropic_api_key:

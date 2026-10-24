@@ -31,7 +31,9 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-5-5"
 
     openrouter_api_key: str | None = None
-    openrouter_model: str = "openai/gpt-4.1-mini"
+    # Pinned non-thinking model: strong structured SRE analysis at a fraction of GPT-4.1
+    # Mini's current listed token price, without extra reasoning tokens.
+    openrouter_model: str = "qwen/qwen3-30b-a3b-instruct-2507"
     openrouter_embedding_model: str = "openai/text-embedding-3-small"
     incident_history_similarity_floor: float = 0.75
     incident_history_limit: int = 3

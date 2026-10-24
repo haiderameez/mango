@@ -3,7 +3,12 @@ import pytest
 from app.ai import graph, quota
 from app.core.config import settings
 from app.core.exceptions import LlmQuotaExhaustedError
-from app.services.incident_embeddings import EMBEDDINGS_URL, IncidentEmbeddingClient
+from app.services.incident_embeddings import (
+    EMBEDDINGS_URL,
+    TRUNCATABLE_EMBEDDING_DIMENSIONS,
+    TRUNCATABLE_EMBEDDING_MODEL,
+    IncidentEmbeddingClient,
+)
 from app.services.incident_history import IncidentHistoryService
 
 
@@ -200,6 +205,28 @@ def test_embedding_request_is_pinned_and_spends_one_guarded_request(monkeypatch)
         "model": "openai/text-embedding-3-small",
         "input": ["pool exhaustion"],
         "dimensions": 768,
+    }
+
+
+def test_free_nemotron_embedding_is_truncated_to_the_pgvector_width(monkeypatch):
+    monkeypatch.setattr(settings, "openrouter_api_key", "test-key")
+    monkeypatch.setattr(settings, "openrouter_embedding_model", TRUNCATABLE_EMBEDDING_MODEL)
+    monkeypatch.setattr(quota, "is_cooling_down", lambda: False)
+    monkeypatch.setattr(quota, "has_capacity", lambda: True)
+    monkeypatch.setattr(quota, "wait_for_rate_slot", lambda model: None)
+    monkeypatch.setattr(quota, "consume", lambda: True)
+    client = FakeHttpClient(
+        FakeResponse(
+            {"data": [{"index": 0, "embedding": [0.25] * TRUNCATABLE_EMBEDDING_DIMENSIONS}]}
+        )
+    )
+
+    vector = IncidentEmbeddingClient(client).embed("pool exhaustion")
+
+    assert len(vector) == 768
+    assert client.calls[0][1]["json"] == {
+        "model": TRUNCATABLE_EMBEDDING_MODEL,
+        "input": ["pool exhaustion"],
     }
 
 

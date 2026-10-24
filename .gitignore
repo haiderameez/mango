@@ -23,9 +23,20 @@ dummycommerce/logs/
 backend/.llm_quota.json
 
 .impeccable/refs/
+.taste-skill/
 
 # Working directory for scripts/capture_fixtures.py
 backend/scripts/.capture/
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# Local benchmark caches and load-test output
+backend/evals/.cache/
+.tmp-load/
+
+# Celery beat runtime state
+backend/celerybeat-schedule*
+
+# Sample-site runtime logs
+sample_site/logs/
